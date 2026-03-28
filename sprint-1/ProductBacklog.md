@@ -5,7 +5,7 @@
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
 |----|-------------|------------|-----|----------|----------|--------|--------|----------|
-| 1 | Istraživanje domene | Analiza call centar domene i pregled sličnih rješenja na tržištu | research | High | 5 | Done | Sprint 1 | / |
+| 1 | Istraživanje domene | Analiza call centra i njegovih potreba i pregled sličnih rješenja na tržištu | research | High | 5 | Done | Sprint 1 | / |
 | 2 | Mapiranje stakeholdera | Identifikacija aktera, njihovih potreba i potencijalnih konflikata | research | High | 3 | Done | Sprint 1 | deliverable |
 | 3 | Product Vision | Definisanje za koga se gradi, koji problem rješava i mjerila uspjeha | documentation | High | 2 | Done | Sprint 1 | deliverable |
 | 4 | Team Charter | Raspodjela uloga, komunikacija, način održavanja sastanaka| documentation | High | 2 | Done | Sprint 1 | deliverable |
@@ -57,7 +57,7 @@
  
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
 |----|-------------|------------|-----|----------|----------|--------|--------|----------|
-| 30 | Pipeline za obradu transkripata | Normalizacija teksta i orazdvajanje teksta na uloge | technical task | High | 13 | Not Started | Sprint 6 | inkrement |
+| 30 | Pipeline za obradu transkripata | Normalizacija teksta i razdvajanje teksta na uloge | technical task | High | 13 | Not Started | Sprint 6 | inkrement |
 | 31 | Maskiranje osjetljivih podataka | Automatsko prepoznavanje i uklanjanje privatnih podataka iz transkripata | technical task | High | 8 | Not Started | Sprint 6 | inkrement |
 | 32 | Sprint Backlog | Backlog za sprint sa prioritetima i procjenama | documentation | High | 1 | Not Started | Sprint 6 | deliverable |
 | 33 | Ažurirani Product Backlog | Backlog usklađen s aktualnim stanjem i prioritetima | documentation | High | 1 | Not Started | Sprint 6 | deliverable |
@@ -72,11 +72,11 @@
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
 |----|-------------|------------|-----|----------|----------|--------|--------|----------|
 | 39 | Izgradnja baze znanja | Generisanje embeddinga i pohrana u vektorsku bazu | feature | High | 13 | Not Started | Sprint 7 | inkrement |
-| 40 | Kategorizacija Q&A | Automatska kategorizacija parova pitanje-odgovor s podrškom za ručnu korekciju | feature | Medium | 8 | Not Started | Sprint 7 | za poboljšanu preciznost |
+| 40 | Kategorizacija | Automatska kategorizacija parova pitanja i odgovora | feature | Medium | 8 | Not Started | Sprint 7 | za poboljšanu preciznost |
 | 41 | Chatbot UI | Web interfejs s input poljem i prikazom odgovora | Feature | High | 8 | Not Started | Sprint 7 | / |
 | 42 | Sprint Backlog | Backlog za sprint sa prioritetima i procjenama | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
 | 43 | Ažurirani Product Backlog | Backlog usklađen s aktualnim stanjem i prioritetima | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
-| 44 | Ažurirani Decision Log | Zapis novih tehničkih i projektnih odluka| documentation | High | 1 | Not Started | Sprint 7 | deliverable |
+| 44 | Ažurirani Decision Log | Zapis novih tehničkih i projektnih odluka | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
 | 45 | Ažurirani AI Usage Log | Zapis korištenja AI alata | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
 | 46 | Dokaz o testiranju | Rezultati testiranja funkcionalnosti sprinta | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
 | 47 | Sprint Review Summary | Sažetak sprint reviewa s zaključcima | documentation | High | 1 | Not Started | Sprint 7 | deliverable |
@@ -86,7 +86,7 @@
  
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
 |----|-------------|------------|-----|----------|----------|--------|--------|----------|
-| 49 | Chatbot backend | Pretraga vektorske baze i LLM prompt | Feature | High | 13 | Not Started | Sprint 8 | inkrement |
+| 49 | Chatbot backend | Pretraga vektorske baze i kreiranje LLM promptova | Feature | High | 13 | Not Started | Sprint 8 | inkrement |
 | 50 | Sprint Backlog | Backlog za sprint sa prioritetima i procjenama | documentation | High | 1 | Not Started | Sprint 8 | deliverable |
 | 51 | Ažurirani Product Backlog | Backlog usklađen s aktualnim stanjem i prioritetima | documentation | High | 1 | Not Started | Sprint 8 | deliverable |
 | 52 | Ažurirani Decision Log | Zapis novih tehničkih i projektnih odluka| documentation | High | 1 | Not Started | Sprint 8 | deliverable |
