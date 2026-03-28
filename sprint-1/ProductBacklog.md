@@ -1,16 +1,18 @@
 # Product Backlog
 
-## Sprint 1
+## Sprint 1 
 
-| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
-|----|-------------|------------|-----|----------|----------|--------|----------|
-| 1 | Istražiti RAG chatbot implementaciju | Istražiti kako funkcioniše RAG pristup i kako ga implementirati u sistemu | research | High | 5 | To Do | Osnova arhitekture |
-| 2 | Istražiti najpogodnije vektorske baze | Pregledati besplatno dostupne vektorske baze koje se lako integrišu sa AI API-jima | research | High | 5 | To Do | Izbor tehnologije |
-| 3 | Istražiti neophodne API-eve | Istražiti embeddings API, LLM API i druge servise potrebne za sistem | research | High | 3 | To Do | Integracija sa AI |
-| 4 | Team Charter | | | High | 3 | To Do | |
-| 5 | Product Vision | | | High | 3 | To Do | |
-| 6 | Identifikacija i mapiranje stakeholdera | Mapiranje svih relevantnih strana | | High | 3 | To Do | |
-| 7 | Definisanje MVP opsega | Definisanje šta ulazi u MVP | | High | 3 | To Do | |
+
+| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
+|----|-------------|------------|-----|----------|----------|--------|--------|----------|
+| 1 | Istraživanje domene | Analiza call centar domene i pregled sličnih rješenja na tržištu | research | High | 5 | Done | Sprint 1 | / |
+| 2 | Mapiranje stakeholdera | Identifikacija aktera, njihovih potreba i potencijalnih konflikata | research | High | 3 | Done | Sprint 1 | stakeholder map deliverable |
+| 3 | Product Vision | Definisanje za koga se gradi, koji problem rješava i mjerila uspjeha | documentation | High | 2 | Done | Sprint 1 | product vision deliverable |
+| 4 | Team Charter | Raspodjela uloga, komunikacija, način održavanja sastanaka| documentation | High | 2 | Done | Sprint 1 | team charter deliverable |
+| 5 | Istraživanje ulaznih formata | Analiza audio i transkript formata | research | High | 5 | Done | Sprint 1 | ključna arhitekturalna odluka |
+| 6 | Istraživanje RAG i LLM servisa | Pregled embedding modela, vektorskih baza i LLM API-ja | research | High | 8 | Done | Sprint 1 | / |
+| 7 | Definisanje MVP opsega | Precizno odvajanje MVP od post-MVP funkcionalnosti | documentation | High | 3 | Done | Sprint 1 | sastavni dio product vision delverable |
+| 8 | Početni Product Backlog | Kreiranje početnog backloga sa tehničkim zadacima | documentation | High | 3 | Done | Sprint 1 | deliverable, ažurirati svaki sprint |
 
 ## Sprint 2
 
