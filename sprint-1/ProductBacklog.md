@@ -6,9 +6,9 @@
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
 |----|-------------|------------|-----|----------|----------|--------|--------|----------|
 | 1 | Istraživanje domene | Analiza call centar domene i pregled sličnih rješenja na tržištu | research | High | 5 | Done | Sprint 1 | / |
-| 2 | Mapiranje stakeholdera | Identifikacija aktera, njihovih potreba i potencijalnih konflikata | research | High | 3 | Done | Sprint 1 | stakeholder map deliverable |
-| 3 | Product Vision | Definisanje za koga se gradi, koji problem rješava i mjerila uspjeha | documentation | High | 2 | Done | Sprint 1 | product vision deliverable |
-| 4 | Team Charter | Raspodjela uloga, komunikacija, način održavanja sastanaka| documentation | High | 2 | Done | Sprint 1 | team charter deliverable |
+| 2 | Mapiranje stakeholdera | Identifikacija aktera, njihovih potreba i potencijalnih konflikata | research | High | 3 | Done | Sprint 1 | deliverable |
+| 3 | Product Vision | Definisanje za koga se gradi, koji problem rješava i mjerila uspjeha | documentation | High | 2 | Done | Sprint 1 | deliverable |
+| 4 | Team Charter | Raspodjela uloga, komunikacija, način održavanja sastanaka| documentation | High | 2 | Done | Sprint 1 | deliverable |
 | 5 | Istraživanje ulaznih formata | Analiza audio i transkript formata | research | High | 5 | Done | Sprint 1 | ključna arhitekturalna odluka |
 | 6 | Istraživanje RAG i LLM servisa | Pregled embedding modela, vektorskih baza i LLM API-ja | research | High | 8 | Done | Sprint 1 | / |
 | 7 | Definisanje MVP opsega | Precizno odvajanje MVP od post-MVP funkcionalnosti | documentation | High | 3 | Done | Sprint 1 | sastavni dio product vision delverable |
@@ -16,9 +16,22 @@
 
 ## Sprint 2
 
-| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
-|----|-------------|------------|-----|----------|----------|--------|----------|
-| 8 | User Stories | Pisanje user stories za krajnje korisnike (klijent, agent i admin) | feature | High | 8 | To Do | |
+| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
+|----|-------------|------------|-----|----------|----------|--------|--------|----------|
+| 9 | User Stories | Pisanje user stories za krajnje korisnike (klijent, agent i admin) | documentation | High | 8 | Not Started | Sprint 2 | deliverable, jasni, granularni, provjerljivi |
+| 10 | Acceptance Criteria | Za svaki story navesti mjerljive i provjerljive acceptance kriterije | documentation | High | 5 | Not Started | Sprint 2 | jasni, testabilni, povezani sa očekivanim ponašanjem |
+| 11 | Nefunkcionalni zahtjevi | Definisanje nefunckionalnih zahtjeva sa opisom, tipom i prioritetom | documentation | High | 3 | Not Started | Sprint 2 | deliverable |
+| 12 | Ažuriranje backloga | Analiza svih stavki po poslovnoj vrijednosti i tehničkim zavisnostima | documentation | Medium | 3 | Not Started | Sprint 2 | / |
+
+## Sprint 3
+ 
+| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
+|----|-------------|------------|-----|----------|----------|--------|--------|----------|
+| 13 | Risk Register | Identifikacija rizika s vjerovatnoćom, uticajem i strategijom mitigacije | documentation | High | 5 | Not Started | Sprint 3 |risk register deliverable |
+| 14 | Domain Model | Dijagram entiteta sistema i njihovih veza | documentation | High | 8 | Not Started | Sprint 3 | deliverable |
+| 15 | Use Case Model | UML dijagram aktera i interakcija | documentation | High | 5 | Not Started | Sprint 3 | deliverable, važno je imati ili domain model ili use case model |
+| 16 | Architecture Overview | Opis arhitektonskog pristupa, komponenti, interakcija i odluka | documentation | High | 8 | Not Started | Sprint 3 | deliverable, arhitekturalni izbori moraju biti opravdani |
+| 17 | Test Strategy | Vrste testova, cilj testiranje i načini evidentiranja | documentation | High | 5 | Not Started | Sprint 3 | deliverable |
 
 ## Sprint 5
 
