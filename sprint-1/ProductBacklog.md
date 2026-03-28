@@ -33,6 +33,15 @@
 | 16 | Architecture Overview | Opis arhitektonskog pristupa, komponenti, interakcija i odluka | documentation | High | 8 | Not Started | Sprint 3 | deliverable, arhitekturalni izbori moraju biti opravdani |
 | 17 | Test Strategy | Vrste testova, cilj testiranje i načini evidentiranja | documentation | High | 5 | Not Started | Sprint 3 | deliverable |
 
+## Sprint 4
+ 
+| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Sprint | Napomena |
+|----|-------------|------------|-----|----------|----------|--------|--------|----------|
+| 19 | Definition of Done | prihvatiti zajedničku definiciju završene stavke | documentation | High | 2 | Not Started | Sprint 4 | deliverable |
+| 20 | Initial Release Plan | Isplanirati inkremente implementacije i njihove okvirne sprintove | documentation | High | 3 | Not Started | Sprint 4 | deliverable |
+| 21 | Osnovni Skeleton Projekta | tehnički skeleton sistema | technical task | High | 5 | Not Started | Sprint 4 | deliverable |
+| 22 | Repozitorij i osnovne struktura rada | GitHub repo, struktura foldera i postavljanje alata za rad | technical task | High | 5 | Not Started | Sprint 4 | deliverable |
+
 ## Sprint 5
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
