@@ -12,3 +12,4 @@
 | Menadžment | Donosi odluke i prati performanse sistema | Smanjenje troškova i opterećenja | Izvještaji i analiza performansi | High | Medium |
 | Developeri | Razvijaju i održavaju sistem | Stabilan i funkcionalan sistem | Jasni zahtjevi i sigurnost sistema | High | Medium |
 
+<img width="818" height="552" alt="stakeholder_map" src="https://github.com/user-attachments/assets/833cff60-89a6-493f-8cc1-5090bc830883" />
