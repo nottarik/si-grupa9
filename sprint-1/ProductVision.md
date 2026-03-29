@@ -54,6 +54,7 @@ U početni scope ulazi:
 - Real-time treniranje modela – model se prvo trenira, pa tek onda pušta u produkciju. Dodatna treniranja i optimizacije se vrše nakon određenog broja prikupljenih podataka ili procjene administratora.  
 - Analiza tona i emocije korisnika u realnom vremenu.
 - Dictation mode na chatbotu.
+- Treniranje AI modela od nule.
 
 ---
 
