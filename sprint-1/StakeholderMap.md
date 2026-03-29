@@ -11,4 +11,4 @@
 |            |                |         |            |                |                        |
 | Menadžment | Donosi odluke i prati performanse sistema | Smanjenje troškova i opterećenja | Izvještaji i analiza performansi | High | Medium |
 | Developeri | Razvijaju i održavaju sistem | Stabilan i funkcionalan sistem | Jasni zahtjevi i sigurnost sistema | High | Medium |
-| Data analitičar | Analizira podatke iz poziva i chatbot-a | Kvalitetni podaci za analizu | Tačni i strukturirani podaci | Medium | Low |
+
