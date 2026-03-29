@@ -35,10 +35,10 @@ Tim radi redovno po dogovoru u grupi, uz svakodnevnu komunikaciju i međusobno a
 Zadaci se dijele na početku sprinta i evidentiraju na GitHub-u. Svaki član je odgovoran za svoj dio, ali je to dužan podijeliti i sa ostatkom tima ukoliko postoje zamjerke ili sugestije od strane ostalih članova.
 
 - _Kako se dokumentuju odluke:_  
-Sve ideje i prijedlozi se prvo razmjenjuju putem Viber grupe, gdje članovi tima razgovaraju o mogućim rješenjima. Nakon što se postigne dogovor i razriješe eventualne nedoumice, konačne odluke se zapisuju u zajednički Google dokument.
+Sve ideje i prijedlozi se prvo razmjenjuju između članova tima putem Viber grupe ili Google Meeta, gdje članovi tima razgovaraju o mogućim rješenjima. Nakon što se postigne dogovor i razriješe eventualne nedoumice, konačne odluke postavljaju se na zajednički GitHub repozitorij.
 
 - _Kako se rješavaju neslaganja:_  
-Diskusijom unutar tima ili koristeći ankete, ako nema dogovora – odlučuje većina ili se konsultuje asistent/stručnjak iz prakse
+Diskusijom unutar tima ili koristeći ankete, ako nema dogovora, konsultuje se asistent/stručnjak iz prakse.
 
 #### _Početne odgovornosti:_
 
@@ -62,4 +62,4 @@ Predstavnik grupe tom članu skreće pažnju u privatnoj poruci, a zatim u grupi
 Ako član grupe i pored upozorenja nastavi da ne ispunjava svoje obaveze i zadatke koji su mu dodijeljeni ili ako ne želi da surađuje sa ostatkom tima, problem se prijavljuje nastavnom osoblju.
 
 - _Kako se evidentiraju problemi u timu:_  
-Jedan ili više članova tima koji primijete problem se obraćaju predstavniku grupe kome iznose predmet problema i ime člana grupe s kojim imaju problem te ga predstavnik nastoji samostalno riješiti ili uz pomoć ostalih članova ukoliko naknadno bude potrebe za tim.
+Jedan ili više članova tima koji primijete problem se obraćaju predstavniku grupe kome iznose predmet problema i ime člana grupe s kojim imaju problem te ga predstavnik nastoji samostalno riješiti ili uz pomoć ostalih članova ukoliko naknadno bude potrebe za tim. U slučaju da nije moguće naći rješenje unutar tima konsultuje se asistent/stručnjak iz prakse.
