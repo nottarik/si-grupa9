@@ -35,7 +35,7 @@ Tim radi redovno po dogovoru u grupi, uz svakodnevnu komunikaciju i međusobno a
 Zadaci se dijele na početku sprinta i evidentiraju na GitHub-u. Svaki član je odgovoran za svoj dio, ali je to dužan podijeliti i sa ostatkom tima ukoliko postoje zamjerke ili sugestije od strane ostalih članova.
 
 - _Kako se dokumentuju odluke:_  
-Sve ideje i prijedlozi se prvo razmjenjuju između članova tima putem Viber grupe ili Google Meeta, gdje članovi tima razgovaraju o mogućim rješenjima. Nakon što se postigne dogovor i razriješe eventualne nedoumice, konačne odluke postavljaju se na zajednički GitHub repozitorij.
+Sve ideje i prijedlozi se prvo razmjenjuju između članova tima putem Viber grupe ili Google Meeta, gdje članovi tima razgovaraju o mogućim rješenjima. Nakon što se postigne dogovor i razriješe eventualne nedoumice, konačne odluke postavljaju se na zajednički GitHub repozitorij. Nakon svakog sastanka, po potrebi se pored zapisnika članovima dostavlja dokument sa pojašnjenim dijelovima sprinta.
 
 - _Kako se rješavaju neslaganja:_  
 Diskusijom unutar tima ili koristeći ankete, ako nema dogovora, konsultuje se asistent/stručnjak iz prakse.
