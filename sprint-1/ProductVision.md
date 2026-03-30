@@ -24,7 +24,7 @@ Na taj način rješava se problem zavisnosti biznisa od pojedinca.
 - **Klijenti**  
   - Korisnici koji koriste usluge call centra.
 
-  - **Menadžment**  
+- **Menadžment**  
   - Donose odluke i prate performanse sistema.
     
 - **Developeri**  
