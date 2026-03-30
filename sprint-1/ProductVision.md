@@ -21,7 +21,7 @@ Na taj način rješava se problem zavisnosti biznisa od pojedinca.
 - **Administratori**  
   - Uploaduje transkript fajlove za treniranje chatbota, primaju neuspjele chatove od agenata, validiraju ih i spremaju za novo treniranje chatbot modela.
   
-- **Klijenti**  
+- **Krajnji korisnici**  
   - Korisnici koji koriste usluge call centra.
 
 - **Menadžment**  
