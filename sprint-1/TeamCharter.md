@@ -29,7 +29,7 @@
 #### _Radna pravila tima:_
 
 - _Kada i kako tim radi zajedno:_  
-Tim radi redovno po dogovoru u grupi, uz svakodnevnu komunikaciju i međusobno ažuriranje. Minimalno jednom sedmično se održava Google Meet sastanak, a po potrebi se organizuju i dodatni sastanci kako bi se uskladile aktivnosti i riješili eventualni problemi.
+Tim radi redovno po dogovoru u grupi, uz svakodnevnu komunikaciju i međusobno ažuriranje. Minimalno jednom sedmično se održava Google Meet sastanak, a po potrebi se organizuju i dodatni sastanci kako bi se uskladile aktivnosti i riješili eventualni problemi. U slučaju izostanka sa sastanka na projektu, odsutni članovi se naknadno sastaju sa team leadom koji im pojašnjava urađeno tokom sprinta. 
 
 - _Kako se zadaci dogovaraju i prate:_  
 Zadaci se dijele na početku sprinta i evidentiraju na GitHub-u. Svaki član je odgovoran za svoj dio, ali je to dužan podijeliti i sa ostatkom tima ukoliko postoje zamjerke ili sugestije od strane ostalih članova.
