@@ -31,3 +31,6 @@
 | 10 | Acceptance Criteria | Za svaki story navesti mjerljive i provjerljive acceptance kriterije | documentation | High | 5 | In Progress | jasni, testabilni, povezani sa očekivanim ponašanjem |
 | 11 | Nefunkcionalni zahtjevi | Definisanje nefunkcionalnih zahtjeva sa opisom, tipom i prioritetom | documentation | High | 3 | In Progress | deliverable |
 | 12 | Ažuriranje backloga | Analiza svih stavki po poslovnoj vrijednosti i tehničkim zavisnostima | documentation | Medium | 3 | In Progress | / |
+| 13 | Konvertovanje iz audio zapisa u transkript |Istražiti API-eve potrebne za konvertovanje.  | research | Medium | 3 | In Progress | / |
+| 14 | Plan baze podataka  | Dizajn baze podataka za pohranu audio zapisa, transkripata, korisničkih računa, pitanja, odgovora i pripadajućih metapodataka | technical | High | 5 | Not started | / |
+| 15 | Ocjena odgovora chatbota | Istražiti najbolji način za rješavanje netačnih odgovora i korištenje povratnih informacija korisnika | research | High | 5 | In Progress | / |
