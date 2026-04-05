@@ -8,7 +8,7 @@ Istrazivanje ulaznih formata  ->  Done
 Not Stated sa proslog sprinta -> In progress
 Backlog vise nije podijeljen na sprintove
 
-(iduce, prioritete azuriirati, dodati nove iteme, dodatno pojasniti nejasne napomene.
+(iduce, prioritete azuriirati, dodati nove iteme, dodatno pojasniti nejasne opise.
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
 |----|--------------|-------------|-----|-----------|----------|--------|----------|
