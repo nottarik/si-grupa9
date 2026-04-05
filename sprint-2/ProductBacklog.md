@@ -8,6 +8,8 @@ Istrazivanje ulaznih formata  ->  Done
 Not Stated sa proslog sprinta -> In progress
 Backlog vise nije podijeljen na sprintove
 
+(iduce, prioritete azuriirati, dodati nove iteme, dodatno pojasniti nejasne napomene.
+
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
 |----|--------------|-------------|-----|-----------|----------|--------|----------|
 | 1 | Istraživanje domene | Analiza call centra i njegovih potreba te pregled sličnih rješenja na tržištu | research | High | 5 | Done | / |
