@@ -2,13 +2,20 @@
 
 ## Sprint 2
 
-Promjene: 
-Istrazivanje domene sa In progress ->  Done
-Istrazivanje ulaznih formata  ->  Done
-Not Stated sa proslog sprinta -> In progress
-Backlog vise nije podijeljen na sprintove
+## Promjene
 
-(iduce, prioritete azuriirati, dodati nove iteme, dodatno pojasniti nejasne opise.
+- Istraživanje domene: In Progress → Done  
+- Istraživanje ulaznih formata: → Done  
+- Not Started (sa prošlog sprinta): → In Progress  
+- Backlog više nije podijeljen na sprintove  
+
+---
+
+## Napomena (iduće aktivnosti)
+
+- Ažurirati prioritete  
+- Dodati nove iteme  
+- Dodatno pojasniti nejasne opise  
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
 |----|--------------|-------------|-----|-----------|----------|--------|----------|
