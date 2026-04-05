@@ -8,7 +8,7 @@
 - Istraživanje ulaznih formata: → Done  
 - Not Started (sa prošlog sprinta): → In Progress  
 - Backlog više nije podijeljen na sprintove  
-
+- Dodani novi itemi od 13...
 ---
 
 ## Napomena (iduće aktivnosti)
