@@ -13,26 +13,26 @@ Pokrivene uloge: Krajnji korisnik, Agent, Administrator, Developer, Tim
 **Status:** Done 
 
 **Opis:**
-Kao član razvojnog tima, želim da istražim domenu call centra i analiziram slična postojeća rješenja na tržištu, kako bih stekao razumijevanje problema koji sistem treba riješiti i identificirao smjernice za razvoj.
+Kao član razvojnog tima, želim da istražim domenu call centra i analiziram slična postojeća rješenja na tržištu, kako bih stekao razumijevanje problema koji sistem treba da riješi
 
 **Poslovne vrijednosti:**
-Duboko razumijevanje domene omogućava donošenje informisanih arhitekturalnih i funkcionalnih odluka, smanjuje rizik od grešaka u ranijim fazama razvoja i osigurava usklađenost sistema sa stvarnim potrebama call centara.
+Duboko razumijevanje domene omogućava promišljeno donošenje odluka, smanjuje rizik od grešaka u ranijim fazama razvoja i osigurava usklađenost sistema sa stvarnim potrebama call centara.
 
 **Pretpostavke i otvorena pitanja:**
-- Postoji dostupna literatura, studije slučaja i primjeri sličnih sistema.
+- Postoji dostupna literatura i primjeri sličnih sistema.
 - Tim ima pristup internetu i relevantnim izvorima informacija.
 - Istraživanje se provodi u toku prve faze projekta.
 
 **Veza sa drugim storijima ili zavisnostima:**
-- Nema direktnih zavisnosti – ovo je polazna istraživačka aktivnost.
+- Nema direktnih zavisnosti 
 - Rezultati utiču na US-3 (Product Vision), US-5 (Istraživanje ulaznih formata), US-6(Istraživanje RAG i LLM servisa).
 
 **Acceptance criteria:**
 - Tim mora dokumentovati ključne karakteristike call centar domena (tipovi upita, radno okruženje, akteri).
 - Tim mora identificovati najmanje 3 slična rješenja na tržištu i opisati njihove prednosti i nedostatke.
-- Istraživanje mora rezultirati pisanim sažetkom koji je dostupan svim članovima tima.
-- Nalazi istraživanja moraju biti prezentovani na timsastanku i usvojeni od strane tima.
-- Dokument mora sadržavati zaključke koji su direktno upotrebljivi u definisanju MVP opsega.
+- Istraživanje mora imati sažeto napisan rezultat koji je dostupan svim članovima tima.
+- Ishodi istraživanja moraju biti prezentovani na timskom sastanku i usvojeni od strane tima.
+- Dokument mora sadržati zaključke koji su direktno upotrebljivi u definisanju MVP opsega.
 
 
 ### US-2. Mapiranje stakeholdera
@@ -43,10 +43,10 @@ Duboko razumijevanje domene omogućava donošenje informisanih arhitekturalnih i
 **Status:** Done  
 
 **Opis:**
-Kao product owner, želim da identifikujem sve aktere sistema i definiram njihove uloge, interese, očekivanja i uticaj, kako bih osigurao da su zahtjevi razvoja usklađeni s potrebama svih ključnih strana.
+Kao product owner, želim da identifikujem sve aktere sistema i definišem njihove uloge, interese, očekivanja i uticaj, kako bih osigurao da su zahtjevi razvoja usklađeni s potrebama svih ključnih strana.
 
 **Poslovne vrijednosti:**
-Jasno mapiranje stakeholdera sprečava propuste u zahtjevima, pomaže u rješavanju potencijalnih konflikata interesa i pruža strukturiran temelj za planiranje komunikacije tokom projekta.
+Jasno mapiranje stakeholdera sprječava propuste u zahtjevima, pomaže u rješavanju potencijalnih konflikata interesa i pruža uvod za planiranje komunikacije tokom projekta.
 
 **Pretpostavke i otvorena pitanja:**
 - Tim je završio osnovno istraživanje domene (US-1).
@@ -62,7 +62,7 @@ Jasno mapiranje stakeholdera sprečava propuste u zahtjevima, pomaže u rješava
 - Za svakog stakeholdera mora biti definirano: uloga, interes, očekivanja, uticaj na sistem i prioritet komunikacije.
 - Stakeholder mapa mora biti vizuelno prikazana (dijagram ili tabela).
 - Dokument mora biti odobren od strane tima i dostupan svim članovima.
-- Eventualni konflikti interesa između stakeholdera moraju biti identificovani i dokumentovani.
+- Eventualni konflikti interesa između stakeholdera moraju biti identificirani i dokumentovani.
 
 
 ### US-3. Product Vision
@@ -80,19 +80,19 @@ Product Vision služi kao kompas za sve odluke tokom razvoja i osigurava da tim 
 
 **Pretpostavke i otvorena pitanja:**
 - Istraživanje domene (US-1) i mapiranje stakeholdera (US-2) su završeni.
-- Product owner ima ovlast za donošenje strateških odluka.
-- Vizija se može revidirati tokom projekta ukoliko se okolnosti promijene.
+- Product owner ima ovlast za donošenje promišljenih odluka.
+- Vizija se može prepravljati tokom projekta ukoliko se okolnosti promijene.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-1 (Istraživanje domene) i US-2 (Mapiranje stakeholdera).
 - Utiče na US-7 (Definisanje MVP opsega) i US-9 (User Stories).
 
 **Acceptance criteria:**
-- Dokument mora sadržavati: naziv projekta, opis problema, ciljne korisnike i vrijednost sistema.
-- Mora biti jasno definirano šta ulazi i šta ne ulazi u MVP.
+- Dokument mora sadržati: naziv projekta, opis problema, ciljne korisnike i vrijednost sistema.
+- Mora biti jasno definisano šta ulazi i šta ne ulazi u MVP.
 - Dokument mora sadržavati ključna ograničenja i pretpostavke (pravne, tehničke).
-- Vizija mora biti prihvaćena od strane cijelog tima na timsastanku.
-- Dokument mora biti pohranjen na zajedničkom repozitoriju i dostupan svim članovima.
+- Vizija mora biti prihvaćena od strane cijelog tima
+- Dokument mora biti objavljen na zajedničkom repozitoriju i dostupan svim članovima.
 
 
 ### US-4. Team Charter
@@ -103,26 +103,26 @@ Product Vision služi kao kompas za sve odluke tokom razvoja i osigurava da tim 
 **Status:** Done  
 
 **Opis:**
-Kao tim, želimo da definišemo raspodjelu uloga, načine komunikacije i format održavanja sastanaka, kako bismo uspostavili jasna pravila suradnje i odgovornosti unutar tima.
+Kao tim, želimo da definišemo raspodjelu uloga, načine komunikacije i format održavanja sastanaka, kako bismo uspostavili jasna pravila  i odgovornosti unutar tima.
 
 **Poslovne vrijednosti:**
-Team Charter sprečava nesporazume u timu, osigurava efikasnu komunikaciju i jasno definiše ko je odgovoran za koje aktivnosti tokom projekta.
+Team Charter sprječava nesporazume u timu, osigurava efikasnu komunikaciju i jasno definiše ko je odgovoran za koje aktivnosti tokom projekta.
 
 **Pretpostavke i otvorena pitanja:**
-- Svi članovi tima su identificovani i dostupni za suradnju.
-- Tim radi po Scrum metodologiji.
-- Charter se može revidirati uz konsenzus tima.
+- Svi članovi tima su identifikovani i dostupni za suradnju.
+- Tim radi po Scrum metodologiji (posao se dijeli na male dijelove i radi se u sprintovima, uz stalnu komunikaciju tima)
+- Charter se može prepravljati uz saglasnost tima.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Nema tehničkih zavisnosti – dokument se kreira na početku projekta.
-- Usklađen s US-3 (Product Vision) u pogledu uloga i komunikacije.
+- Usklađen sa US-3 (Product Vision) po pitanju uloga i komunikacije.
 
 **Acceptance criteria:**
-- Dokument mora sadržavati listu svih članova tima s dodijeljenim ulogama (Scrum Master, Product Owner, developeri).
-- Mora biti definirano: učestalost i format sastanaka, kanali komunikacije i alati za suradnju.
+- Dokument mora sadržavati listu svih članova tima s dodijeljenim ulogama 
+- Mora biti definisano: format sastanaka, koliko se često održava sastanak, kanali komunikacije i alati za suradnju.
 - Moraju biti navedena pravila ponašanja i procedure rješavanja konflikata.
-- Charter mora biti potpisan ili digitalno odobren od svih članova tima.
-- Dokument mora biti pohranjen na zajedničkom repozitoriju dostupnom svim članovima.
+- Charter mora biti odobren od svih članova tima.
+- Dokument mora biti postavljen na zajedničkom repozitoriju dostupnom svim članovima.
 
 
 ### US-5. Istraživanje ulaznih formata
@@ -133,26 +133,26 @@ Team Charter sprečava nesporazume u timu, osigurava efikasnu komunikaciju i jas
 **Status:** In Progress  
 
 **Opis:**
-Kao developer, želim da istražim i dokumentujem moguće formate ulaznih transkripata (tekstualni, CSV, JSON, audio), kako bih donio informisanu arhitekturalnu odluku o prihvatanju i obradi podataka u sistemu.
+Kao developer, želim da istražim i dokumentujem moguće formate ulaznih transkripta (tekstualni, CSV, JSON, audio), kako bih donio informisanu odluku o prihvatanju i obradi podataka u sistemu.
 
 **Poslovne vrijednosti:**
-Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno utiče na pipeline obrade podataka i kvalitet baze znanja chatbota.
+Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno utiče na niz koraka obrade podataka i kvalitet baze znanja chatbota.
 
 **Pretpostavke i otvorena pitanja:**
-- Postoje stvarni primjeri transkripata iz call centara koji su dostupni za analizu.
+- Postoje stvarni primjeri transkripta iz call centara koji su dostupni za analizu.
 - Tim ima tehničko znanje za analizu različitih formata podataka.
-- Odluka o formatu mora biti donesena prije implementacije parsera (US-24).
+- Odluka o formatu mora biti donesena prije implementacije parsera (program ili dio softvera koji čita neki tekst ili podatke i razbija ih na dijelove koje računar može razumjeti i obraditi.) (US-24).
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-1 (Istraživanje domene).
-- Utiče na US-18 (Upload transkripata), US-23 (Priprema za obradu), US-24 (Parser).
+- Utiče na US-18 (Upload transkripta), US-23 (Priprema za obradu), US-24 (Parser).
 
 **Acceptance criteria:**
 - Tim mora istražiti i dokumentovati najmanje 3 različita formata ulaznih transkripata.
-- Za svaki format moraju biti opisane prednosti, nedostaci i tehnička izvedivost parsiranja.
+- Za svaki format moraju biti opisane prednosti, nedostaci i tehnička izvodivost programa.
 - Mora biti donesena i dokumentovana odluka o podržanim formatima za MVP.
-- Findings moraju biti prezentovani timu i usvojeni konsenzusom.
-- Dokument mora biti pohranjen na zajedničkom repozitoriju. 
+- Findings moraju biti prezentovani timu i usvojeni od strane članova tima.
+- Dokument mora biti postavljen na zajedničkom repozitoriju. 
 
 ### US-6. Istraživanje RAG i LLM servisa
 
@@ -165,11 +165,11 @@ Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno
 Kao developer, želim da istražim dostupne embedding modele, vektorske baze podataka i LLM API servise, kako bih odabrao najprikladniju tehnološku osnovu za RAG arhitekturu chatbota.
 
 **Poslovne vrijednosti:**
-Odabir ispravnih tehnologija za RAG pipeline direktno utiče na tačnost odgovora chatbota, troškove operacije i skalabilnost sistema.
+Odabir ispravnih tehnologija za RAG direktno utiče na tačnost odgovora chatbota, troškove izvodjenja i prilagodljivost sistema.
 
 **Pretpostavke i otvorena pitanja:**
 - Tim ima osnovno znanje o RAG (Retrieval Augmented Generation) arhitekturi.
-- Postoji budžet ili besplatni tier za testiranje LLM API servisa.
+- Postoji budžet za testiranje LLM API servisa.
 - Istraživanje uključuje i procjenu troškova za produkcijsko okruženje.
 
 **Veza sa drugim storijima ili zavisnostima:**
@@ -177,8 +177,8 @@ Odabir ispravnih tehnologija za RAG pipeline direktno utiče na tačnost odgovor
 - Rezultati direktno utiču na US-27 (Izgradnja baze znanja) i US-21 (Skeleton projekta).
 
 **Acceptance criteria:**
-- Tim mora istražiti i porediti najmanje 2 LLM API servisa (npr. OpenAI, Anthropic, Mistral).
-- Tim mora istražiti i porediti najmanje 2 vektorske baze podataka (npr. Pinecone, Weaviate, Chroma).
+- Tim mora istražiti i porediti najmanje 2 LLM API servisa (npr. OpenAI, Mistral).
+- Tim mora istražiti i porediti najmanje 2 vektorske baze podataka (npr. Pinecone, Chroma).
 - Tim mora istražiti i porediti embedding modele za generisanje vektora iz teksta.
 - Findings moraju biti dokumentovani u obliku uporedne tabele s kriterijima odabira.
 - Mora biti donesena i dokumentovana konačna odluka o odabranom tehnološkom stacku.
@@ -193,10 +193,10 @@ Odabir ispravnih tehnologija za RAG pipeline direktno utiče na tačnost odgovor
 **Status:** Done  
 
 **Opis:**
-Kao product owner, želim da precizno definiram koje funkcionalnosti ulaze u MVP a koje su post-MVP, kako bi tim imao jasan fokus i mogao isporučiti vrijednost u najkraćem mogućem roku.
+Kao product owner, želim da precizno definišem koje funkcionalnosti ulaze u MVP a koje su post-MVP, kako bi tim imao jasan fokus i mogao isporučiti vrijednost u najkraćem mogućem roku.
 
 **Poslovne vrijednosti:**
-Jasno razgraničenje MVP-a sprečava scope creep, fokusira tim na ključne funkcionalnosti i omogućava brzu isporuku radnog sistema koji se može validirati sa stakeholderima.
+Jasno razgraničenje MVP-a sprječava stalno dodavanje novih zahtjeva ili funkcionalnosti koje nisu planirane, a tim ih mora uraditi, fokusira tim na ključne funkcionalnosti i omogućava brzu isporuku radnog sistema koji se može validirati sa stakeholderima.
 
 **Pretpostavke i otvorena pitanja:**
 - Product Vision (US-3) je definisana i prihvaćena.
@@ -224,7 +224,7 @@ Jasno razgraničenje MVP-a sprečava scope creep, fokusira tim na ključne funkc
 **Status:** Done  
 
 **Opis:**
-Kao product owner, želim da kreiram inicijalni product backlog sa svim tehničkim i funkcionalnim zadacima projekta, kako bi tim imao strukturiran pregled rada i mogao planirati sprinteve.
+Kao product owner, želim da kreiram inicijalni product backlog sa svim tehničkim i funkcionalnim zadacima projekta, kako bi tim imao strukturiran pregled rada i mogao planirati sprintove.
 
 **Poslovne vrijednosti:**
 Strukturiran backlog je temelj Scrum procesa – bez njega tim nema jasnu sliku šta treba biti urađeno i ne može efikasno planirati rad.
@@ -240,10 +240,10 @@ Strukturiran backlog je temelj Scrum procesa – bez njega tim nema jasnu sliku 
 
 **Acceptance criteria:**
 - Backlog mora sadržavati sve identifikovane stavke s ID-om, nazivom, kratkim opisom, tipom, prioritetom, procjenom i statusom.
-- Svaka stavka mora biti dovoljno granularna da se može realizovati u jednom sprintu.
-- Backlog mora biti pohranjen na zajedničkom repozitoriju i dostupan svim članovima tima.
+- Svaka stavka mora biti dovoljno precizna da se može realizovati u jednom sprintu.
+- Backlog mora biti postavljen na zajedničkom repozitoriju i dostupan svim članovima tima.
 - Inicijalni backlog mora biti prezentovan timu i odobren na sprint planiranju.
-- Format backlog stavki mora biti konzistentan kroz cijeli projekat.
+- Format backlog stavki mora biti stalan kroz cijeli projekat.
 
 
 ### US-9. User Stories
@@ -254,26 +254,26 @@ Strukturiran backlog je temelj Scrum procesa – bez njega tim nema jasnu sliku 
 **Status:** In Progress  
 
 **Opis:**
-Kao product owner, želim da napišem jasne, granularne i provjerljive user stories za sveuloge u sistemu (krajnji korisnik, agent,  administrator), kako bi razvojni tim imao jasno definisane funkcionalne zahtjeve.
+Kao product owner, želim da napišem jasne, precizne i provjerljive user stories za sve uloge u sistemu (krajnji korisnik, agent,  administrator), kako bi razvojni tim imao jasno definisane funkcionalne zahtjeve.
 
 **Poslovne vrijednosti:**
-User stories prevode poslovne zahtjeve u konkretne, mjerljive zadatke koje developer tim može implementirati i testirati, čime se smanjuje ambiguitet i povećava kvalitet isporuke.
+User stories prevode poslovne zahtjeve u konkretne, mjerljive zadatke koje developer tim može implementirati i testirati, čime se smanjuje nejasnoća i povećava kvalitet isporuke.
 
 **Pretpostavke i otvorena pitanja:**
 - Stakeholder mapa (US-2) i Product Vision (US-3) su završeni.
 - Tim je upoznat s formatom user stories (Ko / Šta / Zašto).
-- Stories se revidiraju i dorađuju tokom sprinta na osnovu feedback-a tima.
+- Stories se prepravljaju i dorađuju tokom sprinta na osnovu dogovora tima.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-2, US-3, US-7, US-8.
-- Usko povezano s US-10 (Acceptance Criteria) – svaka story mora imati acceptance kriterije.
+- Usko povezano s US-10 (Acceptance Criteria) – svaki story mora imati acceptance kriterije.
 
 **Acceptance criteria:**
-- Svaka user story mora sadržavati: opis (kao [uloga] želim [akcija] kako bih [cilj]), poslovne vrijednosti, prioritet, pretpostavke, zavisnosti i acceptance kriterije.
-- Stories moraju biti napisane za sve uloge: krajnji korisnik, agent, administrator, developer.
-- Svaka story mora biti granularna i implementabilna unutar jednog sprinta.
-- Stories moraju biti provjerljive – jasno je kada su gotove.
-- Dokument mora biti verzionisan i dostupan svim članovima tima.
+- Svaki user story mora sadržavati: opis (kao [uloga] želim [akcija] kako bih [cilj]), poslovne vrijednosti, prioritet, pretpostavke, zavisnosti i acceptance kriterije.
+- Stories moraju biti napisani za sve uloge: krajnji korisnik, agent, administrator, developer.
+- Svaki story mora biti precizan i spreman na implementaciju unutar jednog sprinta.
+- Stories moraju biti provjerljivi – jasno je kada su gotovi.
+- Dokument mora imati verzije u slučaju korekcija i dostupan svim članovima tima.
 
 ### US-10. Acceptance Criteria
 
@@ -283,25 +283,25 @@ User stories prevode poslovne zahtjeve u konkretne, mjerljive zadatke koje devel
 **Status:** In Progress  
 
 **Opis:**
-Kao product owner, želim da za svaku user story definiram mjerljive i provjerljive acceptance kriterije, kako bi razvojni tim i QA imali jasnu definiciju kada je svaka funkcionalnost ispravno implementirana.
+Kao product owner, želim da za svaki user story definišem mjerljive i provjerljive acceptance kriterije, kako bi razvojni tim i QA (osiguranje kvaliteta) imali jasnu definiciju kada je svaka funkcionalnost ispravno implementirana.
 
 **Poslovne vrijednosti:**
 Jasni acceptance kriteriji eliminišu subjektivnost pri ocjeni završenosti zadatka, olakšavaju testiranje i smanjuju broj ispravki nakon implementacije.
 
 **Pretpostavke i otvorena pitanja:**
-- User stories (US-9) su napisane i dostupne.
-- Tim je upoznat s principima pisanja testabilnih kriterija (Given/When/Then ili lista provjera).
-- Acceptance kriteriji se mogu dopuniti tokom sprinta ukoliko se pojave novi rubni slučajevi.
+- User stories (US-9) su napisani i dostupni.
+- Tim je upoznat s principima pisanja kriterija (Given/When/Then ili lista provjera) koji se mogu testirati.
+- Acceptance kriteriji se mogu dopuniti tokom sprinta ukoliko se pojave novi slučajevi.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Direktno zavisi od US-9 (User Stories).
 - Koriste se kao osnova za US-19 (Testne strategije).
 
 **Acceptance criteria:**
-- Svaka user story mora imati najmanje 3 acceptance kriterija.
-- Svaki kriterij mora biti konkretan, mjerljiv i testabilan.
-- Kriteriji moraju pokriti i pozitivne scenarije i granične/negativne slučajeve.
-- Acceptance kriteriji moraju biti integrisani direktno unutar svake user story.
+- Svaki user story mora imati najmanje 3 acceptance kriterija.
+- Svaki kriterij mora biti konkretan, mjerljiv i da ima mogućnost testiranja.
+- Kriteriji moraju pokriti i pozitivne scenarije i negativne slučajeve.
+- Acceptance kriteriji moraju biti integrisani direktno unutar svakog user story-a.
 - Tim mora odobriti kriterije na sprint planiranju prije početka implementacije.
 
 
