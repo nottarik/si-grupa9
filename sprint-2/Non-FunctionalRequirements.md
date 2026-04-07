@@ -2,12 +2,12 @@
 
 | ID | Kategorija | Opis zahtjeva | Kako će se provjeriti | Prioritet | Napomena |
 |----|------------|--------------|-----------------------|----------|----------|
-| NFR-1   |            |              |                       |          |          |
-| NFR-2   |            |              |                       |          |          |
-| NFR-3   |            |              |                       |          |          |
-| NFR-4   |            |              |                       |          |          |
-| NFR-5   |            |              |                       |          |          |
-| NFR-6   |            |              |                       |          |          |
+| NFR-1 | Sigurnost | Sva komunikacija između klijenta i servera mora biti šifrirana putem HTTPS protokola. | Provjera putem SSL alata i osnovno penetracijsko testiranje sistema. | Visok | Bitno jer sistem radi sa osjetljivim podacima iz call centra. |
+| NFR-2 | Privatnost | Prije nego što se podaci koriste za treniranje chatbot-a, potrebno je ukloniti ili zamaskirati sve lične podatke iz transkripata. | Testiranje sa primjerima transkripata koji sadrže lične podatke i provjera baze. | Visok | Korisnik treba imati opciju da zatraži brisanje svojih podataka. |
+| NFR-3 | Privatnost | Razgovori se mogu koristiti za unapređenje sistema, ali korisnik mora imati mogućnost da to odbije. | Provjera kroz UI i testiranje opcije odjave (opt-out). | Visok | Ovo je već navedeno kao ograničenje u Product Vision dokumentu. |
+| NFR-4 | Pouzdanost | Ako chatbot ne može riješiti problem ili dođe do greške, razgovor se treba preusmjeriti na agenta bez gubitka konteksta. | Testiranje scenarija sa greškama i provjera da li se kontekst prenosi. | Visok | Ova fallback logika je planirana već u MVP-u. |
+| NFR-5 | Pouzdanost | Chatbot ne smije davati netačne informacije – ako nije siguran u odgovor, treba to jasno naznačiti. | Testiranje sa pitanjima van baze znanja i praćenje odgovora sistema. | Visok | Važno da se izbjegnu “izmišljeni” odgovori. |
+| NFR-6 | Sigurnost | Administratorski dio sistema mora biti zaštićen i dostupan samo ovlaštenim korisnicima. | Pokušaji neautorizovanog pristupa i provjera kontrole pristupa. | Visok | Admin ima ključnu ulogu (upload i validacija podataka). |
 | NFR-7   | Performanse | Sistem mora odgovoriti na korisnički upit u roku od maksimalno 3 sekunde u 95% slučajeva | Load testiranje sa simulacijom više korisnika i mjerenje vremena odziva | Visok | Ovo je vrlo važno za korisničko iskustvo |
 | NFR-8   | Skalabilnost | Sistem mora da podržava istovremeno najmanje 100 aktivnih korisnika bez značajnog pada performansi | Stres testiranje i simulacija opterećenja | Visok | Ovo je važno podržati iz razloga što call centri imaju veliki broj korisnika |
 | NFR-9   | Dostupnost | Sistem mora biti dostupan najmanje 99% vremena | Monitoring uptime-a i logova| Visok | Sistem treba raditi 24/7 |
