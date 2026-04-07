@@ -32,7 +32,7 @@ Duboko razumijevanje domene omogućava promišljeno donošenje odluka, smanjuje 
 - Tim mora identificovati najmanje 3 slična rješenja na tržištu i opisati njihove prednosti i nedostatke.
 - Istraživanje mora imati sažeto napisan rezultat koji je dostupan svim članovima tima.
 - Ishodi istraživanja moraju biti prezentovani na timskom sastanku i usvojeni od strane tima.
-- Dokument mora sadržati zaključke koji su direktno upotrebljivi u definisanju MVP opsega.
+- Dokument mora sadržavati zaključke koji se koriste za definisanje MVP opsega.
 
 
 ### US-2. Mapiranje stakeholdera
@@ -151,7 +151,7 @@ Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno
 - Tim mora istražiti i dokumentovati najmanje 3 različita formata ulaznih transkripata.
 - Za svaki format moraju biti opisane prednosti, nedostaci i tehnička izvodivost programa.
 - Mora biti donesena i dokumentovana odluka o podržanim formatima za MVP.
-- Findings moraju biti prezentovani timu i usvojeni od strane članova tima.
+- Odabrani formati  moraju biti prezentovani timu i usvojeni od strane članova tima.
 - Dokument mora biti postavljen na zajedničkom repozitoriju. 
 
 ### US-6. Istraživanje RAG i LLM servisa
@@ -179,7 +179,7 @@ Odabir ispravnih tehnologija za RAG direktno utiče na tačnost odgovora chatbot
 **Acceptance criteria:**
 - Tim mora istražiti i porediti najmanje 2 LLM API servisa (npr. OpenAI, Mistral).
 - Tim mora istražiti i porediti najmanje 2 vektorske baze podataka (npr. Pinecone, Chroma).
-- Tim mora istražiti i porediti embedding modele za generisanje vektora iz teksta.
+- Tim mora istražiti i porediti najmanje 2 embedding modele za generisanje vektora iz teksta.
 - Findings moraju biti dokumentovani u obliku uporedne tabele s kriterijima odabira.
 - Mora biti donesena i dokumentovana konačna odluka o odabranom tehnološkom stacku.
 - Dokument mora biti dostupan svim članovima tima.
@@ -762,7 +762,7 @@ Normalizovani tekst poboljšava kvalitet embeddinga i retrieval mehanizma, što 
 **Acceptance criteria:**
 - Modul mora ukloniti definisane tipove šuma iz teksta (verbalni tikovi, oznake pauze, višestruki razmaci).
 - Modul mora standardizovati interpunkciju prema definisanim pravilima.
-- Normalizacija ne smije gubiti semantički značajne informacije iz originalnog teksta.
+- Normalizacija mora očuvati semantički značajne informacije iz originalnog teksta.
 - Modul mora biti pokriven unit testovima s primjerima normalnog i šumovitog teksta.
 - Modul mora biti integrisan u pipeline US-23 kao drugi korak.
 
