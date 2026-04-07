@@ -2,15 +2,15 @@
 
 Projekat: _Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu snimljenih poziva iz call centra_
 
-Ukupno stavki: 35 
+Ukupno stavki: 35  
 Pokrivene uloge: Krajnji korisnik, Agent, Administrator, Developer, Tim
 
 ### US-1. Istraživanje domene
 
-**Backlog referenca:** Backlog #1 – Istraživanje domene 
-**Tip:** Research 
-**Prioritet:** High 
-**Status:** Done
+**Backlog referenca:** Backlog #1 – Istraživanje domene  
+**Tip:** Research  
+**Prioritet:** High  
+**Status:** Done 
 
 **Opis:**
 Kao član razvojnog tima, želim da istražim domenu call centra i analiziram slična postojeća rješenja na tržištu, kako bih stekao razumijevanje problema koji sistem treba riješiti i identificirao smjernice za razvoj.
@@ -25,7 +25,7 @@ Duboko razumijevanje domene omogućava donošenje informisanih arhitekturalnih i
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Nema direktnih zavisnosti – ovo je polazna istraživačka aktivnost.
-- Rezultati utiču na US-3 (Product Vision), US-5 (Istraživanje ulaznih formata), US- (Istraživanje RAG i LLM servisa).
+- Rezultati utiču na US-3 (Product Vision), US-5 (Istraživanje ulaznih formata), US-6(Istraživanje RAG i LLM servisa).
 
 **Acceptance criteria:**
 - Tim mora dokumentovati ključne karakteristike call centar domena (tipovi upita, radno okruženje, akteri).
@@ -37,10 +37,10 @@ Duboko razumijevanje domene omogućava donošenje informisanih arhitekturalnih i
 
 ### US-2. Mapiranje stakeholdera
 
-**Backlog referenca:** Backlog #2 – Mapiranje stakeholdera 
-**Tip:** Research 
-**Prioritet:** High 
-**Status:** Done
+**Backlog referenca:** Backlog #2 – Mapiranje stakeholdera  
+**Tip:** Research  
+**Prioritet:** High  
+**Status:** Done  
 
 **Opis:**
 Kao product owner, želim da identifikujem sve aktere sistema i definiram njihove uloge, interese, očekivanja i uticaj, kako bih osigurao da su zahtjevi razvoja usklađeni s potrebama svih ključnih strana.
@@ -67,10 +67,10 @@ Jasno mapiranje stakeholdera sprečava propuste u zahtjevima, pomaže u rješava
 
 ### US-3. Product Vision
 
-**Backlog referenca:** Backlog #3 – Product Vision 
-**Tip:** Documentation 
-**Prioritet:** High 
-**Status:** Done
+**Backlog referenca:** Backlog #3 – Product Vision  
+**Tip:** Documentation  
+**Prioritet:** High  
+**Status:** Done  
 
 **Opis:**
 Kao product owner, želim da definiram jasnu viziju proizvoda koja opisuje za koga se sistem gradi, koji problem rješava i kako se mjeri uspjeh, kako bi cijeli tim imao zajednički cilj i smjer razvoja.
@@ -86,6 +86,7 @@ Product Vision služi kao kompas za sve odluke tokom razvoja i osigurava da tim 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-1 (Istraživanje domene) i US-2 (Mapiranje stakeholdera).
 - Utiče na US-7 (Definisanje MVP opsega) i US-9 (User Stories).
+
 **Acceptance criteria:**
 - Dokument mora sadržavati: naziv projekta, opis problema, ciljne korisnike i vrijednost sistema.
 - Mora biti jasno definirano šta ulazi i šta ne ulazi u MVP.
@@ -94,165 +95,158 @@ Product Vision služi kao kompas za sve odluke tokom razvoja i osigurava da tim 
 - Dokument mora biti pohranjen na zajedničkom repozitoriju i dostupan svim članovima.
 
 
-## US-4. Team Charter
+### US-4. Team Charter
 
-**Backlog referenca:**
-Backlog #4 – Team Charter | Tip: Documentation | Prioritet: High | Status: Done
+**Backlog referenca:** Backlog #4 – Team Charter  
+**Tip:** Documentation  
+**Prioritet:** High  
+**Status:** Done  
+
 **Opis:**
-Kao tim, želimo da definišemo raspodjelu uloga, načine komunikacije i format održavanja
-sastanaka, kako bismo uspostavili jasna pravila suradnje i odgovornosti unutar tima.
-**Poslovne vrijednosti:**
-Team Charter sprečava nesporazume u timu, osigurava efikasnu komunikaciju i jasno
-definiše ko je odgovoran za koje aktivnosti tokom projekta.
-**Prioritet:**
-High
-**Pretpostavke i otvorena pitanja:**
+Kao tim, želimo da definišemo raspodjelu uloga, načine komunikacije i format održavanja sastanaka, kako bismo uspostavili jasna pravila suradnje i odgovornosti unutar tima.
 
+**Poslovne vrijednosti:**
+Team Charter sprečava nesporazume u timu, osigurava efikasnu komunikaciju i jasno definiše ko je odgovoran za koje aktivnosti tokom projekta.
+
+**Pretpostavke i otvorena pitanja:**
 - Svi članovi tima su identificovani i dostupni za suradnju.
 - Tim radi po Scrum metodologiji.
 - Charter se može revidirati uz konsenzus tima.
+
 **Veza sa drugim storijima ili zavisnostima:**
 - Nema tehničkih zavisnosti – dokument se kreira na početku projekta.
 - Usklađen s US-3 (Product Vision) u pogledu uloga i komunikacije.
+
 **Acceptance criteria:**
-- Dokument mora sadržavati listu svih članova tima s dodijeljenim ulogama (Scrum
-Master, Product Owner, developeri).
-- Mora biti definirano: učestalost i format sastanaka, kanali komunikacije i alati za
-suradnju.
+- Dokument mora sadržavati listu svih članova tima s dodijeljenim ulogama (Scrum Master, Product Owner, developeri).
+- Mora biti definirano: učestalost i format sastanaka, kanali komunikacije i alati za suradnju.
 - Moraju biti navedena pravila ponašanja i procedure rješavanja konflikata.
 - Charter mora biti potpisan ili digitalno odobren od svih članova tima.
-- Dokument mora biti pohranjen na zajedničkom repozitoriju dostupnom svim
-članovima.
+- Dokument mora biti pohranjen na zajedničkom repozitoriju dostupnom svim članovima.
 
 
-## US-5. Istraživanje ulaznih formata
+### US-5. Istraživanje ulaznih formata
 
-**Backlog referenca:**
-Backlog #5 – Istraživanje ulaznih formata | Tip: Research | Prioritet: High | Status: In
-Progress
+**Backlog referenca:** Backlog #5 – Istraživanje ulaznih formata  
+**Tip:** Research  
+**Prioritet:** High  
+**Status:** In Progress  
+
 **Opis:**
-Kao developer, želim da istražim i dokumentujem moguće formate ulaznih transkripata
-(tekstualni, CSV, JSON, audio), kako bih donio informisanu arhitekturalnu odluku o
-prihvatanju i obradi podataka u sistemu.
-**Poslovne vrijednosti:**
-Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno utiče na
-pipeline obrade podataka i kvalitet baze znanja chatbota.
-**Prioritet:**
-High
-**Pretpostavke i otvorena pitanja:**
+Kao developer, želim da istražim i dokumentujem moguće formate ulaznih transkripata (tekstualni, CSV, JSON, audio), kako bih donio informisanu arhitekturalnu odluku o prihvatanju i obradi podataka u sistemu.
 
+**Poslovne vrijednosti:**
+Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno utiče na pipeline obrade podataka i kvalitet baze znanja chatbota.
+
+**Pretpostavke i otvorena pitanja:**
 - Postoje stvarni primjeri transkripata iz call centara koji su dostupni za analizu.
 - Tim ima tehničko znanje za analizu različitih formata podataka.
 - Odluka o formatu mora biti donesena prije implementacije parsera (US-24).
+
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-1 (Istraživanje domene).
 - Utiče na US-18 (Upload transkripata), US-23 (Priprema za obradu), US-24 (Parser).
+
 **Acceptance criteria:**
 - Tim mora istražiti i dokumentovati najmanje 3 različita formata ulaznih transkripata.
-- Za svaki format moraju biti opisane prednosti, nedostaci i tehnička izvedivost
-parsiranja.
+- Za svaki format moraju biti opisane prednosti, nedostaci i tehnička izvedivost parsiranja.
 - Mora biti donesena i dokumentovana odluka o podržanim formatima za MVP.
 - Findings moraju biti prezentovani timu i usvojeni konsenzusom.
-- Dokument mora biti pohranjen na zajedničkom repozitoriju.
+- Dokument mora biti pohranjen na zajedničkom repozitoriju. 
 
-## US-6. Istraživanje RAG i LLM servisa
+### US-6. Istraživanje RAG i LLM servisa
 
-**Backlog referenca:**
-Backlog #6 – Istraživanje RAG i LLM servisa | Tip: Research | Prioritet: High | Status: In
-Progress
+**Backlog referenca:** Backlog #6 – Istraživanje RAG i LLM servisa  
+**Tip:** Research  
+**Prioritet:** High  
+**Status:** In Progress  
+
 **Opis:**
-Kao developer, želim da istražim dostupne embedding modele, vektorske baze podataka i
-LLM API servise, kako bih odabrao najprikladniju tehnološku osnovu za RAG arhitekturu
-chatbota.
+Kao developer, želim da istražim dostupne embedding modele, vektorske baze podataka i LLM API servise, kako bih odabrao najprikladniju tehnološku osnovu za RAG arhitekturu chatbota.
+
 **Poslovne vrijednosti:**
-Odabir ispravnih tehnologija za RAG pipeline direktno utiče na tačnost odgovora chatbota,
-troškove operacije i skalabilnost sistema.
-**Prioritet:**
+Odabir ispravnih tehnologija za RAG pipeline direktno utiče na tačnost odgovora chatbota, troškove operacije i skalabilnost sistema.
 
-
-High
 **Pretpostavke i otvorena pitanja:**
-
 - Tim ima osnovno znanje o RAG (Retrieval Augmented Generation) arhitekturi.
 - Postoji budžet ili besplatni tier za testiranje LLM API servisa.
 - Istraživanje uključuje i procjenu troškova za produkcijsko okruženje.
+
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-1 (Istraživanje domene) i US-5 (Istraživanje ulaznih formata).
-- Rezultati direktno utiču na US-27 (Izgradnja baze znanja) i US-21 (Skeleton
-projekta).
+- Rezultati direktno utiču na US-27 (Izgradnja baze znanja) i US-21 (Skeleton projekta).
+
 **Acceptance criteria:**
-- Tim mora istražiti i porediti najmanje 2 LLM API servisa (npr. OpenAI, Anthropic,
-Mistral).
-- Tim mora istražiti i porediti najmanje 2 vektorske baze podataka (npr. Pinecone,
-Weaviate, Chroma).
+- Tim mora istražiti i porediti najmanje 2 LLM API servisa (npr. OpenAI, Anthropic, Mistral).
+- Tim mora istražiti i porediti najmanje 2 vektorske baze podataka (npr. Pinecone, Weaviate, Chroma).
 - Tim mora istražiti i porediti embedding modele za generisanje vektora iz teksta.
 - Findings moraju biti dokumentovani u obliku uporedne tabele s kriterijima odabira.
-- Mora biti donesena i dokumentovana konačna odluka o odabranom tehnološkom
-stacku.
+- Mora biti donesena i dokumentovana konačna odluka o odabranom tehnološkom stacku.
 - Dokument mora biti dostupan svim članovima tima.
 
-## US-7. Definisanje MVP opsega
 
-**Backlog referenca:**
-Backlog #7 – Definisanje MVP opsega | Tip: Documentation | Prioritet: High | Status: Done
+### US-7. Definisanje MVP opsega
+
+**Backlog referenca:** Backlog #7 – Definisanje MVP opsega  
+**Tip:** Documentation  
+**Prioritet:** High  
+**Status:** Done  
+
 **Opis:**
-Kao product owner, želim da precizno definiram koje funkcionalnosti ulaze u MVP a koje su
-post-MVP, kako bi tim imao jasan fokus i mogao isporučiti vrijednost u najkraćem mogućem
-roku.
-**Poslovne vrijednosti:**
-Jasno razgraničenje MVP-a sprečava scope creep, fokusira tim na ključne funkcionalnosti i
-omogućava brzu isporuku radnog sistema koji se može validirati sa stakeholderima.
-**Prioritet:**
-High
-**Pretpostavke i otvorena pitanja:**
+Kao product owner, želim da precizno definiram koje funkcionalnosti ulaze u MVP a koje su post-MVP, kako bi tim imao jasan fokus i mogao isporučiti vrijednost u najkraćem mogućem roku.
 
+**Poslovne vrijednosti:**
+Jasno razgraničenje MVP-a sprečava scope creep, fokusira tim na ključne funkcionalnosti i omogućava brzu isporuku radnog sistema koji se može validirati sa stakeholderima.
+
+**Pretpostavke i otvorena pitanja:**
 - Product Vision (US-3) je definisana i prihvaćena.
 - Stakeholder mapa (US-2) je završena.
 - MVP opseg je usklađen s raspoloživim resursima i vremenskim okvirom.
+
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-3 (Product Vision) i US-2 (Mapiranje stakeholdera).
 - Sastavni dio Product Vision deliverable-a.
 - Utiče na prioritizaciju svih ostalih backlog stavki.
+
 **Acceptance criteria:**
 - Dokument mora jasno nabrojati sve funkcionalnosti koje ulaze u MVP.
-
-
 - Dokument mora jasno nabrojati sve funkcionalnosti koje su izvan MVP opsega.
 - Svaka stavka mora imati kratko obrazloženje zašto ulazi ili ne ulazi u MVP.
 - MVP opseg mora biti odobren od strane svih stakeholdera na prezentaciji.
 - Dokument mora biti integrisan u Product Vision i dostupan svim članovima tima.
 
-## US-8. Početni Product Backlog
 
-**Backlog referenca:**
-Backlog #8 – Početni Product Backlog | Tip: Documentation | Prioritet: High | Status: Done
+### US-8. Početni Product Backlog
+
+**Backlog referenca:** Backlog #8 – Početni Product Backlog  
+**Tip:** Documentation  
+**Prioritet:** High  
+**Status:** Done  
+
 **Opis:**
-Kao product owner, želim da kreiram inicijalni product backlog sa svim tehničkim i
-funkcionalnim zadacima projekta, kako bi tim imao strukturiran pregled rada i mogao
-planirati sprinteve.
-**Poslovne vrijednosti:**
-Strukturiran backlog je temelj Scrum procesa – bez njega tim nema jasnu sliku šta treba biti
-urađeno i ne može efikasno planirati rad.
-**Prioritet:**
-High
-**Pretpostavke i otvorena pitanja:**
+Kao product owner, želim da kreiram inicijalni product backlog sa svim tehničkim i funkcionalnim zadacima projekta, kako bi tim imao strukturiran pregled rada i mogao planirati sprinteve.
 
+**Poslovne vrijednosti:**
+Strukturiran backlog je temelj Scrum procesa – bez njega tim nema jasnu sliku šta treba biti urađeno i ne može efikasno planirati rad.
+
+**Pretpostavke i otvorena pitanja:**
 - Product Vision (US-3) i MVP opseg (US-7) su definirani.
 - Tim je upoznat sa Scrum procesom i formatom backlog stavki.
 - Backlog se ažurira na kraju svakog sprinta.
+
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-3 (Product Vision), US-7 (MVP opseg).
 - Deliverable koji se ažurira svaki sprint – veza s US-12 (Ažuriranje backloga).
+
 **Acceptance criteria:**
-- Backlog mora sadržavati sve identifikovane stavke s ID-om, nazivom, kratkim
-opisom, tipom, prioritetom, procjenom i statusom.
+- Backlog mora sadržavati sve identifikovane stavke s ID-om, nazivom, kratkim opisom, tipom, prioritetom, procjenom i statusom.
 - Svaka stavka mora biti dovoljno granularna da se može realizovati u jednom sprintu.
-- Backlog mora biti pohranjen na zajedničkom repozitoriju i dostupan svim članovima
-tima.
+- Backlog mora biti pohranjen na zajedničkom repozitoriju i dostupan svim članovima tima.
 - Inicijalni backlog mora biti prezentovan timu i odobren na sprint planiranju.
 - Format backlog stavki mora biti konzistentan kroz cijeli projekat.
 
-## US-9. User Stories
+
+### US-9. User Stories
 
 **Backlog referenca:**
 Backlog #9 – User Stories | Tip: Documentation | Prioritet: High | Status: In Progress
