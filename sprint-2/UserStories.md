@@ -313,7 +313,7 @@ Jasni acceptance kriteriji eliminišu subjektivnost pri ocjeni završenosti zada
 **Status:** In Progress 
 
 **Opis:**
-Kao product owner, želim da definiram nefunkcionalne zahtjeve sistema s opisom, kategorijom, načinom provjere i prioritetom, kako bi razvojni tim vodio računa o performansama, sigurnosti i dostupnosti tokom implementacije.
+Kao product owner, želim da definišem nefunkcionalne zahtjeve sistema s opisom, kategorijom, načinom provjere i prioritetom, kako bi razvojni tim vodio računa o performansama, sigurnosti i dostupnosti tokom implementacije.
 
 **Poslovne vrijednosti:**
 Nefunkcionalni zahtjevi osiguravaju da sistem ne samo da radi ispravno, nego i da radi dovoljno brzo, sigurno i pouzdano da zadovolji realne potrebe korisnika u produkcijskom okruženju.
@@ -321,19 +321,19 @@ Nefunkcionalni zahtjevi osiguravaju da sistem ne samo da radi ispravno, nego i d
 **Pretpostavke i otvorena pitanja:**
 - Product Vision (US-3) je definisana.
 - Tim razumije razliku između funkcionalnih i nefunkcionalnih zahtjeva.
-- NFR-ovi se revidiraju tokom projekta po potrebi.
+- NFR-ovi se prepravljaju tokom projekta po potrebi.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-3 (Product Vision) i US-2 (Stakeholder mapa).
 - NFR-ovi se primjenjuju na sve funkcionalne user stories (US-13 do US-35).
 
 **Acceptance criteria:**
-- Dokument mora sadržavati najmanje 8 nefunkcionalnih zahtjeva pokrivajući: performanse, skalabilnost, dostupnost, upotrebljivost, auditabilnost, održavanje, tačnost i transparentnost.
+- Dokument mora sadržavati najmanje 8 nefunkcionalnih zahtjeva pokrivajući: performanse, prilagodljivost rastu, dostupnost, upotrebljivost, auditabilnost, održavanje, tačnost i transparentnost.
 - Svaki NFR mora imati: ID, kategoriju, opis, način provjere, prioritet i napomenu.
 - NFR-7: Sistem mora odgovoriti na upit u roku od 3 sekunde u 95% slučajeva.
 - NFR-9: Sistem mora biti dostupan najmanje 99% vremena.
 - NFR-13: Chatbot mora davati relevantne odgovore u najmanje 85% testiranih slučajeva.
-- Dokument mora biti odobren od tima i pohranjen na zajedničkom repozitoriju.
+- Dokument mora biti odobren od tima i postavljen na zajedničkom repozitoriju.
 
 
 ### US-12. Ažuriranje backloga
@@ -347,7 +347,7 @@ Nefunkcionalni zahtjevi osiguravaju da sistem ne samo da radi ispravno, nego i d
 Kao product owner, želim da redovno analiziram i ažuriram sve stavke backloga po poslovnoj vrijednosti i tehničkim zavisnostima, kako bi backlog uvijek odražavao trenutne prioritete i stanje projekta.
 
 **Poslovne vrijednosti:**
-Ažuran backlog osigurava da tim uvijek radi na stavkama s najvećom poslovnom vrijednošću i da sprint planiranja budu efikasna i relevantna.
+Ažuran backlog osigurava da tim uvijek radi na stavkama s najvećom poslovnom vrijednošću i da planiranja sprintova budu efikasna i relevantna.
 
 **Pretpostavke i otvorena pitanja:**
 - Inicijalni backlog (US-8) je kreiran.
@@ -361,10 +361,10 @@ Ažuran backlog osigurava da tim uvijek radi na stavkama s najvećom poslovnom v
 **Acceptance criteria:**
 - Backlog mora biti ažuriran na kraju svakog sprinta.
 - Svaka stavka mora imati ažurirani status (Not Started / In Progress / Done).
-- Prioriteti stavki moraju biti revidovani na osnovu novih saznanja i promjena u projektu.
+- Prioriteti stavki moraju biti prepravljani na osnovu novih saznanja i promjena u projektu.
 - Nove stavke moraju biti dodane u backlog čim budu identifikovane.
 - Ukloniti ili označiti kao nevažeće sve stavke koje više nisu relevantne.
-- Ažurirana verzija backloga mora biti dostupna timu prije svakog sprint planiranja.
+- Ažurirana verzija backloga mora biti dostupna timu prije svakog planiranja sprinta.
 
 
 ### US-13. Konverzija audio zapisa u transkript
@@ -375,15 +375,15 @@ Ažuran backlog osigurava da tim uvijek radi na stavkama s najvećom poslovnom v
 **Status:** In Progress  
 
 **Opis:**
-Kao administrator, želim da istražim i integriram API servis za automatsku konverziju audio zapisa poziva u tekstualni transkript, kako ne bih morao ručno transkribirati snimke i time ubrzam unos podataka u sistem.
+Kao administrator, želim da istražim i integriram API servis za automatsku konverziju audio zapisa poziva u tekstualni transkript, kako ne bih morao ručno transkriptovati snimke i tako ubrzavam unos podataka u sistem.
 
 **Poslovne vrijednosti:**
-Automatska audio-to-text konverzija dramatično ubrzava process pripreme podataka za treniranje chatbota i smanjuje mogućnost grešaka pri ručnoj transkripciji.
+Automatska audio-to-text konverzija značajno ubrzava proces pripreme podataka za treniranje chatbota i smanjuje mogućnost grešaka pri ručnoj transkripciji.
 
 **Pretpostavke i otvorena pitanja:**
 - Postoje audio zapisi poziva u prihvatljivim formatima (.mp3, .wav, .m4a).
-- Tim je istražio dostupne speech-to-text API servise (Google Cloud STT, OpenAI, Whisper, Azure).
-- API servis podržava bosanski/srpski/hrvatski jezik ili engleski.
+- Tim je istražio dostupne speech-to-text API servise (OpenAI, Cloude, Whisper, Azure).
+- API servis podržava bosanski/hrvatski/srpski jezik ili engleski.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Utiče na US-18 (Upload transkripata) – audio upload kao dodatni ulazni kanal.
@@ -391,7 +391,7 @@ Automatska audio-to-text konverzija dramatično ubrzava process pripreme podatak
 - Konvertovani transkript prolazi kroz US-23 (Priprema za obradu).
 
 **Acceptance criteria:**
-- Tim mora istražiti i porediti najmanje 2 speech-to-text API servisa po kriterijima: tačnost, cijena, podrška za jezik, latencija.
+- Tim mora istražiti i porediti najmanje 2 speech-to-text API servisa po kriterijima: tačnost, cijena, podrška za jezik, kašnjenje u reakciji sistema.
 - Mora biti donesena dokumentovana odluka o odabranom API servisu.
 - Administrator mora moći uploadovati audio fajl putem interfejsa.
 - Sistem mora automatski pokrenuti konverziju nakon uploada i prikazati status obrade.
@@ -408,15 +408,15 @@ Automatska audio-to-text konverzija dramatično ubrzava process pripreme podatak
 **Status:** Not Started  
 
 **Opis:**
-Kao developer, želim da dizajniram shemu baze podataka za pohranu audio zapisa, transkripata, korisničkih računa, pitanja, odgovora i metapodataka, kako bi sistem imao stabilan i skalabilan temelj za pohranu podataka.
+Kao developer, želim da dizajniram shemu baze podataka za pohranu audio zapisa, transkripata, korisničkih računa, pitanja, odgovora i metapodataka, kako bi sistem imao stabilan i prilagodljiv temelj za pohranu podataka.
 
 **Poslovne vrijednosti:**
-Dobro dizajnirana baza podataka je temelj cijelog sistema – loš dizajn na ovom nivou uzrokuje skupo refaktorisanje u kasnijim fazama razvoja.
+Dobro dizajnirana baza podataka je temelj cijelog sistema – loš dizajn na ovom nivou uzrokuje skupo preuređivanje u kasnijim fazama razvoja.
 
 **Pretpostavke i otvorena pitanja:**
 - Funkcionalni zahtjevi (US-9, US-10) su dovoljno definirani da se može pristupiti dizajnu baze.
 - Tim je usaglasio izbor sistema za upravljanje bazom podataka (SQL/NoSQL).
-- Baza mora podržavati i relacijske podatke (korisnici, transkripti) i vektorske podatke (embeddingi).
+- Baza mora podržavati i relacijske podatke (korisnici, transkripti) i vektorske podatke (embedding).
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-9 (User Stories) i US-11 (Nefunkcionalni zahtjevi).
@@ -426,7 +426,7 @@ Dobro dizajnirana baza podataka je temelj cijelog sistema – loš dizajn na ovo
 - Dizajn mora obuhvatiti sve ključne entitete: korisnici (uloge), transkripti, konverzacije, pitanja, odgovori, logovi, prijave grešaka.
 - ER dijagram mora biti kreiran i dostupan svim članovima tima.
 - Moraju biti definisane sve relacije između entiteta (one-to-many, many-to-many).
-- Dizajn mora biti usklađen s nefunkcionalnim zahtjevima (performanse, skalabilnost).
+- Dizajn mora biti usklađen s nefunkcionalnim zahtjevima (performanse, prilagodljivost).
 - Plan mora biti pregledan i odobren od strane tima prije implementacije.
 - Dizajn mora predvidjeti pohranu vektorskih embeddinga za RAG komponentu.
 
@@ -441,7 +441,7 @@ Dobro dizajnirana baza podataka je temelj cijelog sistema – loš dizajn na ovo
 Kao krajnji korisnik, želim da ocijenim odgovor chatbota nakon svake interakcije, kako bi sistem dobio povratnu informaciju o kvalitetu i tačnosti odgovora.
 
 **Poslovne vrijednosti:**
-Korisničke ocjene su primarni izvor informacija za identifikaciju netačnih odgovora i kontinuirano unapređenje modela bez potrebe za manuelnim pregledom svake konverzacije.
+Korisničke ocjene su primarni izvor informacija za identifikaciju netačnih odgovora i stalno unapređenje modela bez potrebe za ručnim pregledom svake konverzacije.
 
 **Pretpostavke i otvorena pitanja:**
 - Korisnik je postavio pitanje i primio odgovor od chatbota.
