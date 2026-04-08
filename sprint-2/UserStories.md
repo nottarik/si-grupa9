@@ -750,3 +750,62 @@ Zavisi od Sign In.
 - Kada je korisnik prijavljen, tada sistem mora prikazati vidljivu opciju Sign Out u navigaciji
 - Kada korisnik klikne Sign Out, tada sistem mora prekinuti sesiju i preusmjeriti korisnika na stranicu za prijavu
 - Kada se korisnik odjavi i pritisne dugme za povratak u pregledniku, tada sistem ne smije prikazati zaštićeni sadržaj
+
+Evo tvojih User Story-ja formatiranih u Markdown jeziku, spremnih za kopiranje:
+
+## Priprema za obradu transkripata
+
+### User Story 1
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 27 |
+| **Naziv** | Normalizacija teksta transkripata |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava konzistentan format podataka za dalju obradu i treniranje modela |
+
+**Uloga:**
+Kao administrator, želim da sistem automatski normalizuje tekst transkripata kako bi podaci bili spremni za dalju obradu i pohranu.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da transkripti mogu sadržavati nekonzistentan format (velika/mala slova, specijalni znakovi). Otvoreno pitanje: Da li primijeniti naprednu jezičku korekciju ili samo osnovnu normalizaciju?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Upload i unos transkripata. Preduvjet za Razdvajanje po ulogama i Maskiranje osjetljivih podataka.
+
+**Acceptance Criteria:**
+- Kada sistem primi transkript, tada mora ukloniti nepotrebne razmake i standardizovati tekst
+- Sistem mora konvertovati tekst u definisani format (npr. mala slova ili standardizovana kapitalizacija)
+- Sistem mora ukloniti ili zamijeniti nevalidne znakove
+- Sistem ne smije promijeniti semantičko značenje teksta
+
+---
+
+### User Story 2
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 28 |
+| **Naziv** | Razdvajanje transkripta po ulogama (agent/korisnik) |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava strukturiranje razgovora i kvalitetnije treniranje AI modela |
+
+**Uloga:**
+Kao administrator, želim da sistem automatski razdvoji transkript po ulogama (agent i korisnik) kako bi razgovor bio jasno strukturiran.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da transkript sadrži indikatore govornika (npr. "Agent:", "Korisnik:"). Otvoreno pitanje: Kako postupati kada oznake govornika nisu jasno definisane?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Normalizacija teksta transkripata. Preduvjet za Maskiranje osjetljivih podataka i treniranje modela.
+
+**Acceptance Criteria:**
+- Kada sistem obradi transkript, tada mora identificirati govornike u razgovoru
+- Sistem mora označiti svaki segment teksta odgovarajućom ulogom (agent ili korisnik)
+- Kada oznake nisu jasno definisane, sistem mora pokušati inferirati uloge ili označiti segment kao nepoznat
+- Sistem ne smije pogrešno dodijeliti uloge kada su oznake jasno definisane
+
+---
+
