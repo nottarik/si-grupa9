@@ -140,7 +140,7 @@ Odabir ispravnog ulaznog formata je ključna arhitekturalna odluka koja direktno
 
 **Pretpostavke i otvorena pitanja:**
 - Postoje stvarni primjeri transkripta iz call centara koji su dostupni za analizu.
-- Tim ima tehničko znanje za analizu različitih formata podataka.
+- Tim ima tehničko znanje za analizu različitih formata podataka
 - Odluka o formatu mora biti donesena prije implementacije parsera (program ili dio softvera koji čita neki tekst ili podatke i razbija ih na dijelove koje računar može razumjeti i obraditi.) (US-24).
 
 **Veza sa drugim storijima ili zavisnostima:**
