@@ -1,6 +1,6 @@
 ## Sprint Backlog
 
-| ID | Zadatak / User Story | Odgovorni | Status | Napomena |
+| ID | Zadatak | Odgovorni | Status | Napomena |
 |:---|:---|:---|:---|:---|
 | 1 | Dopuna i ažuriranje Product Backlog dokumenta | Asja Festa, Tarik Fetahović | Završeno | U skladu sa prethodnim analizama i diskusijama tima |
 | 2 | Priprema dokumenta nefunkcionalnih zahtjeva | Ena Gicić, Nejra Vatrić | Završeno | Fokus na sigurnost, performanse i upotrebljivost sistema |
