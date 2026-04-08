@@ -772,7 +772,7 @@ Kao administrator, želim da sistem automatski normalizuje tekst transkripata ka
 Pretpostavlja se da transkripti mogu sadržavati nekonzistentan format (velika/mala slova, specijalni znakovi). Otvoreno pitanje: Da li primijeniti naprednu jezičku korekciju ili samo osnovnu normalizaciju?
 
 **Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Upload i unos transkripata. Preduvjet za Razdvajanje po ulogama i Maskiranje osjetljivih podataka.
+Zavisi od Upload i unos transkripata. Preduvjet za Razdvajanje po ulogama i Detekcija i zamjena osjetljivih podataka.
 
 **Acceptance Criteria:**
 - Kada sistem primi transkript, tada mora ukloniti nepotrebne razmake i standardizovati tekst
@@ -799,7 +799,7 @@ Kao administrator, želim da sistem automatski razdvoji transkript po ulogama (a
 Pretpostavlja se da transkript sadrži indikatore govornika (npr. "Agent:", "Korisnik:"). Otvoreno pitanje: Kako postupati kada oznake govornika nisu jasno definisane?
 
 **Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Normalizacija teksta transkripata. Preduvjet za Maskiranje osjetljivih podataka i treniranje modela.
+Zavisi od Normalizacija teksta transkripata. Preduvjet za  Detekcija i zamjena osjetljivih podataka.
 
 **Acceptance Criteria:**
 - Kada sistem obradi transkript, tada mora identificirati govornike u razgovoru
