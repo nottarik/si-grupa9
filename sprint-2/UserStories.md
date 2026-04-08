@@ -470,10 +470,10 @@ Korisničke ocjene su primarni izvor informacija za identifikaciju netačnih odg
 **Status:** Not Started 
 
 **Opis:**
-Kao product owner, želim da identifikujem i dokumentujem ključne projektne i tehničke rizike s vjerovatnoćom pojave, uticajem i strategijom mitigacije, kako bi tim mogao proaktivno upravljati rizicima tokom projekta.
+Kao product owner, želim da identifikujem i dokumentujem ključne projektne i tehničke rizike s vjerovatnoćom pojave, uticajem i strategijom smanjivanja rizika, kako bi tim mogao preventivno upravljati rizicima tokom projekta.
 
 **Poslovne vrijednosti:**
-Proaktivno upravljanje rizicima smanjuje vjerovatnoću da neočekivani događaji ugroze isporuku projekta na vrijeme i u budžetu.
+Preventivno upravljanje rizicima smanjuje vjerovatnoću da neočekivani događaji ugroze isporuku projekta na vrijeme i u budžetu.
 
 **Pretpostavke i otvorena pitanja:**
 - Tim ima dovoljno uvida u tehnički i poslovni kontekst projekta za identifikaciju rizika.
@@ -486,7 +486,7 @@ Proaktivno upravljanje rizicima smanjuje vjerovatnoću da neočekivani događaji
 
 **Acceptance criteria:**
 - Dokument mora sadržavati tabelu s najmanje 8 identifikovanih rizika.
-- Za svaki rizik mora biti definirano: ID, opis, kategorija, vjerovatnoća (1-5), uticaj (1-5), ukupna ocjena, strategija mitigacije i vlasnik rizika.
+- Za svaki rizik mora biti definirano: ID, opis, kategorija, vjerovatnoća (1-5), uticaj (1-5), ukupna ocjena, strategija smanjenja rizika i vlasnik rizika.
 - Rizici moraju pokriti: tehničke, projektne, pravne i poslovne kategorije.
 - Register mora biti odobren od strane tima i pohranjen na zajedničkom repozitoriju.
 - Register mora biti ažuriran na kraju svakog sprinta s novim rizicima i promjenama statusa.
@@ -505,7 +505,7 @@ Kao developer, želim da kreiram UML use case dijagram koji prikazuje sve aktere
 Use case model pruža jednoznačnu vizuelnu komunikaciju između tehničkih i netehničkih članova tima i služi kao referentni dokument za implementaciju.
 
 **Pretpostavke i otvorena pitanja:**
-- User stories (US-9) su dovoljno definirane da se može pristupiti modeliranju.
+- User stories (US-9) su dovoljno definisani da se može pristupiti modeliranju.
 - Tim je upoznat s UML notacijom za use case dijagrame.
 - Model se ažurira kada se dodaju novi zahtjevi.
 
@@ -516,10 +516,10 @@ Use case model pruža jednoznačnu vizuelnu komunikaciju između tehničkih i ne
 **Acceptance criteria:**
 - Dijagram mora prikazati sve aktere sistema: krajnji korisnik, agent, administrator, (menadžment, developer).
 - Dijagram mora prikazati sve ključne use case-ove za MVP.
-- Moraju biti prikazane relacije između aktere i use case-ova (include, extend gdje je primjenjivo).
-- Dijagram mora biti kreiran u odgovarajućem alatu (draw.io, PlantUML, Lucidchart).
+- Moraju biti prikazane relacije između aktera i use case-ova (include, extend gdje je moguće primijeniti).
+- Dijagram mora biti kreiran u odgovarajućem alatu 
 - Model mora biti pregledan i odobren od strane tima.
-- Dijagram mora biti pohranjen u repozitoriju u editabilnom formatu.
+- Dijagram mora biti pohranjen u repozitoriju u formatu koji se može editovati.
 
 ### US-18. Upload i unos transkripata
 
@@ -529,7 +529,7 @@ Use case model pruža jednoznačnu vizuelnu komunikaciju između tehničkih i ne
 **Status:** Not Started  
 
 **Opis:**
-Kao administrator, želim da uplodujem transkripte razgovora iz call centra u sistem, kako bi se ti podaci obradili i koristili za treniranje i poboljšanje chatbota.
+Kao administrator, želim da uploadujem transkripte razgovora iz call centra u sistem, kako bi se ti podaci obradili i koristili za treniranje i poboljšanje chatbota.
 
 **Poslovne vrijednosti:**
 Unos transkripata je primarni izvor podataka za cijeli sistem – bez ovog koraka chatbot ne može imati bazu znanja niti davati relevantne odgovore.
@@ -547,7 +547,7 @@ Unos transkripata je primarni izvor podataka za cijeli sistem – bez ovog korak
 - Sistem mora prikazati interfejs za upload fajlova s podržanim formatima.
 - Sistem mora podržavati upload više fajlova istovremeno.
 - Sistem mora validirati format i veličinu fajlova te prikazati grešku za nepodržane formate.
-- Nakon uspješnog uploada, sistem mora automatski pokrenuti pipeline obrade (US-23).
+- Nakon uspješnog uploada, sistem mora automatski pokrenuti niz koraka obrade (US-23).
 - Administrator mora primiti potvrdu o uspješnom uploadovanju s imenom fajla i vremenskom oznakom.
 - Sistem ne smije prihvatiti fajl veći od definisanog limita bez upozorenja.
 - Uploadovani transkripti moraju biti vidljivi u pregledu (US-33).
@@ -563,7 +563,7 @@ Unos transkripata je primarni izvor podataka za cijeli sistem – bez ovog korak
 Kao QA inženjer / developer, želim da definišem testnu strategiju projekta koja pokriva vrste testova, ciljeve testiranja i načine evidentiranja rezultata, kako bi tim imao sistematičan pristup osiguranju kvaliteta sistema.
 
 **Poslovne vrijednosti:**
-Jasna testna strategija smanjuje broj bugova u produkciji, osigurava da acceptance kriteriji budu provjereni i pruža timu povjerenje u ispravnost sistema.
+Jasna testna strategija smanjuje broj kvarova u produkciji, osigurava da acceptance kriteriji budu provjereni i pruža timu povjerenje u ispravnost sistema.
 
 **Pretpostavke i otvorena pitanja:**
 - Acceptance Criteria (US-10) su definirani.
@@ -579,7 +579,7 @@ Jasna testna strategija smanjuje broj bugova u produkciji, osigurava da acceptan
 - Mora biti definisano šta je cilj svakog tipa testiranja i koji dijelovi sistema pokriva.
 - Mora biti definisan format evidentiranja rezultata testova (izvještaji, dashboardi).
 - Strategija mora biti usklađena s NFR zahtjevima (NFR-7, NFR-8, NFR-13).
-- Dokument mora biti odobren od tima i pohranjen na zajedničkom repozitoriju.
+- Dokument mora biti odobren od tima i postavljen na zajedničkom repozitoriju.
 - Strategija mora definisati minimalan procenat pokrivenosti koda testovima.
 
 ### US-20. Definition of Done
@@ -598,7 +598,7 @@ DoD eliminira subjektivnost pri ocjeni završenosti rada, osigurava konzistentan
 **Pretpostavke i otvorena pitanja:**
 - Tim je upoznat s Scrum procesom i konceptom DoD-a.
 - DoD se primjenjuje na sve stavke backloga od trenutka usvajanja.
-- DoD se može revidirati uz konsenzus tima na retrospektivi.
+- DoD se može prepravljati uz saglasnost tima 
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Utiče na sve ostale backlog stavke – primjenjuje se na svaki task.
@@ -607,9 +607,9 @@ DoD eliminira subjektivnost pri ocjeni završenosti rada, osigurava konzistentan
 **Acceptance criteria:**
 - DoD dokument mora navesti jasne i mjerljive kriterije završenosti za kod (npr. code review, testovi prolaze, nema otvorenih bugova).
 - DoD mora pokriti kriterije za dokumentacijske isporuke (formatiran, odobren, pohranjen).
-- DoD mora biti odobren konsenzusom cijelog tima.
+- DoD mora biti odobren uz saglasnost cijelog tima.
 - DoD mora biti pohranjen na vidljivom i dostupnom mjestu za sve članove tima.
-- Primjena DoD-a mora biti provjeravana na svakom sprint reviewu.
+- Primjena DoD-a mora biti provjeravana na svakom pregledu sprinta.
 
 ### US-21. Osnovni skeleton projekta
 
@@ -619,10 +619,10 @@ DoD eliminira subjektivnost pri ocjeni završenosti rada, osigurava konzistentan
 **Status:** Not Started
 
 **Opis:**
-Kao developer, želim da postavim tehnički skeleton sistema koji uključuje GitHub repozitorij, strukturu foldera, konfiguraciju alata i osnovni CI/CD pipeline, kako bi cijeli tim mogao početi razvijati na konzistentnoj osnovi.
+Kao developer, želim da postavim tehnički skeleton sistema koji uključuje GitHub repozitorij, strukturu foldera, konfiguraciju alata i osnovni CI/CD niz koraka, kako bi cijeli tim mogao početi razvijati na konzistentnoj osnovi.
 
 **Poslovne vrijednosti:**
-Skeleton projekta eliminira tehničke prepreke na početku razvoja i osigurava da svi developeri rade u identičnom okruženju s konzistentnom strukturom koda.
+Skeleton projekta eliminiša tehničke prepreke na početku razvoja i osigurava da svi developeri rade u identičnom okruženju s dosljednom strukturom koda.
 
 **Pretpostavke i otvorena pitanja:**
 - Tehnološki stack je odabran (US-6).
@@ -631,15 +631,14 @@ Skeleton projekta eliminira tehničke prepreke na početku razvoja i osigurava d
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-6 (RAG istraživanje – odabir stacka) i US-14 (Plan baze podataka).
-- Preduvjet za sve implementacijske stavke: US-18, US-22, US-23, US-24, US-25, US-26, US-27.
+- preduslov za sve implementacijske stavke: US-18, US-22, US-23, US-24, US-25, US-26, US-27.
 
 **Acceptance criteria:**
 - GitHub repozitorij mora biti kreiran s definisanom branch strategijom (main, develop, feature branches).
 - Struktura foldera mora biti uspostavljena i dokumentovana u README fajlu.
 - Osnovna konfiguracija backend frameworka mora biti postavljena i pokrenuta lokalno.
-- Konfiguracija baze podataka mora biti postavljena (lokalno i staging okruženje).
-- CI/CD pipeline mora biti konfigurisan za automatsko pokretanje testova pri push/merge.
-- Svi developeri moraju biti u stanju pokrenuti projekt lokalno slijedeći README upute.
+- Konfiguracija baze podataka mora biti postavljena (lokalno i testno okruženje).
+- Svi developeri moraju biti u stanju pokrenuti projekt lokalno ako slijede README upute.
 - Skeleton mora biti pregledan i odobren od tima prije početka implementacije.
 
 ### US-22. Chat UI – Interfejs za krajnjeg korisnika
@@ -666,12 +665,12 @@ Chat UI je primarna tačka kontakta između korisnika i sistema – njen kvalite
 
 **Acceptance criteria:**
 - Interfejs mora prikazivati polje za unos teksta i dugme za slanje poruke.
-- Interfejs mora prikazivati historiju razgovora u toku aktivne sesije.
+- Interfejs mora prikazivati historiju razgovora u toku aktivnog sastanka.
 - Na početku svake konverzacije mora biti prikazana poruka da korisnik komunicira s AI asistentom (NFR-14).
 - Sistem mora prikazati indikator učitavanja dok čeka na odgovor chatbota.
 - Odgovor mora biti prikazan u roku od 3 sekunde u 95% slučajeva (NFR-7).
 - Sistem ne smije dozvoliti slanje prazne poruke.
-- UI mora biti responzivan i funkcionalan na desktop i mobilnim uređajima.
+- UI mora biti reaktivan i funkcionalan na desktop i mobilnim uređajima.
 - Interfejs mora sadržavati opciju za ocjenu odgovora (US-15).
 
 ### US-23. Priprema za obradu transkripata
@@ -682,10 +681,10 @@ Chat UI je primarna tačka kontakta između korisnika i sistema – njen kvalite
 **Status:** Not Started  
 
 **Opis:**
-Kao developer, želim da implementiram pipeline za pripremu transkripata koji uključuje normalizaciju teksta, razdvajanje po ulogama i maskiranje osjetljivih podataka, kako bi sirovi transkripti bili u formatu pogodnom za izgradnju baze znanja.
+Kao developer, želim da implementiram niz koraka za pripremu transkripata koji uključuje normalizaciju teksta, razdvajanje po ulogama i maskiranje osjetljivih podataka, kako bi sirovi transkripti bili u formatu pogodnom za izgradnju baze znanja.
 
 **Poslovne vrijednosti:**
-Kvalitet pripreme transkripata direktno utiče na kvalitet baze znanja i tačnost odgovora chatbota – loša priprema podataka rezultira netačnim i irelevantnim odgovorima.
+Kvalitet pripreme transkripata direktno utiče na kvalitet baze znanja i tačnost odgovora chatbota – loša priprema podataka rezultira netačnim i odgovorima koji nisu relevantni.
 
 **Pretpostavke i otvorena pitanja:**
 - Ulazni formati transkripata su definirani (US-5).
@@ -694,14 +693,13 @@ Kvalitet pripreme transkripata direktno utiče na kvalitet baze znanja i tačnos
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-18 (Upload transkripata), US-21 (Skeleton).
-- Komponiran od US-24 (Parser), US-25 (Normalizacija), US-26 (Maskiranje).
-- Preduvjet za US-27 (Izgradnja baze znanja).
+- Sastavljen od od US-24 (Parser), US-25 (Normalizacija), US-26 (Maskiranje).
+- preduslov za US-27 (Izgradnja baze znanja).
 
 **Acceptance criteria:**
-- Pipeline mora biti automatski pokrenut nakon svakog uspješnog uploada transkripta.
-- Pipeline mora izvršiti sve tri faze: normalizaciju, razdvajanje uloga i maskiranje – u definisanom redoslijedu.
+- Niz koraka mora biti automatski pokrenut nakon svakog uspješnog uploada transkripta i mora izvršiti sve tri faze: normalizaciju, razdvajanje uloga i maskiranje – u definisanom redoslijedu.
 - Obrađeni transkript mora biti pohranjen u bazu s metapodacima o procesu obrade.
-- Sistem mora logirati svaki korak obrade i eventualne greške.
+- Sistem mora zabilježiti svaki korak obrade i eventualne greške.
 - Obrada ne smije prekinuti rad sistema za ostale korisnike (NFR-8).
 - Pipeline mora biti testiran na primjerima transkripata s različitim formatima.
 
@@ -744,15 +742,15 @@ Razlikovanje uloga u transkriptu je ključno za kvalitetno indeksiranje – RAG 
 **Status:** Not Started  
 
 **Opis:**
-Kao developer, želim da implementiram modul za normalizaciju teksta koji uklanja šum, standardizuje interpunkciju i format transkripata, kako bi tekst bio u konzistentnom obliku pogodnom za generisanje embeddinga.
+Kao developer, želim da implementiram modul za normalizaciju teksta koji uklanja šum, standardizuje interpunkciju i format transkripata, kako bi tekst bio u konzistentnom obliku koji je pogodan za generisanje embeddinga.
 
 **Poslovne vrijednosti:**
-Normalizovani tekst poboljšava kvalitet embeddinga i retrieval mehanizma, što direktno utiče na relevantnost odgovora chatbota.
+Normalizovani tekst poboljšava kvalitet embeddinga, što direktno utiče na relevantnost odgovora chatbota.
 
 **Pretpostavke i otvorena pitanja:**
-- Definirani su konkretni tipovi šuma koji se javljaju u transkriptima (npr. oznake za pauzu, verbalne tikove).
-- Normalizacija ne smije mijenjati semantičko značenje rečenica.
-- Modul je konfigurabilno – može se prilagoditi novim vrstama šuma.
+- Definirani su konkretni tipovi šuma koji se javljaju u transkriptima (npr. oznake za pauzu).
+- Normalizacija ne smije mijenjati značenje rečenica.
+- Modul se može prilagoditi novim vrstama šuma.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Dio pipeline-a US-23 (Priprema za obradu).
@@ -762,7 +760,7 @@ Normalizovani tekst poboljšava kvalitet embeddinga i retrieval mehanizma, što 
 **Acceptance criteria:**
 - Modul mora ukloniti definisane tipove šuma iz teksta (verbalni tikovi, oznake pauze, višestruki razmaci).
 - Modul mora standardizovati interpunkciju prema definisanim pravilima.
-- Normalizacija mora očuvati semantički značajne informacije iz originalnog teksta.
+- Normalizacija mora očuvati izvorno značajne informacije iz originalnog teksta.
 - Modul mora biti pokriven unit testovima s primjerima normalnog i šumovitog teksta.
 - Modul mora biti integrisan u pipeline US-23 kao drugi korak.
 
@@ -781,7 +779,7 @@ Maskiranje osjetljivih podataka je pravna i etička obaveza (GDPR i lokalni prop
 
 **Pretpostavke i otvorena pitanja:**
 - Definisana je lista tipova osjetljivih podataka koji se maskiraju.
-- Maskiranje se vrši prije pohrane u bazu – podaci nikada ne smiju biti pohranjeni nemaski rani.
+- Maskiranje se vrši prije pohrane u bazu – podaci nikada ne smiju biti pohranjeni nemaskirani.
 - Korisnik je obaviješten da su njegovi podaci zaštićeni (NFR-14).
 
 **Veza sa drugim storijima ili zavisnostima:**
@@ -793,9 +791,9 @@ Maskiranje osjetljivih podataka je pravna i etička obaveza (GDPR i lokalni prop
 - Modul mora detektovati i maskirati: puna imena, telefonske brojeve, JMBG, email adrese, adrese.
 - Maskirani podaci moraju biti zamijenjeni odgovarajućim placeholderima (npr. [IME], [TELEFON]).
 - Modul mora biti testiran na skupu od najmanje 20 primjera s različitim tipovima osjetljivih podataka.
-- Stopa detekcije mora biti najmanje 95% na testnom skupu.
+- Udio detekcije mora biti najmanje 95% na testnom skupu.
 - Modul mora biti integrisan u pipeline US-23 kao završni korak prije pohrane.
-- Niti jedan nemaski rani osjetljivi podatak ne smije dospjeti u vektorsku bazu podataka.
+- Niti jedan nemaskirani osjetljivi podatak ne smije dospjeti u vektorsku bazu podataka.
 
 ### US-27. Izgradnja baze znanja chatbota
 
@@ -821,8 +819,8 @@ Baza znanja je srž cijelog sistema – bez nje chatbot nema informacije na osno
 
 **Acceptance criteria:**
 - Sistem mora generisati embedding vektore iz svakog obrađenog segmenta transkripta.
-- Embeddingi moraju biti pohranjeni u vektorsku bazu s odgovarajućim metapodacima.
-- Retrieval mehanizam mora biti implementiran i testiran – mora vraćati relevantne segmente za dato pitanje.
+- Embedding-i moraju biti pohranjeni u vektorsku bazu s odgovarajućim metapodacima.
+- Retrieval mehanizam mora biti implementiran i testiran – mora vraćati relevantne odgovore za dato pitanje.
 - Administrator mora moći pokrenuti proces izgradnje/ažuriranja baze znanja bez prekida rada sistema (NFR-12).
 - Sistem mora prikazati status procesa izgradnje u realnom vremenu.
 - Sistem mora evidentirati datum i opseg posljednjeg ažuriranja baze znanja.
@@ -843,7 +841,7 @@ Kao agent call centra, želim da prijavim odgovor chatbota koji je netačan ili 
 Agenti su stručnjaci u domeni call centra i mogu pružiti visokokvalitetan feedback koji direktno poboljšava tačnost chatbota.
 
 **Pretpostavke i otvorena pitanja:**
-- Agent je prijavljen u sistem s agentskom ulogom.
+- Agent je prijavljen u sistem sa svojom ulogom.
 - Agent ima pristup konverzacijama koje su preusmjerene s chatbota ili logovima interakcija.
 - Prijavljena greška kreira zapis koji je vidljiv administratoru.
 
@@ -872,7 +870,7 @@ Agenti su stručnjaci u domeni call centra i mogu pružiti visokokvalitetan feed
 Kao developer, želim da kreiram korisničku dokumentaciju koja obuhvata upute za korištenje chatbota, admin panela i unosa transkripata, kako bi krajnji korisnici, agenti i administratori mogli samostalno koristiti sistem bez dodatne obuke.
 
 **Poslovne vrijednosti:**
-Dobra korisnička dokumentacija smanjuje troškove podrške, ubrzava onboarding novih korisnika i povećava stopu samoposluge u sistemu.
+Dobra korisnička dokumentacija smanjuje troškove podrške, ubrzava proces upoznavanja novih korisnika i povećava stopu samoposluge u sistemu.
 
 **Pretpostavke i otvorena pitanja:**
 - Ključne funkcionalnosti sistema su implementirane i stabilne.
@@ -899,19 +897,19 @@ Dobra korisnička dokumentacija smanjuje troškove podrške, ubrzava onboarding 
 **Status:** Not Started  
 
 **Opis:**
-Kao developer, želim da konfiguriram razvojno okruženje koje uključuje Docker kontejnerizaciju, konfiguraciju baze podataka i backend framework, kako bi svi developeri imali identično i reproducibilno okruženje za razvoj.
+Kao developer, želim da podesim razvojno okruženje koje uključuje pakovanje aplikacije i svih njenih zavisnosti u izolovani, prenosivi kontejner, konfiguraciju baze podataka i backend framework, kako bi svi developeri imali identično i pouzdano okruženje za razvoj.
 
 **Poslovne vrijednosti:**
-Konzistentno razvojno okruženje eliminuje probleme tipa 'radi na mom računaru, ne radi na tvom', ubrzava onboarding novih developera i pojednostavljuje deployment.
+Konzistentno razvojno okruženje eliminiše probleme tipa 'radi na mom računaru, ne radi na tvom', ubrzava onboarding novih developera i pojednostavljuje dostupnost korisnicima .
 
 **Pretpostavke i otvorena pitanja:**
 - Tehnološki stack je odabran (US-6).
-- Svi developeri imaju instaliran Docker.
-- Okruženje mora podržavati lokalni razvoj i staging deployment.
+- Svi developeri imaju instaliran Docker (za pakovanje aplikacije i svih njenih zavisnosti u izolovani, prenosivi kontejner).
+- Okruženje mora podržavati lokalni razvoj i testno puštanje aplikacije.
 
 **Veza sa drugim storijima ili zavisnostima:**
-- Dio US-21 (Skeleton projekta) ili direktni preduvjet za njega.
-- Preduvjet za sve implementacijske stavke.
+- Dio US-21 (Skeleton projekta) ili direktni preduslov za njega.
+- Preduslov za sve implementacijske stavke.
 
 **Acceptance criteria:**
 - Docker Compose konfiguracija mora pokrenuti sve potrebne servise jednom komandom.
@@ -919,7 +917,7 @@ Konzistentno razvojno okruženje eliminuje probleme tipa 'radi na mom računaru,
 - Backend servis mora biti pokrenut i dostupan lokalno s jednom komandom.
 - README mora sadržavati jasne upute za postavljanje okruženja.
 - Okruženje mora biti testirano na Windows, macOS i Linux platformama.
-- Staging okruženje mora biti konfigurisano za testiranje prije deploymenta na produkciju.
+- Staging okruženje mora biti konfigurisano za testiranje prije puštanja softvera na produkciju.
 
 ### US-31. Preusmjeravanje na agenta kada chatbot ne može odgovoriti
 
@@ -929,7 +927,7 @@ Konzistentno razvojno okruženje eliminuje probleme tipa 'radi na mom računaru,
 **Status:** Not Started  
 
 **Opis:**
-Kao krajnji korisnik, želim da budem obaviješten kada chatbot ne može dati siguran odgovor i da imam opciju preusmjeravanja na live agenta, kako moj upit ne bi ostao bez odgovora.
+Kao krajnji korisnik, želim da budem obavješten kada chatbot ne može dati siguran odgovor i da imam opciju preusmjeravanja na live agenta, kako moj upit ne bi ostao bez odgovora.
 
 **Poslovne vrijednosti:**
 Fallback mehanizam osigurava da niti jedan korisnički upit ne ostane bez odgovora, čime se štiti korisničko iskustvo i povjerenje u sistem.
@@ -937,7 +935,7 @@ Fallback mehanizam osigurava da niti jedan korisnički upit ne ostane bez odgovo
 **Pretpostavke i otvorena pitanja:**
 - Definisan je prag sigurnosti ispod kojeg chatbot ne treba dati odgovor.
 - Postoji mehanizam za preusmjeravanje na agenta (ticketing, live chat).
-- Ovakvi slučajevi se evidentiraju za analizu (NFR-11).
+- Ovakvi slučajevi se zapisuju za analizu (NFR-11).
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-22 (Chat UI) i US-27 (Baza znanja).
@@ -946,7 +944,7 @@ Fallback mehanizam osigurava da niti jedan korisnički upit ne ostane bez odgovo
 **Acceptance criteria:**
 - Sistem mora prikazati jasnu i razumljivu poruku korisniku kada chatbot ne može dati siguran odgovor.
 - Sistem mora ponuditi opciju preusmjeravanja na agenta ili kontaktnog obrasca.
-- Sistem mora evidentirati sve slučajeve fallback-a u logovima s pitanjem korisnika i vremenskom oznakom (NFR-11).
+- Sistem mora pratiti sve slučajeve fallback-a u logovima s pitanjem korisnika i vremenskom oznakom (NFR-11).
 - Sistem ne smije prikazati netačan odgovor kao tačan ukoliko je nivo sigurnosti ispod definisanog praga.
 - Poruka mora biti prikazana u roku od 3 sekunde od detekcije niske sigurnosti (NFR-7).
 - Preusmjereni slučajevi moraju biti vidljivi agentima u njihovom interfejsu.
@@ -959,7 +957,7 @@ Fallback mehanizam osigurava da niti jedan korisnički upit ne ostane bez odgovo
 **Status:** Not Started  
 
 **Opis:**
-Kao administrator, želim da pregledam prijavljene netačne odgovore, potvrdim greške i označim ih za korišćenje u idućem procesu doučavanja chatbota, kako bi sistem kontinuirano unaprjeđivao tačnost svojih odgovora.
+Kao administrator, želim da pregledam prijavljene netačne odgovore, potvrdim greške i označim ih za korištenje u idućem procesu nadogradnje chatbota, kako bi sistem mogao redovno unaprijediti tačnost svojih odgovora.
 
 **Poslovne vrijednosti:**
 Zatvaranje feedback petlje između korisnika/agenta i sistema za treniranje je ključno za dugoročno poboljšanje kvaliteta chatbota.
@@ -967,7 +965,7 @@ Zatvaranje feedback petlje između korisnika/agenta i sistema za treniranje je k
 **Pretpostavke i otvorena pitanja:**
 - Postoje prijavljene greške od korisnika (US-15) i agenata (US-28).
 - Administrator je prijavljen u sistem.
-- Odobrene greške se automatski dodaju u trening pipeline.
+- Odobrene greške se automatski dodaju u niz koraka za trening.
 
 **Veza sa drugim storijima ili zavisnostima:**
 - Zavisi od US-15 (Ocjena korisnika), US-28 (Prijava agenta), US-35 (Pregled prijavljenih problema).
@@ -976,10 +974,10 @@ Zatvaranje feedback petlje između korisnika/agenta i sistema za treniranje je k
 **Acceptance criteria:**
 - Administrator mora moći pregledati detalje svake prijave: pitanje, odgovor chatbota, ocjena, komentar.
 - Administrator mora moći označiti prijavu kao: Potvrđena greška / Lažna prijava / U obradi.
-- Potvrđene greške moraju biti automatski ili manuelno dodane u listu za novo treniranje.
-- Sistem mora prikazati ukupan broj neobrađenih prijava na admin dashboardu.
+- Potvrđene greške moraju biti automatski ili ručno dodane u listu za novo treniranje.
+- Sistem mora prikazati ukupan broj neobrađenih prijava na admin interfejs.
 - Nakon obrade prijave, sistem mora evidentirati ko je i kada obradio prijavu.
-- Sistem ne smije dozvoliti brisanje prijave bez eksplicitne potvrde administratora.
+- Sistem ne smije dozvoliti brisanje prijave bez potvrde administratora.
 
 ### US-33. Pregled unesenih transkripata
 
@@ -1036,7 +1034,7 @@ Uvid u stvarne konverzacije omogućava data-driven poboljšanje chatbota i ident
 - Sistem mora prikazati listu konverzacija s: datumom, pitanjem korisnika, odgovorom chatbota i ocjenom (ako postoji).
 - Administrator mora moći pretraživati konverzacije po sadržaju i filtrirati po datumu ili ocjeni.
 - Sistem ne smije prikazati lične podatke korisnika koji su maskirani u procesu obrade.
-- Administrator mora moći vidjeti izvor odgovora (koji segment transkripta je korišten za odgovor).
+- Administrator mora moći vidjeti izvor odgovora (koji dio transkripta je korišten za odgovor).
 - Sistem mora prikazati ukupne statistike: broj konverzacija, prosječna ocjena, postotak negativnih ocjena.
 - Sistem mora prikazati poruku ukoliko nema evidentiranih konverzacija.
 
@@ -1048,10 +1046,10 @@ Uvid u stvarne konverzacije omogućava data-driven poboljšanje chatbota i ident
 **Status:** Not Started  
 
 **Opis:**
-Kao administrator, želim da vidim listu svih odgovora koje su korisnici ili agenti prijavili kao netačne, kako bih ih mogao pregledati, obraditi i koristiti za poboljšanje chatbota.
+Kao administrator, želim da vidim listu svih odgovora koje su korisnici ili agenti prijavili kao netačne, kako bi ih mogao pregledati, obraditi i koristiti za poboljšanje chatbota.
 
 **Poslovne vrijednosti:**
-Centralizovan pregled prijava zatvara feedback petlju između korisnika/agenta i sistema za treniranje, što je ključno za dugoročno unapređenje tačnosti modela.
+Pregled svih prijava zatvara feedback petlju između korisnika/agenta i sistema za treniranje, što je ključno za dugoročno unapređenje tačnosti modela.
 
 **Pretpostavke i otvorena pitanja:**
 - Administrator je prijavljen u sistem.
@@ -1063,11 +1061,11 @@ Centralizovan pregled prijava zatvara feedback petlju između korisnika/agenta i
 - Veza s US-32 (Potvrda i obrada netačnog odgovora).
 
 **Acceptance criteria:**
-- Sistem mora prikazati tabelu prijavljenih problema s: pitanjem, odgovorom chatbota, ocjenom, komentarom, datumom i statusom obrade.
+- Sistem mora prikazati tabelu prijavljenih problema sa: pitanjem, odgovorom chatbota, ocjenom, komentarom, datumom i statusom obrade.
 - Administrator mora moći filtrirati prijave po statusu: Novo / U obradi / Riješeno.
 - Administrator mora moći sortirati prijave po datumu ili tipu izvora (korisnik / agent).
-- Sistem mora prikazati ukupan broj neriješenih prijava vidljivo na dashboardu.
-- Sistem ne smije dozvoliti trajno brisanje prijave bez eksplicitne potvrde.
+- Sistem mora prikazati ukupan broj neriješenih prijava
+- Sistem ne smije dozvoliti trajno brisanje prijave bez potvrde.
 - Sistem mora prikazati poruku ukoliko nema aktivnih prijava.
 
 
