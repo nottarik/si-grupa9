@@ -1,265 +1,318 @@
-1. Postavljanje pitanja chatbotu
+# Use Case Overview
 
-Glavni akter: Korisnik call centra
-Učesnici: Korisnik, AI chatbot sistem, po potrebi agent call centra
-Cilj: Korisnik želi dobiti odgovor na svoje pitanje.
+## 1. Postavljanje pitanja chatbotu
 
-Preduslovi:
+### Glavni akter
+Korisnik call centra
 
-chatbot sistem je dostupan
-korisnik ima pristup interfejsu za komunikaciju
+### Učesnici
+- Korisnik
+- AI chatbot sistem
+- Po potrebi agent call centra
 
-Osnovni tok:
+### Cilj
+Korisnik želi dobiti odgovor na svoje pitanje.
 
-Korisnik otvara chatbot interfejs.
-Unosi pitanje.
-Sistem provjerava i maskira osjetljive podatke ako postoje.
-Sistem obrađuje korisnički upit.
-Chatbot vraća odgovor korisniku.
-Korisnik vidi odgovor u razgovoru.
+### Preduslovi
+- chatbot sistem je dostupan  
+- korisnik ima pristup interfejsu za komunikaciju  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Korisnik otvara chatbot interfejs.  
+2. Unosi pitanje.  
+3. Sistem provjerava i maskira osjetljive podatke ako postoje.  
+4. Sistem obrađuje korisnički upit.  
+5. Chatbot vraća odgovor korisniku.  
+6. Korisnik vidi odgovor u razgovoru.  
 
-korisnik može postaviti pitanje glasovnim unosom, a sistem ga prvo pretvara u tekst
-ako pitanje sadrži osjetljive podatke, sistem ih zamjenjuje prije obrade
-ako chatbot ne može dati pouzdan odgovor, razgovor se preusmjerava ljudskom agentu
+### Alternativni tokovi
+- korisnik može postaviti pitanje glasovnim unosom, a sistem ga prvo pretvara u tekst  
+- ako pitanje sadrži osjetljive podatke, sistem ih zamjenjuje prije obrade  
+- ako chatbot ne može dati pouzdan odgovor, razgovor se preusmjerava ljudskom agentu  
 
-Ishod:
+### Ishod
+- korisnik dobije odgovor od chatbota  
+- ili  
+- pitanje bude eskalirano agentu  
 
-korisnik dobije odgovor od chatbota
-ili
-pitanje bude eskalirano agentu
-2. Pregled historije razgovora
+---
 
-Glavni akter: Korisnik call centra
-Učesnici: Korisnik, AI chatbot sistem
-Cilj: Korisnik želi vidjeti prethodne razgovore sa chatbotom.
+## 2. Pregled historije razgovora
 
-Preduslovi:
+### Glavni akter
+Korisnik call centra
 
-u sistemu postoje prethodne interakcije korisnika
+### Učesnici
+- Korisnik
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Korisnik želi vidjeti prethodne razgovore sa chatbotom.
 
-Korisnik otvara sekciju historije razgovora.
-Sistem učitava sačuvane poruke i odgovore.
-Sistem prikazuje historiju hronološki.
+### Preduslovi
+- u sistemu postoje prethodne interakcije korisnika  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Korisnik otvara sekciju historije razgovora.  
+2. Sistem učitava sačuvane poruke i odgovore.  
+3. Sistem prikazuje historiju hronološki.  
 
-ako nema sačuvane historije, sistem prikazuje poruku da nema prethodnih razgovora
-korisnik može iz historije pokrenuti dodatnu akciju, npr. brisanje razgovora
+### Alternativni tokovi
+- ako nema sačuvane historije, sistem prikazuje poruku da nema prethodnih razgovora  
+- korisnik može iz historije pokrenuti dodatnu akciju, npr. brisanje razgovora  
 
-Ishod:
+### Ishod
+Korisnik vidi svoju prethodnu komunikaciju sa sistemom.
 
-korisnik vidi svoju prethodnu komunikaciju sa sistemom
-3. Brisanje historije razgovora
+---
 
-Glavni akter: Korisnik call centra
-Učesnici: Korisnik, AI chatbot sistem
-Cilj: Korisnik želi ukloniti dio ili cijelu historiju razgovora.
+## 3. Brisanje historije razgovora
 
-Preduslovi:
+### Glavni akter
+Korisnik call centra
 
-korisnik ima postojeću historiju razgovora
-korisnik je otvorio pregled historije
+### Učesnici
+- Korisnik
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Korisnik želi ukloniti dio ili cijelu historiju razgovora.
 
-Korisnik otvara historiju razgovora.
-Odabire zapis ili više zapisa za brisanje.
-Sistem traži potvrdu.
-Korisnik potvrđuje brisanje.
-Sistem uklanja odabrane zapise iz historije.
+### Preduslovi
+- korisnik ima postojeću historiju razgovora  
+- korisnik je otvorio pregled historije  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Korisnik otvara historiju razgovora.  
+2. Odabire zapis ili više zapisa za brisanje.  
+3. Sistem traži potvrdu.  
+4. Korisnik potvrđuje brisanje.  
+5. Sistem uklanja odabrane zapise iz historije.  
 
-korisnik odustane od brisanja
-sistem ne nalazi odabrani zapis jer je već uklonjen
-korisnik briše samo jedan zapis ili više zapisa odjednom
+### Alternativni tokovi
+- korisnik odustane od brisanja  
+- sistem ne nalazi odabrani zapis jer je već uklonjen  
+- korisnik briše samo jedan zapis ili više zapisa odjednom  
 
-Ishod:
+### Ishod
+Odabrani razgovori više nisu vidljivi u historiji.
 
-odabrani razgovori više nisu vidljivi u historiji
-4. Ocjena odgovora
+---
 
-Glavni akter: Korisnik call centra
-Učesnici: Korisnik, AI chatbot sistem
-Cilj: Korisnik želi dati povratnu informaciju o kvalitetu chatbot odgovora.
+## 4. Ocjena odgovora
 
-Preduslovi:
+### Glavni akter
+Korisnik call centra
 
-korisnik je već dobio odgovor od chatbota
+### Učesnici
+- Korisnik
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Korisnik želi dati povratnu informaciju o kvalitetu chatbot odgovora.
 
-Sistem prikazuje opciju za ocjenu odgovora.
-Korisnik bira ocjenu.
-Sistem pohranjuje ocjenu uz adekvatan odgovor.
+### Preduslovi
+- korisnik je već dobio odgovor od chatbota  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Sistem prikazuje opciju za ocjenu odgovora.  
+2. Korisnik bira ocjenu.  
+3. Sistem pohranjuje ocjenu uz adekvatan odgovor.  
 
-korisnik uz ocjenu može ostaviti i komentar
-korisnik ne želi ostaviti komentar, već samo ocjenu
-korisnik daje negativnu ocjenu, pa potom prijavljuje odgovor kao netačan
+### Alternativni tokovi
+- korisnik uz ocjenu može ostaviti i komentar  
+- korisnik ne želi ostaviti komentar, već samo ocjenu  
+- korisnik daje negativnu ocjenu, pa potom prijavljuje odgovor kao netačan  
 
-Ishod:
+### Ishod
+Odgovor chatbota dobija sačuvanu korisničku ocjenu.
 
-odgovor chatbota dobija sačuvanu korisničku ocjenu
-5. Prijava netačnog odgovora
+---
 
-Glavni akter: Korisnik call centra
-Učesnici: Korisnik, AI chatbot sistem, administrator
-Cilj: Korisnik želi prijaviti odgovor koji smatra netačnim, nejasnim ili nerelevantnim.
+## 5. Prijava netačnog odgovora
 
-Preduslovi:
+### Glavni akter
+Korisnik call centra
 
-chatbot je prethodno dao odgovor
-korisnik je uočio problem u odgovoru
+### Učesnici
+- Korisnik
+- AI chatbot sistem
+- Administrator
 
-Osnovni tok:
+### Cilj
+Korisnik želi prijaviti odgovor koji smatra netačnim, nejasnim ili nerelevantnim.
 
-Korisnik bira opciju prijave problema.
-Sistem otvara formu za prijavu.
-Korisnik unosi opis problema i po potrebi bira kategoriju.
-Sistem sprema prijavu i povezuje je s konkretnim odgovorom.
+### Preduslovi
+- chatbot je prethodno dao odgovor  
+- korisnik je uočio problem u odgovoru  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Korisnik bira opciju prijave problema.  
+2. Sistem otvara formu za prijavu.  
+3. Korisnik unosi opis problema i po potrebi bira kategoriju.  
+4. Sistem sprema prijavu i povezuje je s konkretnim odgovorom.  
 
-korisnik prijavu pravi nakon negativne ocjene
-korisnik može prijaviti problem bez dodatnog komentara, samo odabirom kategorije
-korisnik odustane prije slanja prijave
+### Alternativni tokovi
+- korisnik prijavu pravi nakon negativne ocjene  
+- korisnik može prijaviti problem bez dodatnog komentara, samo odabirom kategorije  
+- korisnik odustane prije slanja prijave  
 
-Ishod:
+### Ishod
+Problematičan odgovor ulazi u listu prijavljenih problema za administraciju.
 
-problematičan odgovor ulazi u listu prijavljenih problema za administraciju
-6. Pregled prijavljenih problema
+---
 
-Glavni akter: Administrator
-Učesnici: Administrator, AI chatbot sistem
-Cilj: Administrator želi analizirati prijave korisnika kako bi uočio slabosti sistema.
+## 6. Pregled prijavljenih problema
 
-Preduslovi:
+### Glavni akter
+Administrator
 
-postoje evidentirane prijave problema
+### Učesnici
+- Administrator
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Administrator želi analizirati prijave korisnika kako bi uočio slabosti sistema.
 
-Administrator otvara modul prijavljenih problema.
-Sistem prikazuje listu svih prijava.
-Administrator pregleda detalje pojedinačne prijave.
-Administrator može promijeniti status prijave.
+### Preduslovi
+- postoje evidentirane prijave problema  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Administrator otvara modul prijavljenih problema.  
+2. Sistem prikazuje listu svih prijava.  
+3. Administrator pregleda detalje pojedinačne prijave.  
+4. Administrator može promijeniti status prijave.  
 
-administrator može filtrirati prijave po statusu, datumu ili vrsti problema
-ako nema prijava, sistem prikazuje poruku da nema prijavljenih problema
+### Alternativni tokovi
+- administrator može filtrirati prijave po statusu, datumu ili vrsti problema  
+- ako nema prijava, sistem prikazuje poruku da nema prijavljenih problema  
 
-Ishod:
+### Ishod
+Administrator dobija pregled stanja prijava i može pratiti njihovu obradu.
 
-administrator dobija pregled stanja prijava i može pratiti njihovu obradu
-7. Upravljanje transkriptima
+---
 
-Glavni akter: Administrator
-Učesnici: Administrator, AI chatbot sistem
-Cilj: Administrator želi unijeti i pripremiti transkripte za rad i unapređenje sistema.
+## 7. Upravljanje transkriptima
 
-Preduslovi:
+### Glavni akter
+Administrator
 
-administrator ima pristup modulu za transkripte
+### Učesnici
+- Administrator
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Administrator želi unijeti i pripremiti transkripte za rad i unapređenje sistema.
 
-Administrator pristupa modulu za transkripte.
-Unosi novi transkript.
-Sistem validira unesene podatke.
-Sistem priprema tekst za dalju obradu.
-Transkript se pohranjuje.
+### Preduslovi
+- administrator ima pristup modulu za transkripte  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Administrator pristupa modulu za transkripte.  
+2. Unosi novi transkript.  
+3. Sistem validira unesene podatke.  
+4. Sistem priprema tekst za dalju obradu.  
+5. Transkript se pohranjuje.  
 
-administrator može unijeti transkript iz fajla
-administrator može ručno unijeti transkript
-administrator može uploadati audio koji se pretvara u tekst
-sistem može prepoznati grešku u formatu ili neispravne podatke pa odbiti unos
+### Alternativni tokovi
+- administrator može unijeti transkript iz fajla  
+- administrator može ručno unijeti transkript  
+- administrator može uploadati audio koji se pretvara u tekst  
+- sistem može prepoznati grešku u formatu ili neispravne podatke pa odbiti unos  
 
-Ishod:
+### Ishod
+Transkript je sačuvan i spreman za pregled ili dalju upotrebu.
 
-transkript je sačuvan i spreman za pregled ili dalju upotrebu
-8. Pregled neodgovorenih pitanja
+---
 
-Glavni akter: Agent call centra
-Učesnici: Agent, AI chatbot sistem
-Cilj: Agent želi vidjeti pitanja na koja chatbot nije mogao odgovoriti.
+## 8. Pregled neodgovorenih pitanja
 
-Preduslovi:
+### Glavni akter
+Agent call centra
 
-postoje eskalirana ili neodgovorena pitanja
+### Učesnici
+- Agent
+- AI chatbot sistem
 
-Osnovni tok:
+### Cilj
+Agent želi vidjeti pitanja na koja chatbot nije mogao odgovoriti.
 
-Agent otvara modul neodgovorenih pitanja.
-Sistem prikazuje listu pitanja koja čekaju obradu.
-Agent bira jedno pitanje za pregled.
+### Preduslovi
+- postoje eskalirana ili neodgovorena pitanja  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Agent otvara modul neodgovorenih pitanja.  
+2. Sistem prikazuje listu pitanja koja čekaju obradu.  
+3. Agent bira jedno pitanje za pregled.  
 
-ako nema takvih pitanja, sistem prikazuje odgovarajuću poruku
-agent može pregledati samo pitanja određenog statusa ili datuma
+### Alternativni tokovi
+- ako nema takvih pitanja, sistem prikazuje odgovarajuću poruku  
+- agent može pregledati samo pitanja određenog statusa ili datuma  
 
-Ishod:
+### Ishod
+Agent dobija uvid u pitanja koja zahtijevaju ljudsku intervenciju.
 
-agent dobija uvid u pitanja koja zahtijevaju ljudsku intervenciju
-9. Odgovor agenta na neodgovoreno pitanje
+---
 
-Glavni akter: Agent call centra
-Učesnici: Agent, AI chatbot sistem, korisnik call centra
-Cilj: Agent želi dati tačan odgovor kada chatbot nije uspio.
+## 9. Odgovor agenta na neodgovoreno pitanje
 
-Preduslovi:
+### Glavni akter
+Agent call centra
 
-postoji neodgovoreno pitanje u sistemu
-agent je otvorio detalje pitanja
+### Učesnici
+- Agent
+- AI chatbot sistem
+- Korisnik call centra
 
-Osnovni tok:
+### Cilj
+Agent želi dati tačan odgovor kada chatbot nije uspio.
 
-Agent bira pitanje iz liste neodgovorenih pitanja.
-Sistem prikazuje sadržaj pitanja i kontekst.
-Agent unosi odgovor.
-Sistem sprema odgovor.
-Status pitanja se mijenja u odgovoreno.
-Korisnik dobija odgovor.
+### Preduslovi
+- postoji neodgovoreno pitanje u sistemu  
+- agent je otvorio detalje pitanja  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Agent bira pitanje iz liste neodgovorenih pitanja.  
+2. Sistem prikazuje sadržaj pitanja i kontekst.  
+3. Agent unosi odgovor.  
+4. Sistem sprema odgovor.  
+5. Status pitanja se mijenja u odgovoreno.  
+6. Korisnik dobija odgovor.  
 
-agent može dopuniti ili ispraviti odgovor prije slanja
-agent može odgoditi odgovor i ostaviti pitanje u čekanju
+### Alternativni tokovi
+- agent može dopuniti ili ispraviti odgovor prije slanja  
+- agent može odgoditi odgovor i ostaviti pitanje u čekanju  
 
-Ishod:
+### Ishod
+Korisnik dobija ljudski odgovor na pitanje koje chatbot nije riješio.
 
-korisnik dobija ljudski odgovor na pitanje koje chatbot nije riješio
-10. Poboljšanje baze znanja chatbota
+---
 
-Glavni akter: Administrator
-Učesnici: Administrator, AI chatbot sistem, indirektno agent
-Cilj: Administrator želi unaprijediti chatbot korištenjem kvalitetnih agentovih odgovora.
+## 10. Poboljšanje baze znanja chatbota
 
-Preduslovi:
+### Glavni akter
+Administrator
 
-agent je već dao odgovor na neodgovoreno pitanje
-administrator ima pristup tim odgovorima
+### Učesnici
+- Administrator
+- AI chatbot sistem
+- Indirektno agent
 
-Osnovni tok:
+### Cilj
+Administrator želi unaprijediti chatbot korištenjem kvalitetnih agentovih odgovora.
 
-Administrator pregleda agentove odgovore.
-Označava odgovor kao koristan za unapređenje sistema.
-Sistem dodaje odobreni sadržaj u bazu znanja ili dataset za dalje poboljšanje.
+### Preduslovi
+- agent je već dao odgovor na neodgovoreno pitanje  
+- administrator ima pristup tim odgovorima  
 
-Alternativni tokovi:
+### Osnovni tok
+1. Administrator pregleda agentove odgovore.  
+2. Označava odgovor kao koristan za unapređenje sistema.  
+3. Sistem dodaje odobreni sadržaj u bazu znanja ili dataset za dalje poboljšanje.  
 
-administrator može odbiti agentov odgovor ako nije dovoljno kvalitetan
-administrator može tražiti dodatnu doradu prije uključivanja u bazu znanja
+### Alternativni tokovi
+- administrator može odbiti agentov odgovor ako nije dovoljno kvalitetan  
+- administrator može tražiti dodatnu doradu prije uključivanja u bazu znanja  
 
-Ishod:
-
-chatbot baza znanja je unaprijeđena na osnovu stvarnih slučajeva iz prakse
+### Ishod
+Chatbot baza znanja je unaprijeđena na osnovu stvarnih slučajeva iz prakse.
