@@ -122,6 +122,23 @@ Legenda:
 
 ## Veza sa acceptance kriterijima
 
+Svaki test slučaj direktno je vezan za jedan ili više acceptance kriterija definisanih u dokumentu User Stories. Ovaj pristup osigurava da se nijedan acceptance kriterij ne preskoči i da postoji potpuna sljedivost od zahtjeva do testa.
+
+| TC ID | Acceptance Kriterij | User Story | Nivo testiranja |
+|------|--------------------|-----------|----------------|
+| TC-1-01 | Sistem prikazuje opciju za odabir fajla kada administrator pristupi modulu za upload | US-1: Upload transkripata | Sistemsko, Prihvatno |
+| TC-1-02 | Sistem pohranjuje transkript i prikazuje poruku o uspješnom uploadu pri učitavanju validnog fajla | US-1: Upload transkripata | Integraciono, Sistemsko |
+| TC-1-03 | Sistem prikazuje odgovarajuću poruku greške kada fajl nije validnog formata | US-1: Upload transkripata | Unit, Sistemsko |
+| TC-8-01 | Sistem detektuje i maskira ime, telefon i JMBG u poruci korisnika prije slanja chatbotu | US-8: Maskiranje podataka | Unit, Integraciono |
+| TC-8-02 | Sistem ne smije slati originalne nemaskirane podatke chatbotu niti ih pohranjivati u logovima | US-8: Maskiranje podataka | Unit, Sistemsko |
+| TC-7-01 | Sistem prikazuje polje za unos pitanja kada korisnik otvori chatbot sučelje | US-7: Postavljanje pitanja | Sistemsko, Prihvatno |
+| TC-7-02 | Sistem prikazuje odgovor chatbota kada korisnik unese pitanje i potvrdi slanje | US-7: Postavljanje pitanja | Integraciono, Sistemsko, Prihvatno |
+| TC-25-01 | Sistem preusmjerava korisnika na odgovarajući dashboard prema ulozi pri ispravnoj prijavi | US-25: Sign In | Unit, Integraciono, Prihvatno |
+| TC-25-02 | Sistem ne dozvoljava direktan pristup zaštićenim stranicama bez prijave | US-25: Sign In | Integraciono, Sistemsko |
+| TC-16-01 | Sistem prikazuje formu za prijavu kada korisnik odabere opciju “Prijavi problem” | US-16: Prijava netačnog odgovora | Sistemsko, Prihvatno |
+| TC-23-01 | Status pitanja mijenja se u “Odgovoreno” i korisnik biva obaviješten kada agent pošalje odgovor | US-23: Agentov odgovor | Integraciono, Sistemsko, Prihvatno |
+| TC-NFR-07 | Sistem odgovara u roku od 3 sekunde u 95% slučajeva pod opterećenjem | NFR-7: Performanse | Sistemsko |
+| TC-NFR-13 | Chatbot daje relevantne odgovore u najmanje 85% testiranih pitanja iz referentnog seta | NFR-13: Tačnost | Sistemsko, Prihvatno |
 
 ## Način evidentiranja rezultata testiranja
 
