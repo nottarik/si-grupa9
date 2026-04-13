@@ -79,6 +79,46 @@ Prihvatno testiranje provode krajnji korisnici ili njihovi predstavnici kako bi 
 
 ## Šta se testira i na kojem nivou
 
+Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima.  
+Legenda:
+- **Da** → primarni nivo testiranja  
+- **Djelimično** → sekundarni nivo  
+- **-** → nije primjenjivo  
+
+| Funkcionalna oblast / User Story | Unit | Integraciono | Sistemsko | Prihvatno |
+|--------------------------------|------|-------------|-----------|-----------|
+| US-25/26: Prijava i odjava iz sistema | Da | Da | Da | Da |
+| US-1: Upload transkripata (fajl) | Da | Da | Da | Da |
+| US-2: Ručni unos transkripata | Da | Djelimično | Da | Da |
+| US-3: Validacija transkripata | Da | Da | Djelimično | - |
+| US-4 (ID27): Konverzija audio u transkript | Djelimično | Da | Da | Da |
+| US-4/5: Pregled i detalji transkripta | - | Djelimično | Da | Da |
+| US-6: Pretraga i filtriranje transkripta | Da | Djelimično | Da | Djelimično |
+| US-27: Normalizacija teksta | Da | Da | Djelimično | - |
+| US-28: Razdvajanje po ulogama | Da | Da | Djelimično | - |
+| US-8: Maskiranje osjetljivih podataka | Da | Da | Da | Djelimično |
+| US-7: Postavljanje pitanja chatbotu (tekst) | Da | Da | Da | Da |
+| US-9: Glasovni unos (Dictate) | Djelimično | Da | Da | Da |
+| US-10: Pregled historije razgovora | - | Djelimično | Da | Da |
+| US-11: Brisanje historije razgovora | Da | Djelimično | Da | Da |
+| US-12: Admin pregled svih pitanja i odgovora | - | Djelimično | Da | Da |
+| US-13: Ocjena odgovora chatbota | Da | Da | Da | Da |
+| US-14: Komentar uz ocjenu | Da | Djelimično | Da | Da |
+| US-15: Pregled prosječne ocjene (admin) | Da | Djelimično | Da | Djelimično |
+| US-16: Prijava netačnog odgovora | Da | Da | Da | Da |
+| US-17: Kategorizacija prijavljenog problema | Da | Djelimično | Da | Da |
+| US-18/19 | - | Djelimično | Da | Da |
+| US-20: Promjena statusa prijave | Da | Djelimično | Da | Da |
+| US-21: Filtriranje prijavljenih problema | Da | Djelimično | Da | Djelimično |
+| US-22: Pregled neodgovorenih pitanja (agent) | - | Djelimično | Da | Da |
+| US-23: Unos agentovog odgovora | Da | Da | Da | Da |
+| US-24: Upotreba agentovog odgovora za poboljšanje chatbota | Da | Da | Da | Da |
+| Izgradnja baze znanja (embedding, RAG) | Da | Da | Da | - |
+| Preusmjeravanje na ljudskog agenta | Da | Da | Da | Da |
+| NFR: Sigurnost i HTTPS/TLS | - | Da | Da | - |
+| NFR: Performanse (odziv <3s, 100 korisnika) | - | - | Da | - |
+| NFR: Dostupnost 99%, rad 24/7 | - | - | Da | - |
+| NFR: Tačnost chatbota (>= 85%) | - | - | Da | Da |
 
 ## Veza sa acceptance kriterijima
 
