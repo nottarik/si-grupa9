@@ -90,14 +90,14 @@ Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za 
 | US-3: Validacija transkripata | Svako validaciono pravilo izolovano (prazna polja, format, minimalna dužina | Provjera da validacijske greške blokuju pohranu i vraćaju ispravan odgovor | Djelimično - provjera u okviru upload i unos scenarija | N/A - tehnička funkcionalnost, ne testira se direktno u UAT-u |
 | US-4 (ID27): Konverzija audio u transkript | Djelimično - provjera da sistem prepoznaje format i pokreće konverziju | Audio API -> transkripcija -> pohrana generisanog teksta u sistem | E2E: upload audio -> prikaz transkripata -> administrator potvrđuje sadržaj | Administrator uploaduje audio poziv i pregledava generisani transkript |
 | US-4/5: Pregled i detalji transkripta | N/A - pretežno UI prikaz bez poslovne logike | Djelimično - provjera da se ispravni podaci učitavaju iz baze za prikaz | Prikaz liste, otvaranje detalja, provjera svih prikazanih polja | Administrator pregledava listu i otvara pojedinačni transkript |
-| US-6: Pretraga i filtriranje transkripta | Da | Djelimično | Da | Djelimično |
-| US-27: Normalizacija teksta | Da | Da | Djelimično | - |
-| US-28: Razdvajanje po ulogama | Da | Da | Djelimično | - |
-| US-8: Maskiranje osjetljivih podataka | Da | Da | Da | Djelimično |
-| US-7: Postavljanje pitanja chatbotu (tekst) | Da | Da | Da | Da |
-| US-9: Glasovni unos (Dictate) | Djelimično | Da | Da | Da |
-| US-10: Pregled historije razgovora | - | Djelimično | Da | Da |
-| US-11: Brisanje historije razgovora | Da | Djelimično | Da | Da |
+| US-6: Pretraga i filtriranje transkripta | Logika filtriranja i pretrage - ispravnost upita prema bazi | Djelimično - provjera da filteri vraćaju ispravne rezultate iz baze | E2E: primjena filtera, resret filtera, provjera praznih rezultata | Djelimično - administrator provjerava pretragu po ključnoj riječi |
+| US-27: Normalizacija teksta | Svaka normalizacijska operacija izolovano (razmaci, interpunkcija, znakovi) | Provjera da normalizovani tekst ispravno ulazi u naredne faze pipline-a | Djelimično - provjera u sklopu end-to-end toka obrade transkripata | N/A - interna tehnička obrada, nije vidljiva krajnjim korisnicima |
+| US-28: Razdvajanje po ulogama | Parser logika - ispravno razdvajanje redova s oznakama Agent/Korisnik | Provjera da razdvojeni segmenti ispravno ulaze u embedding pipeline | Djelimično - provjera u sklopu end-to-end toka obrade transkripata | N/A - interna tehnička obrada, nije vidljiva krajnjim korisnicima |
+| US-8: Maskiranje osjetljivih podataka | Regex/NLP detekcija JMBG, telefona i imena - sve varijante formata | Provjera da maskirani tekst ulazi u chatbot i da se original ne pohranjuje u log | Sigurnosni test: originalni podaci ne smiju se naći ni ulogovima ni u bazi | Djelimično - korisnik unosi poruku s osobnim podacima i potvrđuje obavijest o zamjeni |
+| US-7: Postavljanje pitanja chatbotu (tekst) | Logika slanja upita, provjera praznog polja, validacija inputa | Pitanja korisnika -> RAG pretraga -> LLM API -> prikaz odgovora | E2E: korisnik postavlja pitanje, sistem vraća odgovor u roku od 3 sekunde | Korisnik postavlja stvarna pitanja i ocjenjuje relevantnost odgovora |
+| US-9: Glasovni unos (Dictate) | Djelimično - provjera da sistem ispravno šalje audio Speech-to-Text API-ju| Speech-to-Text API -> pretvorba u tekst -> prikaz u input polju | E2E: korisnik govori pitanje, tekst se prikazuje i šalje chatbotu | Korisnik koristi glasovni unos i potvrđuje tačnost pretvorbe |
+| US-10: Pregled historije razgovora | N/A - pretežno UI prikaz | Djelimično - provjera da se historija ispravno učitava iz baze za prijavljenog korisnika | E2E: prikaz historije hronološkim redom, poruka kad nema historije | Korisnik otvara historiju i vidi prethodne razgovore |
+| US-11: Brisanje historije razgovora | Logika brisanja jednog i više zapisa, provjera potvrde brisanja | Djelimično - provjera da se zapis trajno uklanja iz baze | E2E: brisanje jednog i bulk delete, ažuriranje prikaza, provjera da zapis nije dostupan | Korisnik briše razgovore i potvrđuje da nisu vidljivi u historiji |
 | US-12: Admin pregled svih pitanja i odgovora | - | Djelimično | Da | Da |
 | US-13: Ocjena odgovora chatbota | Da | Da | Da | Da |
 | US-14: Komentar uz ocjenu | Da | Djelimično | Da | Da |
