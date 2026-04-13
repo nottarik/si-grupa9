@@ -98,13 +98,13 @@ Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za 
 | US-9: Glasovni unos (Dictate) | Djelimično - provjera da sistem ispravno šalje audio Speech-to-Text API-ju| Speech-to-Text API -> pretvorba u tekst -> prikaz u input polju | E2E: korisnik govori pitanje, tekst se prikazuje i šalje chatbotu | Korisnik koristi glasovni unos i potvrđuje tačnost pretvorbe |
 | US-10: Pregled historije razgovora | N/A - pretežno UI prikaz | Djelimično - provjera da se historija ispravno učitava iz baze za prijavljenog korisnika | E2E: prikaz historije hronološkim redom, poruka kad nema historije | Korisnik otvara historiju i vidi prethodne razgovore |
 | US-11: Brisanje historije razgovora | Logika brisanja jednog i više zapisa, provjera potvrde brisanja | Djelimično - provjera da se zapis trajno uklanja iz baze | E2E: brisanje jednog i bulk delete, ažuriranje prikaza, provjera da zapis nije dostupan | Korisnik briše razgovore i potvrđuje da nisu vidljivi u historiji |
-| US-12: Admin pregled svih pitanja i odgovora | - | Djelimično | Da | Da |
-| US-13: Ocjena odgovora chatbota | Da | Da | Da | Da |
-| US-14: Komentar uz ocjenu | Da | Djelimično | Da | Da |
-| US-15: Pregled prosječne ocjene (admin) | Da | Djelimično | Da | Djelimično |
-| US-16: Prijava netačnog odgovora | Da | Da | Da | Da |
-| US-17: Kategorizacija prijavljenog problema | Da | Djelimično | Da | Da |
-| US-18/19 | - | Djelimično | Da | Da |
+| US-12: Admin pregled svih pitanja i odgovora | N/A - pretežno UI prikaz | Djelimično - provjera da administrator vidi interakcije svih korisnika uz ispravno filtriranje | E2E: prikaz interakcija, filtriranje po datumu i ocjeni, prazna lista | Administrator pregledava interakcije i filtrira po kriterijima |
+| US-13: Ocjena odgovora chatbota | Logika prihvatanja ocjene, validacija opsega, vezivanje za odgovor | Ocjena se pohranjuje u bazu i ispravno veže za konkretan chatbot odgovor | E2E: korisnik ocjenjuje odgovor, porvrda se prikazuje, ocjena vidljiva u admin panelu | Korisnik ocjenjuje odgovor i potvrđuje da je ocjena prihvaćena |
+| US-14: Komentar uz ocjenu | Validacija komentara - prazno polje odbija, ispravno vezivanje uz ocjenu | Djelimično - provjera da se komentar pohranjuje uz ocjenu u bazi | E2E: korisnik daje negativnu ocjenu, otvara se polje za komentar, komentar se šalje | Korisnik ostavlja komentar uz negativnu ocjenu i dobija potvrdu |
+| US-15: Pregled prosječne ocjene (admin) | Logika agregacije ocjena, filtriranje po vremenskom periodu | Djelimično - provjera da upit prema bazi vraća ispravne agregirane podatke | E2E: adminitrator mijenja vremenski period i vidi ažuriranu statistiku | Djelimično - administrator pregledava ocjene i provjerava trendove |
+| US-16: Prijava netačnog odgovora | Validacija forme - prazna prijava se odbija, obavezna polja se provjeravaju | Prijava se pohranjuje u bazu i ispravno veže za konkretan chatbot odgovor | E2E: korisnik prijavljuje problem, dobija potvrdu, prijava vidljiva u admin modulu | Korisnik prijavljuje netačan odgovor i potvrđuje prijem obavijesti |
+| US-17: Kategorizacija prijavljenog problema | Validacija da kategorija mora biti odabrana, provjera dostupnih kategorija | Djelimično - provjera da se odabrana kateogorija ispravno veže uz prijavu u bazi | E2E: forma za prijavu prikazuje kategorije, odabrana kategorija se pohranjuje | Korisnik odabire kategoriju greške i potvrđuje slanje prijave |
+| US-18/19: Lista i detalji prijavljenih problema | N/A pretežno UI prikaz | Djelimično - provjera da administrator vidi sve prijave s ispravnim podacima | E2E: prikaz liste, otvaranje detalja, provjera svih polja (pitanje, odgovor, kategorija, datum) | Administrator otvara prijavu i provjerava sve prikazane informacije |
 | US-20: Promjena statusa prijave | Da | Djelimično | Da | Da |
 | US-21: Filtriranje prijavljenih problema | Da | Djelimično | Da | Djelimično |
 | US-22: Pregled neodgovorenih pitanja (agent) | - | Djelimično | Da | Da |
