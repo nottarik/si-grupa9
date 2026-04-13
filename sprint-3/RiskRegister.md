@@ -528,7 +528,7 @@
 | RIZ-013 | Nedostupnost stakeholdera | S | S | Srednji |
 | RIZ-014 | Nedostatak tehničkih kompetencija | S | S | Srednji |
 | RIZ-015 | Kašnjenja zbog eksternih odobrenja | S | V | Visok |
-| RIZ-016 | Fluktuacija članova tima | N | S | Srednji |
+| RIZ-016 | Fluktuacija članova tima | N | S | Nizak |
 | RIZ-017 | Niska adopcija korisnika | S | S | Srednji |
 | RIZ-018 | Otpor call centar agenata | S | S | Srednji |
 | RIZ-019 | Loš fallback mehanizam | S | V | Visok |
