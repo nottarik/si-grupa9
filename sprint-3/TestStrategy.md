@@ -79,20 +79,17 @@ Prihvatno testiranje provode krajnji korisnici ili njihovi predstavnici kako bi 
 
 ## Šta se testira i na kojem nivou
 
-Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima.  
-Legenda:
-- **Da** → primarni nivo testiranja  
-- **Djelimično** → sekundarni nivo  
-- **-** → nije primjenjivo  
+Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za svaki nivo testiranja navedeno je šta se konkretno provjerava u okviru te funkcionalne oblasti, ili je naznačeno da taj nivo nije primjenjiv.  
+ 
 
 | Funkcionalna oblast / User Story | Unit | Integraciono | Sistemsko | Prihvatno |
 |--------------------------------|------|-------------|-----------|-----------|
-| US-25/26: Prijava i odjava iz sistema | Da | Da | Da | Da |
-| US-1: Upload transkripata (fajl) | Da | Da | Da | Da |
-| US-2: Ručni unos transkripata | Da | Djelimično | Da | Da |
-| US-3: Validacija transkripata | Da | Da | Djelimično | - |
-| US-4 (ID27): Konverzija audio u transkript | Djelimično | Da | Da | Da |
-| US-4/5: Pregled i detalji transkripta | - | Djelimično | Da | Da |
+| US-25/26: Prijava i odjava iz sistema | Logika provjere kredencijala, hashiranje lozinke, generisanje tokena | Provjera RBAC-a - svaka uloga dobija ispravan dashboard | E2E: prijava, zaštićene rute, automatska odjava po isteku sesije | Korisnik se prijavljuje i pristupa funkcijama svoje uloge |
+| US-1: Upload transkripata (fajl) | Validacija formata (TXT, PDF prihvata; ostalo se odbija), provjera veličine | Fajl prolazi od upload modula do pohrane i processing pipeline-a | E2E: upload-> pohrana -> prikaz u listi transkripata | Administrator uploaduje realni transkript i provjerava rezultat |
+| US-2: Ručni unos transkripata | Validacija obaveznih polja, provjera minimalnih dužina i formata datuma | Djelimično - provjerava da se uneseni podaci ispravno pohranjuju u bazu | E2E: unos forme -> pohrana -> prikaz u listi | Administrator ručno unosi transkript i potvrđuje prikaz |
+| US-3: Validacija transkripata | Svako validaciono pravilo izolovano (prazna polja, format, minimalna dužina | Provjera da validacijske greške blokuju pohranu i vraćaju ispravan odgovor | Djelimično - provjera u okviru upload i unos scenarija | N/A - tehnička funkcionalnost, ne testira se direktno u UAT-u |
+| US-4 (ID27): Konverzija audio u transkript | Djelimično - provjera da sistem prepoznaje format i pokreće konverziju | Audio API -> transkripcija -> pohrana generisanog teksta u sistem | E2E: upload audio -> prikaz transkripata -> administrator potvrđuje sadržaj | Administrator uploaduje audio poziv i pregledava generisani transkript |
+| US-4/5: Pregled i detalji transkripta | N/A - pretežno UI prikaz bez poslovne logike | Djelimično - provjera da se ispravni podaci učitavaju iz baze za prikaz | Prikaz liste, otvaranje detalja, provjera svih prikazanih polja | Administrator pregledava listu i otvara pojedinačni transkript |
 | US-6: Pretraga i filtriranje transkripta | Da | Djelimično | Da | Djelimično |
 | US-27: Normalizacija teksta | Da | Da | Djelimično | - |
 | US-28: Razdvajanje po ulogama | Da | Da | Djelimično | - |
