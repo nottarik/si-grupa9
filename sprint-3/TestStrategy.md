@@ -24,7 +24,58 @@ Također, cilj je potvrditi da su osjetljivi podaci adekvatno zaštićeni, da si
 | Provjera upotrebljivosti sistema | Jednostavnost korištenja UI-a | Korisnici mogu koristiti sistem bez dodatne obuke i bez poteškoća (NFR-10) |
 
 ## Nivoi testiranja 
+### Unit testiranje
 
+Unit testiranje provjerava ispravnost individualnih komponenti sistema izolovano od ostatka aplikacije. Fokus je na poslovnoj logici unutar pojedinih modula.
+
+| Atribut | Opis |
+|--------|------|
+| Cilj | Verificirati ispravnost pojedinačnih funkcija i klasa unutar modula |
+| Ko testira | Developeri (tokom razvoja) |
+| Kada | Kontinuirano tokom svakog sprinta, prije commita koda |
+| Alati | Jest (JavaScript/TypeScript), PyTest (Python backend) |
+| Pokrivenost | Cilj: minimalno 80% code coverage za poslovnu logiku |
+
+---
+
+### Integraciono testiranje
+
+Integraciono testiranje verificira ispravnost komunikacije i razmjene podataka između više modula sistema koji zajedno ostvaruju određenu funkcionalnost.
+
+| Atribut | Opis |
+|--------|------|
+| Cilj | Verificirati da moduli ispravno komuniciraju i razmjenjuju podatke |
+| Ko testira | Developeri / QA tim |
+| Kada | Nakon završetka razvoja modula, na kraju svakog sprinta |
+| Alati | Supertest (API testiranje), Postman / Newman (automatizacija API testova) |
+
+---
+
+### Sistemsko testiranje
+
+Sistemsko testiranje verificira kompletan sistem kao cjelinu u okruženju što bližem produkcijskom. Pokriva end-to-end tokove i nefunkcionalne zahtjeve.
+
+| Atribut | Opis |
+|--------|------|
+| Cilj | Verificirati cjelokupni sistem u realističnom okruženju – funkcionalni i nefunkcionalni zahtjevi |
+| Ko testira | QA tim / tester |
+| Kada | U fazi stabilizacije sistema (Sprint 11) |
+| Alati | Playwright / Cypress (E2E), k6 / JMeter (load testing) |
+
+---
+
+### Prihvatno testiranje (UAT)
+
+Prihvatno testiranje provode krajnji korisnici ili njihovi predstavnici kako bi potvrdili da sistem zadovoljava njihove potrebe i poslovne zahtjeve prije puštanja u produkciju.
+
+| Atribut | Opis |
+|--------|------|
+| Cilj | Potvrditi da sistem ispunjava poslovne zahtjeve i da je spreman za produkciju |
+| Ko testira | Predstavnici krajnjih korisnika (korisnik call centra, agent, administrator) |
+| Kada | Na kraju razvojnog ciklusa, neposredno prije završne demonstracije (Sprint 12-13) |
+| Alati | Ručno testiranje uz predefinisane test scenarije zasnovane na user stories |
+
+---
 
 ## Šta se testira i na kojem nivou
 
