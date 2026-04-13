@@ -189,6 +189,54 @@
 
 ---
 
+#### RIZ-026 – Namjerno ubacivanje zlonamjernih podataka u bazu znanja (Data Poisoning)
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-026 |
+| **Opis rizika** | Zlonamjerni akter (interni ili eksterni) može namjerno ubaciti lažne, pristrasne ili štetne sadržaje u bazu znanja – putem kompromitovanog admin panela, lažnih transkripata u pipeline-u ili direktne manipulacije vektorskom bazom. Chatbot bi tada počeo davati sistematski pogrešne ili štetne odgovore korisnicima, a napad može dugo proći neopaženo. |
+| **Uzrok** | Nedovoljna kontrola pristupa admin interfejsu, odsutnost validacije i sanity check-a za nove unose, nedostatak detekcije anomalija pri unosu sadržaja, povjerenje u interne aktere bez verifikacije. |
+| **Vjerovatnoća** | N |
+| **Uticaj** | V |
+| **Prioritet rizika** | Visok |
+| **Plan mitigacije** | Implementirati strogi RBAC (Role-Based Access Control) za sve operacije pisanja u bazu znanja uz obavezan audit log. Svaki novi unos prolazi kroz review workflow (četiri-oka princip) prije aktivacije u produkciji. Implementirati anomaly detection koji upozorava na neobično velike ili tematski devijantne unose. Redovito provoditi integrity check uspoređivanjem hasha sadržaja baze s referentnim snimkom. Definisati rollback proceduru za vraćanje baze na prethodno stanje. |
+| **Odgovorna osoba / uloga** | Security Engineer / Administrator sistema |
+| **Status** | Identificiran |
+
+---
+
+#### RIZ-028 – Neovlašteno izbacivanje internih podataka putem chatbota (RAG leakage)
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-028 |
+| **Opis rizika** | Napadač može putem pažljivo konstruisanih upita (prompt injection) navesti LLM da otkrije interne sadržaje iz baze znanja koji nisu namijenjeni javnom pristupu – npr. interne procedure, povjerljive cijene, informacije o korisnicima ili poslovni procesi koji su ušli u bazu kao dio transkripata. Ovo je drugačije od SQL injectiona: napadač ne napada bazu podataka direktno, nego manipuliše LLM-om da iz legitimno preuzetog konteksta izvuče i vrati podatke na način koji zaobilazi namjeravana ograničenja. |
+| **Uzrok** | Nedovoljna granularnost pristupa sadržaju baze znanja (svi sadržaji dostupni svim korisnicima), odsustvo output filteringa koji prepoznaje strukturu internih dokumenata, retrieval koji vraća previše sirovog izvornog sadržaja LLM-u kao kontekst. |
+| **Vjerovatnoća** | S |
+| **Uticaj** | V |
+| **Prioritet rizika** | Kritičan |
+| **Plan mitigacije** | Klasificirati sadržaj baze znanja po razini osjetljivosti i implementirati access control na razini segmenata (javni / interni / povjerljivi). Chatbot korisniku nikad ne prikazuje sirove izvorne dokumente – isključivo sintetizovani odgovor. Implementirati output monitoring koji detektuje pokušaje ekstrakcije strukturiranih podataka. Provesti red team testiranje usmjereno na eksfiltraciju prije puštanja u produkciju. |
+| **Odgovorna osoba / uloga** | Security Engineer / Tech Lead |
+| **Status** | Identificiran |
+
+---
+
+#### RIZ-030 – Ovisnost o jednoj kritičnoj komponenti u RAG arhitekturi (Single Point of Failure)
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-030 |
+| **Opis rizika** | RAG pipeline se sastoji od više zasebnih komponenti koje rade u nizu: embedding model pretvara upit u vektor → vektorska baza pretražuje relevantne dokumente → LLM generiše odgovor na osnovu pronađenog konteksta. Ako ijedna od ovih komponenti zakaže, cijeli pipeline prestaje funkcionisati jer svaka komponenta ovisi o izlazu prethodne. Sistem ne može preskočiti pokvarenu kariku niti se djelimično degradirati – chatbot je u potpunosti van funkcije dok se problem ne riješi, bez ikakvog fallbacka za korisnika. |
+| **Uzrok** | Arhitekturalne odluke u ranoj fazi fokusirane na brzinu isporuke MVP-a nauštrb redundancije, izostanak definisanog fallback scenarija za svaki kritični element u lancu. |
+| **Vjerovatnoća** | N |
+| **Uticaj** | V |
+| **Prioritet rizika** | Visok |
+| **Plan mitigacije** | Mapirati sve kritične komponente u arhitekturalnom dijagramu i za svaku definisati fallback strategiju. Implementirati circuit breaker pattern između komponenti kako bi kvar jedne bio izolovan i ne bi rušio ostatak sistema. Za MVP je prihvatljivo prikazati statički FAQ korisnicima ako vektorska baza nije dostupna. U kasnijim fazama razmotriti replikaciju kritičnih komponenti. Pratiti health check svake komponente odvojeno, a ne samo krajnjeg korisničkog endpointa. |
+| **Odgovorna osoba / uloga** | Arhitekt sistema / DevOps |
+| **Status** | Identificiran |
+
+---
+
 ### GRUPA 3 – Projektni i organizacioni rizici
 
 ---
@@ -266,9 +314,25 @@
 | **Uzrok** | Akademski kontekst, konkurentske obaveze studenata. |
 | **Vjerovatnoća** | N |
 | **Uticaj** | S |
-| **Prioritet rizika** | Srednji |
+| **Prioritet rizika** | Nizak |
 | **Plan mitigacije** | Redovito dokumentovati sve odluke, arhitekturne izbore i kodove (README, ADR). Implementirati code review praksu kako bi više članova razumjelo svaki dio sistema. Definisati jasne uloge ali i plan za zamjenu / redistribuciju zadataka. |
 | **Odgovorna osoba / uloga** | Scrum Master / Team Lead |
+| **Status** | Identificiran |
+
+---
+
+#### RIZ-027 – Neuočljive greške u kodu generisanom AI coding alatima
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-027 |
+| **Opis rizika** | AI coding asistenti (npr. GitHub Copilot, Claude, Cursor) koji se koriste za razvoj web aplikacije mogu generisati kod koji se kompajlira, prolazi surface-level testove i izgleda ispravno, ali sadrži suptilne logičke greške, sigurnosne propuste ili rubne slučajeve koje developer nije uočio pri pregledu. Rizik je posebno visok jer tim tendencijski manje kritički čita AI-generisani kod nego vlastito pisani. |
+| **Uzrok** | Preveliko povjerenje u AI alate bez sistematskog code reviewa, nedostatak iskustva tima u prepoznavanju karakterističnih grešaka AI-generisanog koda (npr. pogrešna pretpostavka o null safety, race conditions, off-by-one greške u paginaciji, nepotpuna error handling logika). AI modeli su trenirani na javnom kodu koji često sadrži loše prakse, te mogu reproducirati antipatterne koji nisu odmah vidljivi. |
+| **Vjerovatnoća** | V |
+| **Uticaj** | S |
+| **Prioritet rizika** | Visok |
+| **Plan mitigacije** | Uspostaviti obavezan peer code review za sav AI-generisani kod, s posebnom pažnjom na: autentifikacijsku logiku, validaciju inputa, upravljanje sesijama i error handling. Koristiti statičke analizatore i lintere koji ne ovise o AI (npr. ESLint, Bandit, SonarQube) kao obavezan korak u CI/CD pipeline-u. Pisati unit i integration testove koji eksplicitno pokrivaju rubne slučajeve i ne koristiti AI za generisanje samih testova za isti kod koji se testira. Dokumentovati sve dijelove koda gdje je AI imao veći doprinos kako bi bili pod pojačanim nadzorom. |
+| **Odgovorna osoba / uloga** | Tech Lead / QA Engineer |
 | **Status** | Identificiran |
 
 ---
@@ -325,6 +389,22 @@
 
 ---
 
+#### RIZ-031 – Neintuitivan korisnički interfejs chatbota
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-031 |
+| **Opis rizika** | Korisnički interfejs chatbota može biti dizajniran na način koji zbunjuje korisnike – nejasno gdje se unosi poruka, nepregledan prikaz historije razgovora, nejasne opcije za eskalaciju na agenta, ili interfejs koji ne odgovara očekivanjima korisnika naviklih na druge kanale (telefon, e-mail). Rezultat je odustajanje korisnika prije nego dobiju odgovor, povećanje broja poziva u call centar umjesto smanjenja, i negativna percepcija sistema. |
+| **Uzrok** | Izostanak UX istraživanja s realnim korisnicima u ranoj fazi, razvoj interfejsa od strane tehničkog tima bez uključivanja dizajnera, pretpostavke o korisničkom ponašanju koje nisu validirane, prenošenje kompleksnosti backend sistema na frontend. |
+| **Vjerovatnoća** | S |
+| **Uticaj** | S |
+| **Prioritet rizika** | Srednji |
+| **Plan mitigacije** | Provesti korisničko istraživanje (intervjui ili anketa) s reprezentativnim uzorkom krajnjih korisnika prije početka razvoja interfejsa. Kreirati i testirati wireframeove s najmanje 5 korisnika prije implementacije. Implementirati usability testiranje na kraju svakog sprinta koji uključuje UI promjene. Pratiti metrike poput abandon rate (odustajanje bez odgovora) i broj klikova do eskalacije na agenta kao indikatore UX problema. |
+| **Odgovorna osoba / uloga** | UX Designer / Product Owner |
+| **Status** | Identificiran |
+
+---
+
 ### GRUPA 5 – Rizici usklađenosti i etike
 
 ---
@@ -361,7 +441,7 @@
 
 ---
 
-#### RIZ-022 – Nedovoljno auditabilnost i transparentnost sistema
+#### RIZ-022 – Nedovoljna auditabilnost i transparentnost sistema
 
 | Atribut | Vrijednost |
 |---------|------------|
@@ -458,6 +538,11 @@
 | RIZ-023 | Nedostupnost sistema (uptime) | N | S | Srednji |
 | RIZ-024 | Prekoračenje budžeta za AI/cloud | S | S | Srednji |
 | RIZ-025 | Neadekvatno testiranje i QA | S | S | Visok |
+| RIZ-026 | Data poisoning – namjerno trovanje baze znanja | N | V | Visok |
+| RIZ-027 | Neuočljive greške u AI-generisanom kodu aplikacije | V | S | Visok |
+| RIZ-028 | Eksfiltracija internih podataka putem chatbota (RAG leakage) | S | V | Kritičan |
+| RIZ-030 | Single point of failure u RAG arhitekturi | N | V | Visok |
+| RIZ-031 | Neintuitivan korisnički interfejs chatbota | S | S | Srednji |
 
 ---
 
@@ -465,10 +550,10 @@
 
 | Prioritet | Broj rizika |
 |-----------|-------------|
-| Kritičan | 6 |
-| Visok | 8 |
-| Srednji | 11 |
-| Nizak | 0 |
-| **Ukupno** | **25** |
+| Kritičan | 7 |
+| Visok | 12 |
+| Srednji | 10 |
+| Nizak | 1 |
+| **Ukupno** | **30** |
 
 ---
