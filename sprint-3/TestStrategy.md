@@ -104,18 +104,18 @@ Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za 
 | US-15: Pregled prosječne ocjene (admin) | Logika agregacije ocjena, filtriranje po vremenskom periodu | Djelimično - provjera da upit prema bazi vraća ispravne agregirane podatke | E2E: adminitrator mijenja vremenski period i vidi ažuriranu statistiku | Djelimično - administrator pregledava ocjene i provjerava trendove |
 | US-16: Prijava netačnog odgovora | Validacija forme - prazna prijava se odbija, obavezna polja se provjeravaju | Prijava se pohranjuje u bazu i ispravno veže za konkretan chatbot odgovor | E2E: korisnik prijavljuje problem, dobija potvrdu, prijava vidljiva u admin modulu | Korisnik prijavljuje netačan odgovor i potvrđuje prijem obavijesti |
 | US-17: Kategorizacija prijavljenog problema | Validacija da kategorija mora biti odabrana, provjera dostupnih kategorija | Djelimično - provjera da se odabrana kateogorija ispravno veže uz prijavu u bazi | E2E: forma za prijavu prikazuje kategorije, odabrana kategorija se pohranjuje | Korisnik odabire kategoriju greške i potvrđuje slanje prijave |
-| US-18/19: Lista i detalji prijavljenih problema | N/A pretežno UI prikaz | Djelimično - provjera da administrator vidi sve prijave s ispravnim podacima | E2E: prikaz liste, otvaranje detalja, provjera svih polja (pitanje, odgovor, kategorija, datum) | Administrator otvara prijavu i provjerava sve prikazane informacije |
-| US-20: Promjena statusa prijave | Da | Djelimično | Da | Da |
-| US-21: Filtriranje prijavljenih problema | Da | Djelimično | Da | Djelimično |
-| US-22: Pregled neodgovorenih pitanja (agent) | - | Djelimično | Da | Da |
-| US-23: Unos agentovog odgovora | Da | Da | Da | Da |
-| US-24: Upotreba agentovog odgovora za poboljšanje chatbota | Da | Da | Da | Da |
-| Izgradnja baze znanja (embedding, RAG) | Da | Da | Da | - |
-| Preusmjeravanje na ljudskog agenta | Da | Da | Da | Da |
-| NFR: Sigurnost i HTTPS/TLS | - | Da | Da | - |
-| NFR: Performanse (odziv <3s, 100 korisnika) | - | - | Da | - |
-| NFR: Dostupnost 99%, rad 24/7 | - | - | Da | - |
-| NFR: Tačnost chatbota (>= 85%) | - | - | Da | Da |
+| US-18/19: Lista i detalji prijavljenih problema | N/A - pretežno UI prikaz | Djelimično - provjera da administrator vidi sve prijave s ispravnim podacima | E2E: prikaz liste, otvaranje detalja, provjera svih polja (pitanje, odgovor, kategorija, datum) | Administrator otvara prijavu i provjerava sve prikazane informacije |
+| US-20: Promjena statusa prijave | Logika provjere validnih statusa, odbijanje nevalidnih vrijednosti | Djelimično - provjera da se promjena statusa reflektuje u bazi i u prikazu | E2E: administrator mijenja status, promjena je odmah vidljiva u listi prijava | Administrator mijenja status prijave i potvrđuje ažuriranje |
+| US-21: Filtriranje prijavljenih problema | Logika filtriranja po statusu, kategoriji i datumu | Djelimično - provjera da filtrirani upit vraća ispravne rezultate iz baze | E2E: primjena filtera, reset filtera, provjera praznih rezultata | Djelimično - administrator filtrira prijave i provjerava relevantnost rezultata |
+| US-22: Pregled neodgovorenih pitanja (agent) | N/A - pretežno UI prikaz | Djelimično - provjera da agent vidi samo pitanja sa statusom 'Čeka odgovor' | E2E: prikaz liste, sadržaj svakog zapisa (pitanje, datum, status), prazna lista | Agent otvara modul i vidi pitanja koja čekaju njegovu intervenciju |
+| US-23: Unos agentovog odgovora | Validacija praznog odgovora, provjera promjene statusa | Agentov odgovor se pohranjuje, status se mijenja u 'Odgovoreno', korisnik dobija obavijest | E2E: agent odgovara, korisnik dobija obavijest, status pitanja se ažurira | Agent unosi odgovor i korisnik potvrđuje prijem odgovora |
+| US-24: Upotreba agentovog odgovora za bazu znanja | Logika označavanja odgovora kao validnog, provjera odobravanja/odbijanja | Odobreni par pitanje/odgovor se ispravno dodaje u trening dataset u bazi | E2E: administrator odobrava odgovor, par se pojavljuje u bazi znanja | Administrator odobrava agentov odgovor i potvrđuje dodavanje u bazu |
+| Izgradnja baze znanja (embedding, RAG) | Generisanje embeddinga za ulazni tekst, provjera dimenzija i formata vektora | Pipeline: tekst -> embedding -> pohrana u vektorsku bazu -> uspješan retrieval | E2E: upit chatbota pokreće pretragu, relevantni kontekst se šalje u LLM-u | N/A - interna tehnička komponenta, testira se indirektno kroz chatbot odgovore |
+| Preusmjeravanje na ljudskog agenta | Logika detekcije kada chatbot nema pouzdan odgovor | Chatbot eskalira pitanje, ono se pojavljuje u agentovom modulu s punim kontekstom | E2E: korisnik postavlja pitanje van baze znanja, razgovor se eskalira agentu | Korisnik dobija obavijest o eskalaciji, agent vidi pitanje s kontekstom razgovora |
+| NFR: Sigurnost i HTTPS/TLS | N/A - ne testira se na unit nivou  | Provjera da svi endpointi rade isključivo putem HTTPS-a, TLS certifikat validan | Penetracijski test pokušaj pristupa HTTP-om, provjera security headera | N/A - infrastrukturni zahtjev, ne testira se u UAT-u |
+| NFR: Performanse (odziv <3s, 100 korisnika) | N/A - ne testira se na unit nivou | N/A - zahtijeva realno opterećenje, ne može se testirati na unit/integ nivou | Load test s k6/JMeter: 100 simultanih korisnika, mjerenje p95 vremena odziva | N/A - automatizovani load test, ne provodi se ručno u UAT-u |
+| NFR: Dostupnost 99%, rad 24/7 | N/A - ne testira se na unit nivou | N/A - zahtijeva dugotrajna mjerenja u produkcijskom okruženju | Monitoring uptime-a tokom testnog perioda, provjera oporavka nakon pada | N/A - mjeri se kontinuiranim monitoringom, nije dio ručnog UAT-a |
+| NFR: Tačnost chatbota (>= 85%) | N/A - ne može se mjeriti na nivou pojedinačn funkcije | N/A - zahtijeva kompletan sistem s popunjenom bazom znanja | Evaluacija na referentnom setu pitanja s očekivanim odgovorima, mjerenje tačnosti | Korisnici procjenjuju relevantnost odgovora tokom UAT sesija |
 
 ## Veza sa acceptance kriterijima
 
