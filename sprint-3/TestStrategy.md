@@ -99,7 +99,46 @@ Posebno kritični scenariji za regresiono testiranje:
 - Dodavanje novih transkripata u bazu znanja ne smije narušiti kvalitet postojećih RAG odgovora
 - Izmjena Feedback modula ne smije utjecati na logiku ocjenjivanja i prijave grešaka
 - Svaka promjena UI komponenti zahtijeva regresiju Chat UI-a, agent panela i admin dashboarda
+---
+### Penetracijsko testiranje
 
+Penetracijsko testiranje simulira napad na sistem s ciljem otkrivanja sigurnosnih ranjivosti prije nego što ih napadači mogu iskoristiti. Obzirom da sistem rukuje osjetljivim podacima korisnika call centra i implementira Role-Based Access Control za tri različite korisničke uloge, penetracijsko testiranje je obavezno za MVP.
+
+
+| Atribut | Opis |
+|--------|------|
+| **Cilj** | Identificirati sigurnosne ranjivosti sistema — neautorizovani pristup, curenje podataka, injektiranje i eskalacija privilegija |
+| **Ko testira** | QA tim uz korištenje automatizovanih sigurnosnih alata; po mogućnosti uz angažman eksternog sigurnosnog eksperta prije produkcije |
+| **Kada** | Nakon završetka implementacije svih sigurnosnih komponenti, obavezno prije završne demonstracije |
+| **Alati** | OWASP ZAP (automatizovano skeniranje), Burp Suite (interceptiranje zahtjeva), ručno testiranje autorizacijskih ruta |
+| **Veza s NFR** | NFR-1 (HTTPS/TLS), NFR-2 (RBAC), NFR-3 (maskiranje ličnih podataka), NFR-4 (opt-out mehanizam) |
+
+
+Ključni scenariji penetracijskog testiranja:
+
+- **RBAC eskalacija**  
+  Korisnik s ulogom *Korisnik* pokušava pristupiti admin rutama ili agentskim funkcijama
+
+- **Zaobilaženje autentifikacije**  
+  Direktan pristup zaštićenim endpointima bez tokena ili s isteklim tokenom; provjera automatske odjave nakon 30 minuta neaktivnosti (NFR-2)
+
+- **Brute force zaštita**  
+  Provjera da se nalog blokira nakon tačno 5 uzastopnih neuspjelih pokušaja prijave (NFR-2)
+
+- **TLS verzija**  
+  Provjera da sistem odbija konekcije s TLS verzijom ispod 1.2; skeniranje SSL Labs alatom (NFR-1)
+
+- **Curenje osjetljivih podataka**  
+  Provjera da li lični podaci (JMBG, telefon, ime) nisu vidljivi u API odgovorima, logovima ni u bazi u nemaskiranom obliku; provjera automatskog brisanja originalnih transkripata nakon 24h (NFR-3)
+
+- **SQL/NoSQL injekcija**  
+  Testiranje svih input polja (upload forme, chat input, search filteri) na injekcijske napade
+
+- **HTTPS provjera**  
+  Svi endpointi moraju odbijati HTTP zahtjeve i preusmjeravati na HTTPS (NFR-1)
+
+- **API autorizacija**  
+  Pozivi eksternim servisima (LLM API, Speech-to-Text) ne smiju eksponirati API ključeve u klijentskom kodu ili logovima
 ## Šta se testira i na kojem nivou
 
 Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za svaki nivo testiranja navedeno je šta se konkretno provjerava u okviru te funkcionalne oblasti, ili je naznačeno da taj nivo nije primjenjiv.  
