@@ -81,6 +81,24 @@ Prihvatno testiranje provode krajnji korisnici ili njihovi predstavnici kako bi 
 | Alati | Ručno testiranje uz predefinisane test scenarije zasnovane na user stories |
 
 ---
+### Regresiono testiranje
+
+regresiono testiranje se provodi kako bi se osiguralo da nove izmjene ili dodaci koda nisu narušili već verificirane funkcionalnosti sistema. Budući da se sistem razvija iterativno kroz nekoliko sprintova, svaki sprint uvodi nove inkremente koji potencijalno utiču na prethodno implementirane komponente.
+
+| Atribut | Opis |
+|---------|------|
+| Cilj | Verificirati da prethodno implementirane i testirane funkcionalnposti rade ispravno nakon svake nove izmjene koda |
+| ko testira | Developeri i QA tim - automatizovano, uz povremenu ručnu provjeru kritičnih tokova |
+| Kada | Na kraju svakog sprinta, prije merge-a novih funkcionalnosti u glavnu granu; obavezno pri svakoj promjeni zajedničkih komponenti |
+| Alati | Jest (unit regresija), Playwright / Cypress (E2E regresija), CI/CD pipeline (GitHub Actions ili ekvivalent) |
+| Opseg | Kompletni skup prethodno polaznih test slučajeva (regression suite), s posebnim fokusom na zajedničke module |
+
+Posebno kritični scenariji za regresiono testiranje:
+- Svaka izmjena Authentication modula pokreće regresiju svih zaštićenih ruta i RBAC provjera
+- Izmjena Processing Pipeline-a (normalizacija, maskiranje, razdvajanje uloga) zahtjeva regresiju chatbot odgovora i embeddinga
+- Dodavanje novih transkripata u bazu znanja ne smije narušiti kvalitet postojećih RAG odgovora
+- Izmjena Feedback modula ne smije utjecati na logiku ocjenjivanja i prijave grešaka
+- Svaka promjena UI komponenti zahtijeva regresiju Chat UI-a, agent panela i admin dashboarda
 
 ## Šta se testira i na kojem nivou
 
