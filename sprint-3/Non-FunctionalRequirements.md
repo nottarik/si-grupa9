@@ -1,1 +1,29 @@
 
+## Izmjene NFR zahtjeva
+
+- NFR zahtjevi → Uvedeni mjerljivi kriteriji za sigurnost, performanse, dostupnost, obradu podataka i operativna pravila 
+- Sigurnost sistema  → Precizirani limiti i standardi 
+- Performanse sistema  →  Definisani maksimalni pragoviDone
+- Upravljanje podacima  →  Dodani jasni rokovi i pravila brisanja 
+- Logovi i dostupnost  →  Definisani minimalni period čuvanja i maksimalni downtime 
+- Model update i obavijesti  →  Uvedeni mjerljivi vremenski limiti 
+#### Ispravka: NFR stavke standardizirane i pretvorene u mjerljive i testabilne zahtjeve
+
+## Non-Functional Requirements (NFR)
+
+| ID | Kategorija | Opis zahtjeva | Kako će se provjeriti | Prioritet | Napomena |
+|----|------------|---------------|-----------------------|-----------|----------|
+| 1 | Sigurnost | Sva komunikacija između klijenta i servera mora biti šifrirana putem HTTPS/TLS protokola, minimalno TLS verzije 1.2 | Provjera SSL/TLS certifikata, skeniranje svih endpointa alatima (npr. SSL Labs) i verifikacija da nijedan endpoint nije dostupan putem HTTP-a niti TLS verzija ispod 1.2 | High | |
+| 2 | Sigurnost | Administratorski dio sistema mora biti zaštićen i dostupan samo ovlaštenim korisnicima uz implementaciju autentifikacije i Role-Based Access Control (RBAC); sesija mora isteći nakon maksimalno 30 minuta neaktivnosti, a nalog se blokira nakon 5 uzastopnih neuspjelih pokušaja prijave | Pokušaji neautorizovanog pristupa, provjera kontrole pristupa za različite korisničke uloge, testiranje isticanja sesije i mehanizma blokiranja naloga | High | |
+| 3 | Privatnost | Prije korištenja podataka za treniranje chatbot-a, potrebno je ukloniti ili maskirati sve lične podatke iz transkripata (imena, brojeve telefona, email adrese, JMBG); originalni nemaskirani transkripti ne smiju se čuvati duže od 24 sata od trenutka unosa | Testiranje sa primjerima transkripata koji sadrže lične podatke, provjera da su podaci maskirani u bazi u roku od 24 sata te automatska provjera prisustva ličnih podataka u skupu za treniranje | High | |
+| 4 | Privatnost | Razgovori se mogu koristiti za unapređenje sistema, ali korisnik mora imati mogućnost da to odbije (opt-out); podaci korisnika koji je zatražio opt-out moraju biti uklonjeni iz svih skupova za treniranje u roku od maksimalno 7 dana od zahtjeva | Provjera kroz UI i testiranje opcije odjave, provjera da se podaci tog korisnika ne nalaze u skupu za treniranje nakon isteka roka od 7 dana | High | |
+| 5 | Pouzdanost | Ako chatbot ne može riješiti korisnički zahtjev ili dođe do greške, razgovor se mora automatski preusmjeriti na ljudskog agenta u roku od maksimalno 10 sekundi, bez gubitka konteksta razgovora | Testiranje scenarija sa greškama i kompleksnim upitima, mjerenje vremena preusmjeravanja i provjera da je cjelokupan kontekst prenesen agentu | High | |
+| 6 | Pouzdanost | Chatbot ne smije generisati izmišljene ili netačne informacije; u slučaju da je pouzdanost odgovora ispod 70%, sistem mora jasno naznačiti da nema pouzdan odgovor i ponuditi eskalaciju na agenta | Testiranje sa pitanjima van baze znanja, mjerenje stope odbijenih odgovora i analiza odgovora ispod praga pouzdanosti | High | |
+| 7 | Performanse | Sistem mora odgovoriti na korisnički upit u roku od maksimalno 3 sekunde u 95% slučajeva, mjereno na uzorku od najmanje 1.000 zahtjeva tokom load testa | Load testiranje sa simulacijom više korisnika, mjerenje i statistička analiza vremena odziva (P95 metrika) | High | |
+| 8 | Skalabilnost | Sistem mora da podržava istovremeno najmanje 100 aktivnih korisnika bez značajnog pada performansi; vrijeme odziva ne smije prelaziti 5 sekundi ni pri punom opterećenju | Stres testiranje i simulacija opterećenja sa mjerenjem vremena odziva pri 100 istovremenih korisnika | High | |
+| 9 | Dostupnost | Sistem mora biti dostupan najmanje 99% vremena na godišnjem nivou (maksimalno ~87 sati nedostupnosti godišnje), uz dozvoljeni planirani zastoj od maksimalno 8 sati godišnje; logovi dostupnosti čuvaju se minimalno 12 mjeseci | Kontinuirani monitoring uptime-a, pregled logova i godišnji izvještaj dostupnosti | High | Sistem treba raditi 24/7 |
+| 10 | Upotrebljivost | Korisnički interfejs chatbot-a mora biti jednostavan za korištenje; najmanje 80% testnih korisnika mora uspješno postaviti pitanje i dobiti odgovor bez dodatne obuke ili vanjske pomoći | User testing sa najmanje 10 stvarnih korisnika, mjerenje stope uspješnog postavljanja upita bez asistencije | Medium | |
+| 11 | Auditabilnost | Sistem mora čuvati logove svih interakcija (upita i odgovora) radi analize i poboljšanja sistema; logovi se čuvaju aktivno minimalno 12 mjeseci, a potom arhiviraju i zadržavaju još 24 mjeseca | Provjera log baze i zapisa interakcija, verifikacija da su svi upiti i odgovori zabilježeni te da se stari zapisi automatski arhiviraju prema definisanoj politici čuvanja | High | |
+| 12 | Održavanje | Sistem mora omogućiti jednostavno dodavanje novih transkripata i ponovno treniranje modela bez prekida rada sistema; cijeli proces update-a modela mora biti završen u manje od 4 sata, a chatbot mora ostati dostupan krajnjim korisnicima tokom cijelog procesa | Testiranje procesa dodavanja novih podataka i update-a modela, mjerenje ukupnog trajanja procesa i praćenje dostupnosti chatbot-a tokom update-a | Medium | |
+| 13 | Tačnost | Chatbot mora davati relevantne odgovore u najmanje 85% testiranih slučajeva na unaprijed definisanom skupu od minimalno 100 testnih pitanja | Testiranje na definisanom setu pitanja, poređenje sa očekivanim odgovorima i izračun stope tačnosti | High | |
+| 14 | Transparentnost | Sistem mora na početku svake konverzacije korisniku jasno naznačiti da komunicira sa AI asistentom; poruka mora biti vidljiva najmanje 5 sekundi ili sve dok korisnik ne potvrdi da je pročitao | Pregled pozdravne poruke chatbot-a, mjerenje trajanja prikaza i provjera mehanizma potvrde | High | Etička i pravna obaveza |
