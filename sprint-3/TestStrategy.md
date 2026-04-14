@@ -139,6 +139,54 @@ Ključni scenariji penetracijskog testiranja:
 
 - **API autorizacija**  
   Pozivi eksternim servisima (LLM API, Speech-to-Text) ne smiju eksponirati API ključeve u klijentskom kodu ili logovima
+---
+### UI testiranje
+
+UI testiranje verificira ispravnost i upotrebljivost korisničkih interfejsa sistema. Sistem ima tri različita interfejsa namijenjena različitim korisničkim ulogama, a NFR-10 eksplicitno zahtijeva da Chat UI bude intuitivan bez potrebe za dodatnom obukom. Pored toga, NFR-14 propisuje etičku i pravnu obavezu — chatbot mora jasno naznačiti da je AI asistent.
+
+| Atribut | Opis |
+|--------|------|
+| **Cilj** | Verificirati ispravnost prikaza, navigacije i interakcija u svim korisničkim interfejsima; osigurati usklađenost s NFR zahtjevima za upotrebljivost i transparentnost |
+| **Ko testira** | QA tim (automatizovano); krajnji korisnici (ručno u okviru UAT-a) |
+| **Kada** | Nakon implementacije svakog UI inkrementa; kompletna UI regresija na kraju svakog sprinta koji donosi UI izmjene |
+| **Alati** | Playwright / Cypress (automatizovani UI i E2E testovi), ručno testiranje za upotrebljivost i vizualnu provjeru |
+| **Veza s NFR** | NFR-10 (upotrebljivost bez obuke), NFR-14 (AI transparentnost — chatbot mora naznačiti da je AI) |
+
+
+
+UI testiranje pokriva tri odvojena interfejsa:
+
+- **Chat UI (korisnik call centra)**  
+  Polje za unos pitanja, prikaz odgovora, dugme za glasovni unos, opcija ocjene, forma za prijavu problema, prikaz historije razgovora;  
+  AI identifikacijska poruka mora biti vidljiva najmanje 5 sekundi ili dok korisnik ne potvrdi da je pročitao (NFR-14)
+
+- **Agent panel**  
+  Lista neodgovorenih pitanja s prikazom statusa, forma za unos odgovora, obavijest o uspješnom slanju, navigacija između pitanja
+
+- **Admin dashboard**  
+  Modul za upload i pregled transkripata, pregled pitanja i odgovora s filterima, lista prijavljenih problema s promjenom statusa, statistika ocjena
+
+
+
+ Dodatni fokusi UI testiranja:
+
+- **Upotrebljivost (NFR-10)**  
+  User testing sa najmanje 10 stvarnih korisnika — najmanje 80% mora uspješno postaviti pitanje i dobiti odgovor bez ikakve vanjske pomoći ili obuke
+
+- **Poruke o greškama**  
+  Moraju biti jasne, vidljive i smještene uz relevantno polje (validacija forme)
+
+- **Indikator napretka**  
+  Sistem mora prikazati indikator napretka pri dugotrajnim operacijama (upload audio, transkripcija, generisanje odgovora)
+
+- **Konzistentnost prikaza**  
+  Prikaz mora biti konzistentan na podržanim browserima (Chrome, Firefox, Edge)
+
+- **Responzivnost**  
+  Sučelje mora biti upotrebljivo na standardnim desktop rezolucijama
+  
+  ---
+
 ## Šta se testira i na kojem nivou
 
 Tabela prikazuje pokrivenost testiranjem po funkcionalnim oblastima sistema. Za svaki nivo testiranja navedeno je šta se konkretno provjerava u okviru te funkcionalne oblasti, ili je naznačeno da taj nivo nije primjenjiv.  
