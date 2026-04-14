@@ -2,26 +2,31 @@
 
 ## Cilj testiranja
 
-Cilj testiranja je osigurati da AI chatbot sistem funkcioniše ispravno, pouzdano i sigurno u svim ključnim scenarijima korištenja. Testiranjem se provjerava da li sistem pravilno obrađuje transkripte, generiše relevantne odgovore i u slučaju nesigurnosti preusmjerava komunikaciju na ljudskog agenta.  
+Cilj testiranja sistema za treniranje i implementaciju AI chatbot asistenta na osnovu snimljenih poziva iz call centra je osigurati da sve funkcionalnosti sistema rade ispravno, pouzdano i sigurno u skladu sa definisanim zahtjevima i acceptance kriterijima.
 
-Također, cilj je potvrditi da su osjetljivi podaci adekvatno zaštićeni, da sistem zadovoljava performanse i stabilnost, te da ispunjava definisane acceptance kriterije i nefunkcionalne zahtjeve za MVP verziju.
+**Ciljevi su:**
 
----
+- Verificirati da funkcionalnosti unosa i uploada transkripata (fajl i ručni unos) rade ispravno, uključujući validaciju formata i pravilnu pohranu podataka u sistem.
 
-## Ciljevi testiranja
+- Potvrditi da obrada transkripata (parsiranje, normalizacija i razdvajanje po ulogama) funkcioniše ispravno i da su podaci pripremljeni za dalju upotrebu.
 
-| Cilj | Obim | Kriterij uspjeha |
-|------|------|------------------|
-| Verifikacija unosa i uploada transkripata | Validacija formata fajla, ručni unos i pohrana transkripata | Ispunjeni svi acceptance kriteriji iz US-01 i US-02: validan fajl se uspješno učitava i pohranjuje, a nevalidan se odbija uz odgovarajuću poruku |
-| Validacija obrade i pripreme transkripata | Parsiranje, normalizacija i maskiranje osjetljivih podataka | Svi lični podaci su maskirani, tekst je pravilno strukturiran i spreman za korištenje u sistemu |
-| Verifikacija chatbot odgovora | Generisanje odgovora na osnovu baze znanja | Chatbot daje relevantan odgovor u skladu sa definisanim kriterijima tačnosti (NFR-13) |
-| Validacija fallback mehanizma | Preusmjeravanje na agenta kada chatbot nije siguran | Sistem uspješno prepoznaje nesigurnost i preusmjerava razgovor bez gubitka konteksta (NFR-5) |
-| Provjera administratorskih funkcionalnosti | Pregled, validacija i upravljanje transkriptima i prijavljenim problemima | Administrator može pregledati, validirati i upravljati podacima bez grešaka |
-| Validacija prijave netačnih odgovora | Korisnički feedback i obrada prijavljenih problema | Sistem omogućava prijavu netačnog odgovora i pravilno ga evidentira |
-| Provjera sigurnosti i privatnosti podataka | Zaštita podataka i kontrola pristupa | Svi podaci su zaštićeni (HTTPS, RBAC), a lični podaci maskirani prije obrade (NFR-1, NFR-2, NFR-3) |
-| Testiranje performansi sistema | Vrijeme odziva i rad pod opterećenjem | Sistem odgovara u roku < 3 sekunde u 95% slučajeva i podržava minimalno 100 korisnika (NFR-7, NFR-8) |
-| Validacija pouzdanosti sistema | Stabilnost rada i ponašanje u greškama | Sistem ne generiše netačne odgovore i pravilno reaguje u slučaju greške (NFR-5, NFR-6) |
-| Provjera upotrebljivosti sistema | Jednostavnost korištenja UI-a | Korisnici mogu koristiti sistem bez dodatne obuke i bez poteškoća (NFR-10) |
+- Provjeriti da sistem adekvatno maskira osjetljive i lične podatke prije njihove obrade i pohrane, u skladu sa sigurnosnim i privatnosnim zahtjevima.
+
+- Verificirati da chatbot generiše relevantne i tačne odgovore na osnovu baze znanja, u skladu sa definisanim kriterijima tačnosti.
+
+- Osigurati da sistem pravilno prepoznaje situacije u kojima chatbot nije siguran u odgovor i da u tim slučajevima vrši preusmjeravanje komunikacije na ljudskog agenta bez gubitka konteksta.
+
+- Validirati funkcionalnosti za prijavu netačnih odgovora i obradu korisničkog feedback-a, uključujući evidentiranje i kasniju obradu od strane administratora.
+
+- Provjeriti da administratorski dio sistema omogućava pregled, validaciju i upravljanje transkriptima, pitanjima i prijavljenim problemima bez grešaka.
+
+- Potvrditi da su implementirani sigurnosni mehanizmi (HTTPS, autentifikacija i kontrola pristupa) ispravni i da neovlašteni korisnici ne mogu pristupiti zaštićenim dijelovima sistema.
+
+- Provjeriti performanse sistema, uključujući vrijeme odziva (manje od 3 sekunde u većini slučajeva) i stabilan rad pri većem broju istovremenih korisnika.
+
+- Osigurati da sistem radi stabilno i pouzdano, bez generisanja netačnih ili neprovjerenih odgovora, te da se pravilno ponaša u slučaju grešaka.
+
+- Provjeriti da korisnički interfejs omogućava jednostavno, intuitivno i jasno korištenje sistema za sve tipove korisnika (krajnji korisnici, agenti i administratori).
 
 ## Nivoi testiranja 
 ### Unit testiranje
@@ -139,49 +144,28 @@ Svaki test slučaj direktno je vezan za jedan ili više acceptance kriterija def
 
 ## Način evidentiranja rezultata testiranja
 
-Rezultati testiranja će se evidentirati kroz strukturirane test slučajeve (test case-ove) koji su direktno povezani sa user story-ima i njihovim acceptance kriterijima.
+Rezultati testiranja evidentiraju se kroz strukturirane test case-ove koji su direktno povezani sa user story-ima i njihovim acceptance kriterijima.
 
-Za svaki test slučaj bilježit će se:
-- ID testa  
-- opis scenarija testiranja  
-- povezani acceptance kriterij i user story  
-- očekivani rezultat  
-- stvarni rezultat  
-- status testa (Passed / Failed)  
-- napomena ili opis greške (ukoliko postoji)
+Za svaki test case bilježe se sljedeće informacije:
+| ID testa | Opis testa | Ulazni podaci | Očekivani rezultat | Stvarni rezultat | Status (PASS/FAIL) | ID bug-a | Opis greške | Prioritet greške | Datum izvršenja | Odgovorna osoba | Napomena |
+|----------|------------|---------------|--------------------|------------------|--------------------|----------|--------------|------------------|-----------------|------------------|----------|
+|          |            |               |                    |                  |                    |          |              |                  |                 |                  |          |
 
-Rezultati testiranja će se voditi u tabelarnom obliku, dok će se uočene greške evidentirati kao posebne stavke u backlogu.
 
-Za automatizovane testove (unit i integraciono testiranje) koristit će se izvještaji iz testnih alata, dok će se za UI i sistemsko testiranje po potrebi priložiti dodatni dokazi kao što su screenshotovi ili opis izvršenih scenarija.
-
-Ovakav pristup omogućava jasnu sljedivost između zahtjeva, testova i rezultata, te olakšava praćenje kvaliteta sistema kroz razvoj.
 
 ---
 
 ## Glavni rizici kvaliteta
 
-Testiranjem sistema mogu se identificirati sljedeći ključni rizici kvaliteta:
-
-- **Netačni ili nepouzdani odgovori chatbot-a**  
-  Postoji rizik da chatbot generiše netačne ili izmišljene odgovore, posebno za pitanja koja nisu pokrivena bazom znanja.
-
-- **Neispravno maskiranje osjetljivih podataka**  
-  Lični podaci iz transkripata mogu ostati neadekvatno zaštićeni, što predstavlja sigurnosni i pravni rizik.
-
-- **Neispravan fallback mehanizam**  
-  Sistem može neuspješno prepoznati situacije nesigurnosti ili ne preusmjeriti razgovor na agenta, što utiče na korisničko iskustvo.
-
-- **Greške u obradi i pohrani transkripata**  
-  Nepravilna validacija ili obrada transkripata može dovesti do gubitka ili pogrešnog prikaza podataka.
-
-- **Neautorizovan pristup administratorskom dijelu sistema**  
-  Nedovoljno osigurana autentifikacija i autorizacija mogu omogućiti pristup osjetljivim funkcionalnostima neovlaštenim korisnicima.
-
-- **Pad performansi sistema pod opterećenjem**  
-  Sistem može postati spor ili nestabilan pri većem broju istovremenih korisnika.
-
-- **Nedovoljna upotrebljivost korisničkog interfejsa**  
-  Nejasan ili nepraktičan UI može otežati korištenje sistema krajnjim korisnicima i administratorima.
-
-- **Regresije nakon izmjena sistema**  
-  Nove funkcionalnosti mogu nenamjerno pokvariti postojeće funkcionalnosti ukoliko se ne provodi adekvatno regresiono testiranje.
+| ID | Rizik | Vjerovatnoća | Utjecaj | Strategija ublažavanja |
+|----|------|-------------|--------|-------------------------|
+| R-01 | Netačni ili nepouzdani odgovori chatbot-a | Srednja | Visok | Testiranje na unaprijed definisanom skupu pitanja; validacija odgovora i poređenje sa očekivanim rezultatima |
+| R-02 | Neispravno maskiranje osjetljivih podataka | Srednja | Visok | Testiranje na transkriptima sa ličnim podacima; provjera baze i logova da li su podaci maskirani |
+| R-03 | Neispravan fallback mehanizam | Srednja | Visok | Testiranje scenarija nesigurnih odgovora; provjera preusmjeravanja na agenta bez gubitka konteksta |
+| R-04 | Greške u obradi i pohrani transkripata | Srednja | Visok | Unit i integraciono testiranje parsiranja, validacije i spremanja transkripata |
+| R-05 | Neautorizovan pristup administratorskom dijelu sistema | Niska | Kritičan | Testiranje autentifikacije i RBAC-a; pokušaji neovlaštenog pristupa (penetration testiranje) |
+| R-06 | Pad performansi sistema pod opterećenjem | Srednja | Visok | Load i stress testiranje; simulacija više korisnika i mjerenje vremena odziva |
+| R-07 | Nedovoljna upotrebljivost korisničkog interfejsa | Srednja | Srednji | UI i user testing sa stvarnim korisnicima; analiza povratnih informacija |
+| R-08 | Regresije nakon izmjena sistema | Srednja | Visok | Automatizovani regresioni testovi; ponavljanje ključnih scenarija nakon svake izmjene |
+| R-09 | Neispravno evidentiranje korisničkog feedback-a | Niska | Srednji | Testiranje prijave netačnih odgovora i njihove obrade u administratorskom dijelu |
+| R-10 | Nedostupnost sistema ili pad stabilnosti | Niska | Srednji | Monitoring sistema, testiranje dostupnosti i fallback mehanizama |
