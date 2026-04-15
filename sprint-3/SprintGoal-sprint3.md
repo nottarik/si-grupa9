@@ -1,7 +1,6 @@
 # Sprint Goal  
 
-## Sprint broj  
-Sprint 3  
+## Sprint 3
 
 ---  
 
