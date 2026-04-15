@@ -247,6 +247,7 @@ Rizici navedeni u ovoj sekciji detaljno su razrađeni u dokumentu **Risk Regista
 |---|---|---|---|
 | SQL Injection / XSS | Visok | ORM, input validacija, Content Security Policy headeri | RIZ-009 |
 | Neautorizovani pristup podacima | Visok | JWT + RBAC; svaki API poziv prolazi kroz Auth API | RIZ-009 |
+| Kompromitacija JWT tokena (krađa, replay napad) | Visok | Refresh token mehanizmi, kratki TTL, rotacija tokena, device binding | RIZ-032 |
 | LLM hallucination | Visok | RAG pristup ograničava odgovore na dostupni kontekst | RIZ-006 |
 | Privacy i GDPR | Visok | Maskiranje osjetljivih podataka u Processing Pipelineu | RIZ-003, RIZ-020 |
 | Zavisnost od eksternih API-ja | Visok | Retry i fallback mehanizmi; mogućnost zamjene provajdera | RIZ-008 |
@@ -262,7 +263,9 @@ Rizici navedeni u ovoj sekciji detaljno su razrađeni u dokumentu **Risk Regista
 
 - Ako odabrani LLM ili Speech-to-Text provajder ne daje zadovoljavajuće rezultate, zamjena zahtijeva redizajn odgovarajućeg servisa. *(Ovisnost o eksternim AI provajderima → **RIZ-008**)*
 - Trenutna arhitektura je monolitni backend. Ako sistem značajno poraste po obimu, može biti potrebna migracija prema mikroservisima. *(Monolitni backend → **RIZ-011**)*
+- Promjena embedding modela može dovesti do nekompatibilnosti sa postojećim vektorima u bazi, što zahtijeva re-embedding cijelog dataseta ili migraciju vektorske baze. *(Nekompatibilnost vektorske baze → **RIZ-033**)*
 - RAG pipeline je sekvencijalan lanac komponenti – kvar jedne onemogućuje cijeli chatbot tok. *(Single point of failure → **RIZ-030**)*
+- Kvar Processing Pipelinea može blokirati sve tokove unosa podataka i zaustaviti kompletan sistem ingestije. *(Pipeline blokada → **RIZ-034**)*
 - Neadekvatno testiranje u ranim fazama može propustiti greške u AI-generisanom kodu. *(Kvalitet koda → **RIZ-027, RIZ-025**)*
 
 ---
@@ -271,7 +274,7 @@ Rizici navedeni u ovoj sekciji detaljno su razrađeni u dokumentu **Risk Regista
 
 | # | Pitanje | Prioritet | Veza s rizikom |
 |---|---|---|---|
-| 1 | Koji LLM koristiti u produkciji? (GPT-4, Claude, Mistral...) | Visok | RIZ-006, RIZ-008 |
+| 1 | Koji LLM koristiti u produkciji? (GPT-4, Claude...) | Visok | RIZ-006, RIZ-008 |
 | 2 | Koju vektorsku bazu koristiti? (Pinecone, Weaviate, pgvector...) | Visok | RIZ-007, RIZ-011, RIZ-030 |
 | 3 | Koji Speech-to-Text provajder koristiti? (Whisper, Google, AWS Transcribe...) | Visok | RIZ-001, RIZ-010 |
 | 4 | Kako osigurati zaštitu podataka u skladu s GDPR-om? | Visok | RIZ-003, RIZ-020 |
@@ -291,11 +294,11 @@ Svaka komponenta sistema nosi specifičan skup rizika koji su detaljno razrađen
 | **Frontend – Chat UI** | RIZ-009, RIZ-017, RIZ-019, RIZ-031 | Izloženost prompt injection napadima; korisnička adopcija i UX |
 | **Frontend – Admin Dashboard** | RIZ-009, RIZ-026, RIZ-022 | Kontrola pristupa pisanju u bazu znanja; audit vidljivost |
 | **Backend API** | RIZ-009, RIZ-012, RIZ-025, RIZ-027 | Centralna tačka validacije; rizik od scope creep-a i AI-generisanog koda |
-| **Auth API** | RIZ-009, RIZ-020 | Neautorizovani pristup; GDPR usklađenost sesija i logova |
+| **Auth API** | RIZ-009, RIZ-020, RIZ-032 | Neautorizovani pristup; GDPR usklađenost sesija i logova |
 | **Audio-to-Transcript API** | RIZ-001, RIZ-010, RIZ-008 | Kvalitet transkripcije; zavisnost od eksternog Speech-to-Text provajdera |
-| **Processing Pipeline** | RIZ-003, RIZ-001, RIZ-005, RIZ-020 | Maskiranje PII podataka; kvalitet i bias u ulaznim podacima |
+| **Processing Pipeline** | RIZ-003, RIZ-001, RIZ-005, RIZ-020, RIZ-034 | Maskiranje PII podataka; kvalitet i bias u ulaznim podacima |
 | **AI Chatbot modul (RAG)** | RIZ-006, RIZ-007, RIZ-028, RIZ-030 | Halucinacije; latencija; RAG leakage; single point of failure u lancu |
-| **Vektorska baza** | RIZ-007, RIZ-011, RIZ-026, RIZ-030 | Skalabilnost; data poisoning; kvar koji blokira cijeli RAG tok |
+| **Vektorska baza** | RIZ-007, RIZ-011, RIZ-026, RIZ-030, RIZ-033 | Skalabilnost; data poisoning; kvar koji blokira cijeli RAG tok |
 | **Relacijska baza** | RIZ-004, RIZ-022, RIZ-023 | Zastarijevanje sadržaja; audit log; dostupnost sistema |
 | **Eksterni AI servisi (LLM, STT, Embedding)** | RIZ-006, RIZ-008, RIZ-024 | Halucinacije; nedostupnost ili promjena API-ja; prekoračenje budžeta |
 | **Docker infrastruktura** | RIZ-023, RIZ-030 | Nedostupnost kontejnera; izolacija kvarova između servisa |
