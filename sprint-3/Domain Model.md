@@ -1,21 +1,19 @@
-# Domain Model — AI Chatbot Asistent za Call Centar
-
-Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu transkripata poziva
+# Domain Model – AI Chatbot Asistent na osnovu Call Centar Poziva
 
 ---
 
 ## 1. Glavni entiteti
 
-* **Korisnik:** Svaka osoba koja pristupa sistemu, s definisanom ulogom (RBAC). Uloge uključuju: Administrator, Agent, Supervizor i KrajnjiKorisnik, koje određuju i kontrolišu nivo pristupa
-* **Transkript:** Zapis telefonskog poziva koji predstavlja ulazni sirovi podatak sistema. Može biti učitan kao audio zapis, tekstualni transkript ili manualni unos
-* **SegmentTeksta:** Chunk transkripta koji se koristi za RAG retrieval i embedding. Predstavlja obrađenu, kategorizovanu jedinicu teksta pripremljenu za semantičko pretraživanje
-* **BazaZnanja:** Kurirani par pitanje–odgovor koji chatbot direktno koristi pri generisanju odgovora. Može biti izveden iz segmenta transkripta ili manualno unesen
-* **Kategorija:** Logička grupacija sadržaja baze znanja (npr. Fakturisanje, Tehnička podrška). Podržava hijerarhijsku strukturu s podkategorijama
-* **ChatSesija:** Jedna konverzacija između korisnika i chatbota. Prati kanal pristupa, status sesije i mogućnost eskalacije agentu
-* **Poruka:** Pojedinačna poruka unutar sesije — može biti od korisnika, chatbota ili agenta. Bilježi latenciju, korišćeni model i retrievane unose
-* **Feedback:** Ocjena kvaliteta chatbot odgovora od strane korisnika ili admina, s mogućnošću označavanja tipa problema
-* **MaskiranjeLog:** Evidencija PII maskiranje nad svakim transkriptom. Čuva pozicije i zamjenske tokene za sve otkrivene osjetljive podatke
-* **AuditLog:** Neizmjenjiva evidencija svih izmjena nad bazom znanja. Bilježi ko je izvršio akciju, nad kojim entitetom i kada
+* **Korisnik:** Osoba koja pristupa sistemu. Uloga (Administrator, Call Centar Agent, Supervizor, Krajnji Korisnik) određuje nivo pristupa putem RBAC-a
+* **Poziv/Transkript:** Izvorni snimak ili tekstualni transkript razgovora iz call centra koji služi kao sirovi podatak za izgradnju baze znanja
+* **Segment:** Izdvojeni dio transkripta koji predstavlja jedan par pitanje–odgovor ili relevantnu tematsku cjelinu
+* **BazaZnanja:** Kolekcija validiranih i obrađenih segmenata koji chatbot koristi za generisanje odgovora
+* **Kategorija:** Tematska grupa kojoj pripada segment ili unos u bazi znanja (npr. reklamacije, fakturisanje, tehnička podrška)
+* **ChatSesija:** Jedna sesija razgovora između krajnjeg korisnika i chatbot asistenta
+* **Poruka:** Pojedinačna razmjena unutar chat sesije – korisnikovo pitanje ili chatbotov odgovor
+* **Odgovor:** Generisani ili preuzeti odgovor chatbota, vezan za konkretnu poruku i izvor iz baze znanja
+* **Feedback:** Ocjena ili komentar korisnika ili administratora vezan za kvalitet konkretnog odgovora
+* **Anomalija:** Zapis koji sistem kreira kada chatbot ne može pronaći pouzdan odgovor ili kada je detektovana nedosljednost u podacima
 
 ---
 
@@ -23,43 +21,51 @@ Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu transkripat
 
 | Entitet | Atributi |
 | :--- | :--- |
-| **Korisnik** | korisnikId, ime, prezime, email, lozinkaHash, uloga (Administrator / Agent / Supervizor / KrajnjiKorisnik), aktivan, datumKreiranja, posljednjaAktivnost |
-| **Transkript** | transkriptId, ucitaoKorisnikId, nazivFajla, izvor (AudioZapis / TekstualniTranskript / ManualniUnos), statusObrade, siroviTekst, trajanjeSekundi, jezikKoda, kvalitetOcjena, maskiran, datumPoziva, datumUploada |
-| **SegmentTeksta** | segmentId, transkriptId, kategorijaId, sadrzaj, redoslijedUTranskriptu, tipSadrzaja (Pitanje / Odgovor / SmjenaGovornika / Mješovito), govornik, embedding (Vector 1536), odobrioAdminId, statusAprovacije, datumKreiranja |
-| **BazaZnanja** | unos_id, kategorijaId, izvorSegmentId, kreiraoKorisnikId, pitanje, odgovor, embedding (Vector 1536), status (Aktivan / Nacrt / Arhiviran), pouzdanostOcjena, brojKoriscenja, datumKreiranja, datumIzmjene |
-| **Kategorija** | kategorijaId, naziv, opis, roditeljKategorijaId, aktivna, datumKreiranja |
-| **ChatSesija** | sesijaId, korisnikId, datumPocetka, datumZavrsetka, status (Aktivna / Zatvorena / EskaliranaAgentu), eskaliraoKorisnikId, kanal (Web / MobilnaAplikacija / API), ukupnoPoruka, ipAdresa |
-| **Poruka** | porukaId, sesijaId, sadrzaj, uloga (Korisnik / Chatbot / Agent), redoslijed, timestamp, latencijaMs, korisceniModelId, retrievaniUnosiIds, retrieval_score |
-| **Feedback** | feedbackId, porukaId, autorId, ocjena (Pozitivan / Negativan / Neutralan), komentar, tipProblema (NetačanOdgovor / NepotpunOdgovor / HaluciniraniPodatak / NeprikladanTon), obradjeno, timestamp |
-| **MaskiranjeLog** | logId, transkriptId, tipEntiteta (ImePrezime / BrojTelefona / Email / JMBG / BrojRačuna / Adresa), originalnaVrijednost (enc.), maskToken, pozicijaPocetak, pozicijaKraj, algoritam, timestamp |
-| **AuditLog** | auditId, korisnikId, entitetTip, entitetId, akcija (Kreiranje / Izmjena / Brisanje / Odobravanje / Odbijanje / Arhiviranje), staraVrijednost, novaVrijednost, timestamp, ipAdresa |
+| **Korisnik** | ID, Ime, Prezime, Email, Lozinka, Uloga (RBAC), DatumKreiranja, Aktivan |
+| **Poziv/Transkript** | ID, Naziv, DatumPoziva, Trajanje, Format (audio/tekst), Status (Sirovi/Obrađen/Odbačen), ID_Korisnika_koji_je_uploadovao, DatumUploada, Jezik, Kvalitet (Visok/Srednji/Nizak) |
+| **Segment** | ID, Tekst, TipSegmenta (Pitanje/Odgovor/Kontekst), PozicijaUTrasnskriptu, ID_Transkripta, Status (Validan/Nevalidan/NaCekanju), ID_Kategorije, PouzdanostScore, DatumEkstrakcije |
+| **BazaZnanja** | ID, Naziv, Verzija, DatumKreiranja, Status (Aktivna/Arhivirana/NaCekanju), ID_Administratora, BrojUnosa |
+| **UnosBazeZnanja** | ID, Pitanje, Odgovor, ID_BazeZnanja, ID_Kategorije, ID_Segmenta (izvor), StatusAprovacije (Odobren/Odbijen/NaCekanju), DatumKreiranja, DatumAzuriranja, TezinaPouzdanosti |
+| **Kategorija** | ID, Naziv, Opis, NadređenaKategorija_ID, Aktivan |
+| **ChatSesija** | ID, DatumPocetka, DatumZavrsetka, ID_Korisnika, KanalPristupa (web/mobile/API), Status (Aktivna/Zatvorena), BrojPoruka |
+| **Poruka** | ID, Tekst, Tip (KorisnickoP/ChatbotOdgovor), Timestamp, ID_Sesije, ID_Odgovora |
+| **Odgovor** | ID, TekstOdgovora, ID_UnosaBazeZnanja (izvor), MetodaGenerisanja (Retrieval/Generativno/Fallback), SkorPouzdanosti, Latencija_ms, ID_Poruke |
+| **Feedback** | ID, Ocjena (1–5), Komentar, Tip (KorisnikOcjena/AdminReview), Timestamp, ID_Odgovora, ID_Korisnika |
+| **Anomalija** | ID, Opis, Tip (NiskaP ouzdanost/BezOdgovora/KontradiktoranOdgovor/NevalidanPodatak), NivoOzbiljnosti (Kritična/Visoka/Niska), Status (Otvorena/Riješena/Ignorisana), DatumKreiranja, ID_Poruke, ID_Odgovora |
 
 ---
 
 ## 3. Veze između entiteta
 
-* **Korisnik – Transkript (1:N):** Jedan korisnik može uploadovati više transkripata; svaki transkript ima tačno jednog uploadera
-* **Transkript – SegmentTeksta (1:N):** Jedan transkript se dijeli na više segmenata tokom obrade; segment uvijek pripada jednom transkriptu
-* **SegmentTeksta – BazaZnanja (1:0..1):** Segment može biti izvor za tačno jedan kurirani unos u bazi znanja; unos može biti i manualan (bez izvora)
-* **Kategorija – SegmentTeksta (1:N):** Svaki segment dobija jednu kategoriju (automatsku ili manualnu); kategorija grupiše neograničen broj segmenata
-* **Kategorija – BazaZnanja (1:N):** Svaki unos u bazi znanja mora imati tačno jednu kategoriju radi organizacije i retrievala
-* **Kategorija – Kategorija (1:N, self):** Hijerarhijska struktura — kategorija može imati podkategorije; root kategorije nemaju roditelja
-* **Korisnik – ChatSesija (1:N):** Korisnik može imati više sesija; sesija može biti i anonimna (null korisnikId)
-* **ChatSesija – Poruka (1:N):** Sesija sadrži uređeni niz poruka; poruka pripada tačno jednoj sesiji
-* **Poruka – BazaZnanja (N:M):** Jedan chatbot odgovor može biti zasnovan na više unosa iz baze znanja; isti unos može biti korišten u više odgovora
-* **Poruka – Feedback (1:0..1):** Jedna chatbot poruka može imati najviše jedan feedback unos od korisnika
-* **Transkript – MaskiranjeLog (1:N):** Jedan transkript može imati više maskiranih entiteta; svaki zapis log-a vezan je za tačno jedan transkript
-* **Korisnik – AuditLog (1:N):** Svaka izmjena se pripisuje korisniku koji ju je izvršio; korisnik može imati neograničen broj audit zapisa
+* **Poziv – Segment (1:N):** Jedan transkript može biti razložen na više segmenata. Svaki segment pripada tačno jednom transkriptu
+* **Segment – UnosBazeZnanja (1:0..1):** Segment može, ali ne mora biti promovisan u unos baze znanja. Svaki unos baze znanja ima tačno jedan izvorni segment
+* **BazaZnanja – UnosBazeZnanja (1:N):** Jedna baza znanja sadrži više unosa, a svaki unos pripada tačno jednoj bazi znanja
+* **Kategorija – Segment (1:N):** Svaki segment mora biti kategoriziran. Jedna kategorija može obuhvatati više segmenata
+* **Kategorija – UnosBazeZnanja (1:N):** Svaki unos baze znanja mora imati kategoriju, što omogućava filtriranje i organizaciju
+* **Kategorija – Kategorija (1:N, samo-referenca):** Kategorije mogu biti hijerarhijske – jedna nadređena kategorija može imati više podkategorija
+* **Korisnik – ChatSesija (1:N):** Jedan korisnik može imati više chat sesija. Svaka sesija pripada tačno jednom korisniku
+* **ChatSesija – Poruka (1:N):** Jedna sesija sadrži više poruka u hronološkom redoslijedu
+* **Poruka – Odgovor (1:0..1):** Korisnikova poruka može rezultirati jednim chatbotovim odgovorom. Chatbotove poruke nemaju odgovor
+* **Odgovor – UnosBazeZnanja (N:1):** Više odgovora može biti generisano na osnovu istog unosa iz baze znanja
+* **Odgovor – Feedback (1:N):** Jedan odgovor može primiti feedback od više korisnika ili administratora
+* **Odgovor – Anomalija (1:0..1):** Ako sistem detektuje problem pri generisanju odgovora, kreira se tačno jedna anomalija vezana za taj odgovor
 
 ---
 
 ## 4. Poslovna pravila važna za model
 
-1. **Obavezno maskiranje prije pohrane:** Transkript se ne smije proslijediti retrieval koraku niti pohraniti u SegmentTeksta dok polje `maskiran = true` nije postavljeno, čime se garantuje privatnost osjetljivih podataka iz poziva.
-2. **Aprobacija segmenata:** Segment teksta sa `statusAprovacije = Na_čekanju` ne ulazi u embedding indeks niti bazu znanja bez eksplicitnog odobrenja administratora. Automatski odobreni segmenti imaju `odobrioAdminId = null`.
-3. **Prag pouzdanosti odgovora:** Ako `retrieval_score` najboljeg rezultata padne ispod konfigurabilnog praga (default 0.65), sistem mora vratiti standardiziranu poruku o neizvjesnosti umjesto generisanog odgovora, čime se ograničavaju halucinacije.
-4. **Eskalizacija sesije:** Sesija sa `status = EskaliranaAgentu` mora imati popunjen `eskaliraoKorisnikId`. Agent koji preuzme sesiju mora imati ulogu Agent ili Supervizor.
-5. **Nepromjenjivost AuditLog-a:** Zapisi u AuditLog tabeli su append-only — ni jedan zapis se ne smije ažurirati niti brisati, čime se osigurava auditabilnost svih izmjena baze znanja.
-6. **RBAC pristup bazi znanja:** Samo korisnici s ulogom Administrator mogu mijenjati ili brisati unose u BazaZnanja. Agent može predložiti izmjenu (`status = Nacrt`), ali finalizacija zahtijeva adminsku aprobaciju. KrajnjiKorisnik ne pristupa admin sučelju.
-7. **Integritet kvaliteta transkripta:** Transkripti sa `kvalitetOcjena < 0.4` automatski dobivaju `statusObrade = Greška` i ne prolaze kroz pipeline ekstrakcije segmenata bez manualnog pregleda administratora.
-8. **Feedback loop:** Feedback sa `tipProblema = HaluciniraniPodatak` automatski spušta `pouzdanostOcjena` na vezanom BazaZnanja unosu i postavlja ga u status Nacrt, blokirajući daljnje korišćenje dok admin ne pregleda unos.
+1. **Pravilo kvaliteta transkripta:** Transkript čiji je atribut Kvalitet označen kao Nizak ne smije biti automatski promovisan u bazu znanja bez ručnog pregleda i odobravanja od strane administratora
+
+2. **Pravilo pouzdanosti odgovora:** Ako SkorPouzdanosti generisanog odgovora padne ispod definisanog praga (npr. 0.6), sistem automatski kreira entitet Anomalija tipa NiskaPouzdanost i odgovor se korisniku isporučuje s oznakom upozorenja
+
+3. **Pravilo fallback odgovora:** Kada chatbot ne pronađe odgovarajući unos u bazi znanja, generira se standardni fallback odgovor, kreira se Anomalija tipa BezOdgovora, a sesija se opciono eskalira ka živom agentu
+
+4. **RBAC ograničenje:** Samo korisnici s ulogom Administrator mogu odobravati, uređivati ili brisati unose iz baze znanja. Supervizor može pregledati anomalije i feedback, dok Call Centar Agent može jedino pregledavati transkripte i predlagati segmente
+
+5. **Pravilo imutabilnosti feedbacka:** Feedback koji je jednom sačuvan ne može biti izbrisan, kako bi se osigurao integritet evaluacije kvaliteta sistema kroz vrijeme
+
+6. **Pravilo verzioniranja baze znanja:** Svaka promjena na odobrenom unosu u bazi znanja kreira novu verziju tog unosa, a stara verzija se arhivira, čime se omogućava auditabilnost i rollback
+
+7. **Pravilo privatnosti transkripta:** Transkripti se ne smiju direktno izlagati krajnjem korisniku. Chatbot odgovara isključivo na osnovu procesiranih unosa iz baze znanja, a ne sirovim sadržajem poziva
+
+8. **Pravilo obavezne kategorizacije:** Segment ili unos baze znanja ne može biti sačuvan bez dodjeljene kategorije, čime se osigurava konzistentna organizacija znanja
