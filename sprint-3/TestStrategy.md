@@ -41,6 +41,25 @@ Unit testiranje provjerava ispravnost individualnih komponenti sistema izolovano
 | Alati | Jest (JavaScript/TypeScript), PyTest (Python backend) |
 | Pokrivenost | Cilj: minimalno 80% code coverage za poslovnu logiku |
 
+ Šta se testira u okviru unit testiranja:
+
+- **Authentication modul**  
+  Funkcija provjere kredencijala vraća ispravan token za validne podatke i grešku za nevalidne; funkcija generisanja i verifikacije JWT tokena; logika blokiranja naloga aktivira se tačno nakon 5 uzastopnih neuspjelih pokušaja (NFR-2)
+
+- **Transcript Management modul**  
+  Validacija formata fajla — TXT i PDF prolaze, ostali formati se odbijaju; provjera minimalne dužine teksta transkripta; validacija obaveznih polja forme za ručni unos (datum, identifikator agenta, sadržaj)
+
+- **Processing Pipeline modul**  
+  Normalizacijska funkcija uklanja suvišne razmake, standardizuje interpunkciju i uklanja nevalidne znakove bez promjene semantičkog značenja; parser ispravno identificira redove s oznakama *"Agent:"* i *"Korisnik:"* i segmentuje dijalog; funkcija maskiranja detektuje JMBG u svim formatima (13 cifara, s razmacima i bez), brojeve telefona (062, 061, 387...) i najčešće obrasce ličnih imena
+
+- **Knowledge Base modul**  
+  Funkcija generisanja embeddinga vraća vektor ispravnih dimenzija za zadani tekst; provjera da semantički slični tekstovi generiraju slične vektore
+
+- **Chatbot modul**  
+  Logika provjere praga pouzdanosti — odgovori ispod 70% trigiraju eskalaciju (NFR-6); funkcija koja formira prompt za LLM uključuje ispravan kontekst iz baze znanja
+
+- **Feedback modul**  
+  Ocjena se prihvata samo za validne vrijednosti; komentar se odbija ako je polje otvoreno ali prazno; prijava problema mora imati odabranu kategoriju da bi bila pohranjena
 ---
 
 ### Integraciono testiranje
@@ -54,6 +73,31 @@ Integraciono testiranje verificira ispravnost komunikacije i razmjene podataka i
 | Kada | Nakon završetka razvoja modula, na kraju svakog sprinta |
 | Alati | Supertest (API testiranje), Postman / Newman (automatizacija API testova) |
 
+ Šta se testira u okviru integracionog testiranja:
+
+- **Upload transkripta → Processing Pipeline**  
+  Uploadani TXT/PDF fajl ispravno prolazi normalizaciju teksta, razdvajanje po ulogama i maskiranje osjetljivih podataka; rezultat je strukturiran i spreman za embedding
+
+- **Processing Pipeline → Knowledge Base modul**  
+  Normalizovani i segmentirani tekst ispravno ulazi u proces generisanja embeddinga; vektori se pohranjuju u vektorsku bazu i mogu se dohvatiti semantičkom pretragom
+
+- **Chatbot modul → Knowledge Base → LLM API**  
+  Korisničko pitanje trigira semantičku pretragu u vektorskoj bazi; relevantan kontekst se šalje LLM-u kao dio prompta; LLM vraća odgovor koji sistem prikazuje korisniku
+
+- **Speech-to-Text API → Transcript Management**  
+  Uploadani audio fajl šalje se eksternom Speech-to-Text servisu; transkript se prima, prikazuje administratoru na pregled i pohranjuje nakon potvrde
+
+- **Authentication modul → Zaštićeni endpointi**  
+  JWT token se ispravno verificira za svaki zaštićeni API poziv; RBAC provjera blokira korisnika s pogrešnom ulogom (npr. korisnik ne može pozvati admin endpoint)
+
+- **Feedback modul → Database → Admin Dashboard**  
+  Ocjena i komentar korisnika se pohranjuju u bazu i ispravno prikazuju administratoru u pregledu interakcija; prijava netačnog odgovora pojavljuje se u listi prijavljenih problema
+
+- **Chatbot modul → Agent modul**  
+  Kada chatbot ne može odgovoriti (pouzdanost ispod 70%), pitanje se pojavljuje u agentovom modulu s kompletnim kontekstom razgovora unutar 10 sekundi (NFR-5)
+
+- **Agent modul → Database → Korisnik**  
+  Agentov odgovor se pohranjuje, status pitanja mijenja se u *"Odgovoreno"* i korisnik dobija obavijest
 ---
 
 ### Sistemsko testiranje
@@ -67,6 +111,37 @@ Sistemsko testiranje verificira kompletan sistem kao cjelinu u okruženju što b
 | Kada | U fazi stabilizacije sistema (Sprint 11) |
 | Alati | Playwright / Cypress (E2E), k6 / JMeter (load testing) |
 
+ Šta se testira u okviru sistemskog testiranja:
+
+- **E2E tok unosa transkripta**  
+  Administrator uploaduje audio zapis → sistem šalje audio Speech-to-Text API-ju → transkript se prikazuje na pregled → administrator potvrđuje → transkript prolazi processing pipeline → embedding se pohranjuju u bazu znanja
+
+- **E2E tok chatbot interakcije**  
+  Korisnik se prijavljuje → piše pitanje → sistem maskira osjetljive podatke → pretražuje bazu znanja → šalje kontekst LLM-u → odgovor se prikazuje u roku od 3 sekunde (NFR-7) → korisnik ocjenjuje odgovor
+
+- **E2E tok eskalacije**  
+  Korisnik postavlja pitanje za koje chatbot ne može dati pouzdan odgovor (pouzdanost ispod 70%) → sistem prikazuje poruku o nesigurnom odgovoru → pitanje se eskalira agentu unutar 10 sekundi s kompletnim kontekstom (NFR-5, NFR-6)
+
+- **E2E tok poboljšanja baze znanja**  
+  Agent odgovara na eskaliranu interakciju → administrator pregleda i odobrava agentov odgovor → par pitanje/odgovor dodaje se u bazu znanja → chatbot može koristiti novi sadržaj za naredne upite (NFR-8)
+
+- **Load test (NFR-7, NFR-8)**  
+  Simulacija 100 simultanih korisnika koji postavljaju upite chatbotu; P95 vrijeme odziva mora ostati ispod 3 sekunde, a maksimalno odzivno vrijeme ne smije prelaziti 5 sekundi ni pri punom opterećenju — mjerenje na uzorku od minimum 1.000 zahtjeva
+
+- **Sigurnosni test (NFR-1, NFR-2)**  
+  Provjera odbijanja HTTP zahtjeva i TLS verzije min. 1.2; blokada naloga nakon 5 neuspjelih pokušaja; automatska odjava nakon 30 minuta neaktivnosti
+
+- **Test privatnosti (NFR-3, NFR-4)**  
+  Provjera da originalni nemaskirani transkripti nisu prisutni u bazi 24 sata nakon unosa; provjera da podaci korisnika koji je zatražio opt-out nisu u trening setu 7 dana nakon zahtjeva
+
+- **Test tačnosti (NFR-13)**  
+  Evaluacija chatbot odgovora na unaprijed definisanom skupu od minimalno 100 testnih pitanja s poznatim očekivanim odgovorima; stopa relevantnih odgovora mora biti najmanje 85%
+
+- **Test transparentnosti (NFR-14)**  
+  Provjera da AI identifikacijska poruka bude prikazana na početku svake konverzacije i ostaje vidljiva minimalno 5 sekundi ili dok korisnik ne potvrdi
+
+- **Test update modela (NFR-12)**  
+  Administrator dodaje nove transkripte i pokreće update baze znanja; cijeli proces mora biti završen u manje od 4 sata, a chatbot mora ostati dostupan korisnicima tokom cijelog procesa
 ---
 
 ### Prihvatno testiranje (UAT)
@@ -80,15 +155,25 @@ Prihvatno testiranje provode krajnji korisnici ili njihovi predstavnici kako bi 
 | Kada | Na kraju razvojnog ciklusa, neposredno prije završne demonstracije (Sprint 12-13) |
 | Alati | Ručno testiranje uz predefinisane test scenarije zasnovane na user stories |
 
+ Šta se testira u okviru prihvatnog testiranja — po ulogama:
+
+- **Korisnik call centra**  
+  Prijava u sistem i pristup Chat UI-u; postavljanje tekstualnog pitanja i ocjena relevantnosti odgovora; glasovni unos pitanja putem mikrofona; provjera da sistem prikazuje AI identifikacijsku poruku na početku razgovora i da je vidljiva dovoljno dugo (NFR-14); ocjenjivanje odgovora (pozitivno i negativno) i ostavljanje komentara; prijava netačnog odgovora uz odabir kategorije; pregled vlastite historije razgovora; brisanje jednog i više zapisa iz historije; provjera obavijesti o maskiranju ličnih podataka
+
+- **Agent call centra**  
+  Prijava i pristup agentskom panelu; pregled liste pitanja koja čekaju odgovor — provjera ispravnosti prikazanih podataka (pitanje, datum, status); otvaranje pojedinačnog pitanja i uvid u kontekst razgovora; unos i slanje odgovora; provjera da se status pitanja mijenja u *"Odgovoreno"*; provjera da korisnik dobija obavijest o odgovoru
+
+- **Administrator**  
+  Prijava i pristup admin dashboardu; upload transkripata u TXT/PDF formatu i provjera pohrane; ručni unos transkripata putem forme; upload audio zapisa i pregled generisanog transkripta prije potvrde; pregled liste svih unesenih transkripata; pregled svih pitanja i odgovora korisnika s filterima po datumu i ocjeni; pregled liste prijavljenih problema i promjena statusa prijave; pregled i odobravanje agentovih odgovora za uključivanje u bazu znanja; provjera da chatbot daje relevantne odgovore na reprezentativnom skupu pitanja (NFR-13)
 ---
 ### Regresiono testiranje
 
-regresiono testiranje se provodi kako bi se osiguralo da nove izmjene ili dodaci koda nisu narušili već verificirane funkcionalnosti sistema. Budući da se sistem razvija iterativno kroz nekoliko sprintova, svaki sprint uvodi nove inkremente koji potencijalno utiču na prethodno implementirane komponente.
+Regresiono testiranje se provodi kako bi se osiguralo da nove izmjene ili dodaci koda nisu narušili već verificirane funkcionalnosti sistema. Budući da se sistem razvija iterativno kroz nekoliko sprintova, svaki sprint uvodi nove inkremente koji potencijalno utiču na prethodno implementirane komponente.
 
 | Atribut | Opis |
 |---------|------|
 | Cilj | Verificirati da prethodno implementirane i testirane funkcionalnposti rade ispravno nakon svake nove izmjene koda |
-| ko testira | Developeri i QA tim - automatizovano, uz povremenu ručnu provjeru kritičnih tokova |
+| Ko testira | Developeri i QA tim - automatizovano, uz povremenu ručnu provjeru kritičnih tokova |
 | Kada | Na kraju svakog sprinta, prije merge-a novih funkcionalnosti u glavnu granu; obavezno pri svakoj promjeni zajedničkih komponenti |
 | Alati | Jest (unit regresija), Playwright / Cypress (E2E regresija), CI/CD pipeline (GitHub Actions ili ekvivalent) |
 | Opseg | Kompletni skup prethodno polaznih test slučajeva (regression suite), s posebnim fokusom na zajedničke module |
