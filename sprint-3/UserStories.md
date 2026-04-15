@@ -1,4 +1,3 @@
-
 # User Stories
 
 **Projekat:** Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu snimljenih poziva iz call centra
@@ -11,12 +10,9 @@
 
 ---
 
----
-
 ## Sprint 5
 
 ---
-
 
 ### PB 18 — Upload i unos transkripata
 
@@ -100,46 +96,13 @@ Zavisi od Upload transkripata putem fajla (18.1). Zavisi od Ručni unos transkri
 
 ---
 
-### PB 13 — Konvertovanje iz audio zapisa u transkript
-
-#### User Story 13.1 — Konverzija audio zapisa u transkript
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 4 |
-| **Naziv** | Konverzija audio zapisa u transkript |
-| **Sprint** | 5 |
-| **Prioritet** | High |
-| **Poslovna vrijednost** | Automatizuje proces pretvaranja snimljenih poziva u tekstualne transkripate, eliminišući potrebu za ručnim prepisivanjem |
-
-**Uloga:**
-Kao administrator, želim uploadati audio zapis poziva kako bi sistem automatski generisao transkript razgovora i pohranio ga u sistem.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da su podržani uobičajeni audio formati (MP3, WAV). Otvorena pitanja: Koji su maksimalni dozvoljeni veličina i trajanje audio fajla? Da li sistem treba podržavati više govornika (diarizacija)? Da li se obrađuje samo bosanski/hrvatski/srpski jezik ili i ostali?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Sign In. Preduvjet za Pregled unesenih transkripata (33.x). Zavisi od Validacija unesenih transkripata (18.3).
-
-**Acceptance Criteria:**
-- Kada administrator pristupi modulu za upload, tada sistem mora prikazati opciju za odabir audio fajla
-- Kada administrator učita validan audio fajl, tada sistem mora pokrenuti proces transkripcije i prikazati indikator napretka
-- Kada transkripcija bude završena, tada sistem mora prikazati generisani transkript i omogućiti administratoru pregled i eventualne korekcije prije pohrane
-- Kada administrator potvrdi transkript, tada sistem mora pohraniti transkript na isti način kao i ručno uneseni ili uploadani tekstualni transkript
-- Kada audio fajl nije validnog formata ili je oštećen, tada sistem mora prikazati odgovarajuću poruku greške
-- Sistem mora prikazati upozorenje ako je kvalitet audio zapisa prenizak za pouzdanu transkripciju
-- Sistem ne smije pohraniti transkript bez eksplicitne potvrde administratora
-- Sistem ne smije prikazati grešku pri obradi validnog audio fajla
-
----
-
 ### PB 22 — Chat UI
 
 #### User Story 22.1 — Postavljanje pitanja chatbotu tekstom
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 5 |
+| **ID** | 4 |
 | **Naziv** | Postavljanje pitanja chatbotu tekstom |
 | **Sprint** | 5 |
 | **Prioritet** | High |
@@ -162,42 +125,13 @@ Zavisi od Sign In. Preduvjet za Ocjena odgovora chatbota (15.x).
 
 ---
 
-### PB 26 — Maskiranje osjetljivih podataka
-
-#### User Story 26.1 — Detekcija i zamjena osjetljivih podataka (ime, telefon, JMBG)
+### PB 36 — Prijava u sistem
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 6 |
-| **Naziv** | Detekcija i zamjena osjetljivih podataka (ime, telefon, JMBG) |
-| **Sprint** | 5 |
-| **Prioritet** | High |
-| **Poslovna vrijednost** | Štiti privatnost korisnika automatskim maskiranjem ličnih podataka prije obrade od strane chatbota |
-
-**Uloga:**
-Kao korisnik call centra, želim da sistem automatski detektuje i zamijeni moje osjetljive podatke (ime, telefon, JMBG) prije nego što se moj upit obradi, kako bi moja privatnost bila zaštićena.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da su definisani obrasci za detekciju osjetljivih podataka (regex ili NLP model). Otvorena pitanja: Da li korisnik treba biti obaviješten o zamjeni podataka? Da li se original čuva ili trajno briše?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
-
-**Acceptance Criteria:**
-- Kada korisnik unese poruku koja sadrži ime, broj telefona ili JMBG, tada sistem mora detektovati i maskirati te podatke prije slanja chatbotu
-- Sistem mora prikazati korisniku obavijest da su osjetljivi podaci zamijenjeni radi zaštite privatnosti
-- Sistem mora podržati detekciju bh. formata JMBG (13 cifara), brojeva telefona i najčešćih obrazaca imena
-- Zamjena se mora izvršiti transparentno — odgovor chatbota mora i dalje biti razumljiv korisniku
-- Sistem ne smije slati originalne (nemaskirane) podatke chatbotu ili ih pohranjivati u logovima
-
-
-### PB 37 — Prijava u sistem
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 7 |
+| **ID** | 5 |
 | **Naziv** | Prijava u sistem |
-| **Sprint** | 4 |
+| **Sprint** | 5 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Prijava je preduvjet za sve ostale funkcionalnosti sistema |
 
@@ -219,12 +153,13 @@ Preduvjet za sve ostale user storije.
 
 ---
 
-### PB 38 — Odjava iz sistema
+### PB 37 — Odjava iz sistema
+
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 8 |
+| **ID** | 6 |
 | **Naziv** | Odjava iz sistema |
-| **Sprint** | 4 |
+| **Sprint** | 5 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Štiti osjetljive podatke call centra od neovlaštenog pristupa |
 
@@ -242,7 +177,6 @@ Zavisi od Sign In.
 - Kada korisnik klikne Sign Out, tada sistem mora prekinuti sesiju i preusmjeriti korisnika na stranicu za prijavu
 - Kada se korisnik odjavi i pritisne dugme za povratak u pregledniku, tada sistem ne smije prikazati zaštićeni sadržaj
 
-
 ---
 
 ## Sprint 6
@@ -255,7 +189,7 @@ Zavisi od Sign In.
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 9 |
+| **ID** | 7 |
 | **Naziv** | Lista svih unesenih transkripata |
 | **Sprint** | 6 |
 | **Prioritet** | High |
@@ -281,7 +215,7 @@ Zavisi od Upload i unos transkripata (18.x). Zavisi od Sign In.
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 10 |
+| **ID** | 8 |
 | **Naziv** | Detaljan pregled pojedinačnog transkripata |
 | **Sprint** | 6 |
 | **Prioritet** | High |
@@ -303,15 +237,142 @@ Zavisi od Lista svih unesenih transkripata (33.1).
 
 ---
 
+## Sprint 7
+
+---
+
+### PB 23 — Priprema za obradu transkripata
+
+#### User Story 23.1 — Normalizacija teksta transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 9 |
+| **Naziv** | Normalizacija teksta transkripata |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava konzistentan format podataka za dalju obradu i treniranje modela |
+
+**Uloga:**
+Kao administrator, želim da sistem automatski normalizuje tekst transkripata kako bi podaci bili spremni za dalju obradu i pohranu.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da transkripti mogu sadržavati nekonzistentan format (velika/mala slova, specijalni znakovi). Otvoreno pitanje: Da li primijeniti naprednu jezičku korekciju ili samo osnovnu normalizaciju?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Upload i unos transkripata (18.x). Preduvjet za Razdvajanje po ulogama (23.2) i Detekcija i zamjena osjetljivih podataka (26.1).
+
+**Acceptance Criteria:**
+- Kada sistem primi transkript, tada mora ukloniti nepotrebne razmake i standardizovati tekst
+- Sistem mora konvertovati tekst u definisani format (npr. mala slova ili standardizovana kapitalizacija)
+- Sistem mora ukloniti ili zamijeniti nevalidne znakove
+- Sistem ne smije promijeniti semantičko značenje teksta
+
+---
+
+#### User Story 23.2 — Razdvajanje transkripta po ulogama (agent/korisnik)
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 10 |
+| **Naziv** | Razdvajanje transkripta po ulogama (agent/korisnik) |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava strukturiranje razgovora i kvalitetnije treniranje AI modela |
+
+**Uloga:**
+Kao administrator, želim da sistem automatski razdvoji transkript po ulogama (agent i korisnik) kako bi razgovor bio jasno strukturiran.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da transkript sadrži indikatore govornika (npr. "Agent:", "Korisnik:"). Otvoreno pitanje: Kako postupati kada oznake govornika nisu jasno definisane?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Normalizacija teksta transkripata (23.1). Preduvjet za Detekcija i zamjena osjetljivih podataka (26.1).
+
+**Acceptance Criteria:**
+- Kada sistem obradi transkript, tada mora identificirati govornike u razgovoru
+- Sistem mora označiti svaki segment teksta odgovarajućom ulogom (agent ili korisnik)
+- Kada oznake nisu jasno definisane, sistem mora pokušati inferirati uloge ili označiti segment kao nepoznat
+- Sistem ne smije pogrešno dodijeliti uloge kada su oznake jasno definisane
+
+---
+
+### PB 26 — Maskiranje osjetljivih podataka
+
+#### User Story 26.1 — Detekcija i zamjena osjetljivih podataka (ime, telefon, JMBG)
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 11 |
+| **Naziv** | Detekcija i zamjena osjetljivih podataka (ime, telefon, JMBG) |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Štiti privatnost korisnika automatskim maskiranjem ličnih podataka prije obrade od strane chatbota |
+
+**Uloga:**
+Kao korisnik call centra, želim da sistem automatski detektuje i zamijeni moje osjetljive podatke (ime, telefon, JMBG) prije nego što se moj upit obradi, kako bi moja privatnost bila zaštićena.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su definisani obrasci za detekciju osjetljivih podataka (regex ili NLP model). Otvorena pitanja: Da li korisnik treba biti obaviješten o zamjeni podataka? Da li se original čuva ili trajno briše?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
+
+**Acceptance Criteria:**
+- Kada korisnik unese poruku koja sadrži ime, broj telefona ili JMBG, tada sistem mora detektovati i maskirati te podatke prije slanja chatbotu
+- Sistem mora prikazati korisniku obavijest da su osjetljivi podaci zamijenjeni radi zaštite privatnosti
+- Sistem mora podržati detekciju bh. formata JMBG (13 cifara), brojeva telefona i najčešćih obrazaca imena
+- Zamjena se mora izvršiti transparentno — odgovor chatbota mora i dalje biti razumljiv korisniku
+- Sistem ne smije slati originalne (nemaskirane) podatke chatbotu ili ih pohranjivati u logovima
+
+---
+
+## Sprint 8
+
+---
+
+### PB 13 — Konvertovanje iz audio zapisa u transkript
+
+#### User Story 13.1 — Konverzija audio zapisa u transkript
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 12 |
+| **Naziv** | Konverzija audio zapisa u transkript |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Automatizuje proces pretvaranja snimljenih poziva u tekstualne transkripate, eliminišući potrebu za ručnim prepisivanjem |
+
+**Uloga:**
+Kao administrator, želim uploadati audio zapis poziva kako bi sistem automatski generisao transkript razgovora i pohranio ga u sistem.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su podržani uobičajeni audio formati (MP3, WAV). Otvorena pitanja: Koji su maksimalni dozvoljeni veličina i trajanje audio fajla? Da li sistem treba podržavati više govornika (diarizacija)? Da li se obrađuje samo bosanski/hrvatski/srpski jezik ili i ostali?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In. Preduvjet za Pregled unesenih transkripata (33.x). Zavisi od Validacija unesenih transkripata (18.3).
+
+**Acceptance Criteria:**
+- Kada administrator pristupi modulu za upload, tada sistem mora prikazati opciju za odabir audio fajla
+- Kada administrator učita validan audio fajl, tada sistem mora pokrenuti proces transkripcije i prikazati indikator napretka
+- Kada transkripcija bude završena, tada sistem mora prikazati generisani transkript i omogućiti administratoru pregled i eventualne korekcije prije pohrane
+- Kada administrator potvrdi transkript, tada sistem mora pohraniti transkript na isti način kao i ručno uneseni ili uploadani tekstualni transkript
+- Kada audio fajl nije validnog formata ili je oštećen, tada sistem mora prikazati odgovarajuću poruku greške
+- Sistem mora prikazati upozorenje ako je kvalitet audio zapisa prenizak za pouzdanu transkripciju
+- Sistem ne smije pohraniti transkript bez eksplicitne potvrde administratora
+- Sistem ne smije prikazati grešku pri obradi validnog audio fajla
+
+---
+
 ### PB 22 — Chat UI (nastavak)
 
 #### User Story 22.2 — Postavljanje pitanja chatbotu glasovnim unosom (Dictate)
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 11 |
+| **ID** | 13 |
 | **Naziv** | Postavljanje pitanja chatbotu glasovnim unosom (Dictate) |
-| **Sprint** | 6 |
+| **Sprint** | 8 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Poboljšava dostupnost i brzinu unosa, posebno za korisnike koji preferiraju glasovnu interakciju |
 
@@ -333,15 +394,19 @@ Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
 
 ---
 
+## Sprint 9
+
+---
+
 ### PB 15 — Ocjena odgovora chatbota
 
 #### User Story 15.1 — Ocjena pojedinačnog odgovora
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 12 |
+| **ID** | 14 |
 | **Naziv** | Ocjena pojedinačnog odgovora |
-| **Sprint** | 6 |
+| **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Omogućava prikupljanje povratnih informacija o kvalitetu odgovora chatbota |
 
@@ -366,9 +431,9 @@ Zavisi od Sign In. Preduvjet za Prijava netačnog odgovora (28.x).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 13 |
+| **ID** | 15 |
 | **Naziv** | Dodavanje opcionog komentara uz ocjenu |
-| **Sprint** | 6 |
+| **Sprint** | 9 |
 | **Prioritet** | Medium |
 | **Poslovna vrijednost** | Pruža dublji kontekst uz ocjenu i olakšava analizu slabih odgovora |
 
@@ -395,9 +460,9 @@ Zavisi od Ocjena pojedinačnog odgovora (15.1).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 14 |
+| **ID** | 16 |
 | **Naziv** | Prijava netačnog odgovora chatbota |
-| **Sprint** | 6 |
+| **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Omogućava identifikaciju i korekciju slabih mjesta u bazi znanja chatbota |
 
@@ -418,177 +483,33 @@ Zavisi od Ocjena pojedinačnog odgovora (15.1). Preduvjet za Pregled prijavljeni
 
 ---
 
-### PB 23 — Priprema za obradu transkripata
-
-#### User Story 23.1 — Normalizacija teksta transkripata
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 15 |
-| **Naziv** | Normalizacija teksta transkripata |
-| **Sprint** | 6 |
-| **Prioritet** | High |
-| **Poslovna vrijednost** | Osigurava konzistentan format podataka za dalju obradu i treniranje modela |
-
-**Uloga:**
-Kao administrator, želim da sistem automatski normalizuje tekst transkripata kako bi podaci bili spremni za dalju obradu i pohranu.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da transkripti mogu sadržavati nekonzistentan format (velika/mala slova, specijalni znakovi). Otvoreno pitanje: Da li primijeniti naprednu jezičku korekciju ili samo osnovnu normalizaciju?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Upload i unos transkripata (18.x). Preduvjet za Razdvajanje po ulogama (23.2) i Detekcija i zamjena osjetljivih podataka (26.1).
-
-**Acceptance Criteria:**
-- Kada sistem primi transkript, tada mora ukloniti nepotrebne razmake i standardizovati tekst
-- Sistem mora konvertovati tekst u definisani format (npr. mala slova ili standardizovana kapitalizacija)
-- Sistem mora ukloniti ili zamijeniti nevalidne znakove
-- Sistem ne smije promijeniti semantičko značenje teksta
-
----
-
-#### User Story 23.2 — Razdvajanje transkripta po ulogama (agent/korisnik)
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 16 |
-| **Naziv** | Razdvajanje transkripta po ulogama (agent/korisnik) |
-| **Sprint** | 6 |
-| **Prioritet** | High |
-| **Poslovna vrijednost** | Omogućava strukturiranje razgovora i kvalitetnije treniranje AI modela |
-
-**Uloga:**
-Kao administrator, želim da sistem automatski razdvoji transkript po ulogama (agent i korisnik) kako bi razgovor bio jasno strukturiran.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da transkript sadrži indikatore govornika (npr. "Agent:", "Korisnik:"). Otvoreno pitanje: Kako postupati kada oznake govornika nisu jasno definisane?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Normalizacija teksta transkripata (23.1). Preduvjet za Detekcija i zamjena osjetljivih podataka (26.1).
-
-**Acceptance Criteria:**
-- Kada sistem obradi transkript, tada mora identificirati govornike u razgovoru
-- Sistem mora označiti svaki segment teksta odgovarajućom ulogom (agent ili korisnik)
-- Kada oznake nisu jasno definisane, sistem mora pokušati inferirati uloge ili označiti segment kao nepoznat
-- Sistem ne smije pogrešno dodijeliti uloge kada su oznake jasno definisane
-
----
-
-## Sprint 7
-
----
-
-### PB 33 — Pregled unesenih transkripata (nastavak)
-
-#### User Story 33.3 — Pretraga i filtriranje transkripata
+#### User Story 28.2 — Kategorizacija prijavljenog problema
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 17 |
-| **Naziv** | Pretraga i filtriranje transkripata |
-| **Sprint** | 7 |
+| **Naziv** | Kategorizacija prijavljenog problema |
+| **Sprint** | 9 |
 | **Prioritet** | Medium |
-| **Poslovna vrijednost** | Smanjuje vrijeme pretrage i olakšava pronalazak relevantnih transkripata |
+| **Poslovna vrijednost** | Olakšava analizu i prioritizaciju grešaka u odgovorima chatbota |
 
 **Uloga:**
-Kao administrator, želim pretraživati i filtrirati transkripate po ključnim riječima, datumu i agentu kako bih brzo pronašao relevantne zapise.
+Kao korisnik call centra, želim odabrati vrstu greške pri prijavi problema kako bi administrator lakše razumio prirodu problema.
 
 **Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da transkripati postoje u sistemu.
+Pretpostavlja se da su kategorije grešaka unaprijed definisane (npr. netačna informacija, nerelevantni odgovor, tehnička greška).
 
 **Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Lista svih unesenih transkripata (33.1).
+Zavisi od Prijava netačnog odgovora chatbota (28.1).
 
 **Acceptance Criteria:**
-- Kada administrator unese ključnu riječ ili primijeni filter, tada sistem mora prikazati odgovarajuće transkripate
-- Kada nema rezultata, tada sistem mora prikazati poruku 'Nema rezultata'
-- Kada administrator resetuje filtere, tada sistem mora prikazati sve transkripate
+- Kada korisnik otvori formu za prijavu, tada sistem mora prikazati listu kategorija grešaka
+- Kada korisnik odabere kategoriju, tada sistem mora vezati tu kategoriju za prijavljeni problem
+- Sistem ne smije dozvoliti slanje prijave bez odabrane kategorije
 
 ---
 
-### PB 22 — Chat UI (nastavak)
-
-#### User Story 22.3 — Pregled istorije pitanja i odgovora — korisnički prikaz
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 18 |
-| **Naziv** | Pregled istorije pitanja i odgovora — korisnički prikaz |
-| **Sprint** | 7 |
-| **Prioritet** | High |
-| **Poslovna vrijednost** | Omogućava korisnicima uvid u prethodne interakcije s chatbotom |
-
-**Uloga:**
-Kao korisnik call centra, želim pregledati historiju mojih pitanja i odgovora chatbota kako bih se mogao referirati na prethodne interakcije.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da su prethodne interakcije sačuvane u sistemu. Otvoreno pitanje: Koliko dugo se čuva istorija razgovora?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Postavljanje pitanja chatbotu tekstom (22.1). Zavisi od Sign In.
-
-**Acceptance Criteria:**
-- Kada korisnik otvori historiju, tada sistem mora prikazati listu prethodnih pitanja i odgovora hronološkim redoslijedom
-- Svaki zapis mora sadržavati datum i vrijeme interakcije
-- Kada nema istorije, tada sistem mora prikazati poruku 'Nema prethodnih razgovora'
-- Sistem ne smije prikazati grešku prilikom učitavanja istorije
-
----
-
-#### User Story 22.4 — Brisanje pitanja iz istorije — korisnički prikaz
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 19 |
-| **Naziv** | Brisanje pitanja iz istorije — korisnički prikaz |
-| **Sprint** | 7 |
-| **Prioritet** | Medium |
-| **Poslovna vrijednost** | Daje korisnicima kontrolu nad vlastitom istorijom interakcija i podržava pravo na brisanje podataka |
-
-**Uloga:**
-Kao korisnik call centra, želim moći izbrisati jedno ili više svojih prethodnih pitanja iz historije kako bih upravljao vlastitim podacima.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da korisnik ima pristup historiji pitanja i odgovora. Otvoreno pitanje: Da li brisanje treba biti trajno ili je moguć oporavak u određenom roku?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Pregled istorije pitanja i odgovora — korisnički prikaz (22.3).
-
-**Acceptance Criteria:**
-- Kada korisnik otvori historiju, tada sistem mora prikazati opciju za brisanje uz svaki zapis
-- Kada korisnik odabere brisanje, tada sistem mora zatražiti potvrdu prije trajnog brisanja
-- Kada korisnik potvrdi brisanje, tada sistem mora ukloniti zapis iz historije i odmah ažurirati prikaz
-- Sistem mora podržati brisanje više zapisa odjednom (bulk delete)
-- Sistem ne smije prikazati grešku pri uspješnom brisanju
-
----
-
-### PB 34 — Pregled postavljenih pitanja i odgovora
-
-#### User Story 34.1 — Pregled svih pitanja i odgovora — administratorski prikaz
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 20 |
-| **Naziv** | Pregled svih pitanja i odgovora — administratorski prikaz |
-| **Sprint** | 7 |
-| **Prioritet** | Medium |
-| **Poslovna vrijednost** | Pruža administratoru uvid u česta pitanja i kvalitet odgovora radi unapređenja baze znanja |
-
-**Uloga:**
-Kao administrator, želim pregledati sva pitanja koja su korisnici postavili chatbotu, zajedno s odgovorima, kako bih identificirao najčešća pitanja i eventualne slabosti sistema.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da su interakcije korisnika sačuvane i dostupne administratoru.
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Sign In. Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
-
-**Acceptance Criteria:**
-- Kada administrator otvori pregled, tada sistem mora prikazati sve zabilježene interakcije s pitanjima i odgovorima
-- Administrator mora moći filtrirati prikaz po datumu, korisniku i ocjeni odgovora
-- Sistem mora prikazati poruku 'Nema zabilježenih interakcija' ako je lista prazna
-- Sistem ne smije prikazati grešku pri učitavanju liste
+## Sprint 10
 
 ---
 
@@ -598,9 +519,9 @@ Zavisi od Sign In. Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 21 |
+| **ID** | 18 |
 | **Naziv** | Pregled prosječne ocjene chatbota |
-| **Sprint** | 7 |
+| **Sprint** | 10 |
 | **Prioritet** | Medium |
 | **Poslovna vrijednost** | Daje administratoru uvid u ukupni kvalitet chatbota kroz agregirane metrike |
 
@@ -621,31 +542,60 @@ Zavisi od Ocjena pojedinačnog odgovora (15.1). Zavisi od Sign In.
 
 ---
 
-### PB 28 — Prijava netačnog odgovora (nastavak)
+### PB 33 — Pregled unesenih transkripata (nastavak)
 
-#### User Story 28.2 — Kategorizacija prijavljenog problema
+#### User Story 33.3 — Pretraga i filtriranje transkripata
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 22 |
-| **Naziv** | Kategorizacija prijavljenog problema |
-| **Sprint** | 7 |
+| **ID** | 19 |
+| **Naziv** | Pretraga i filtriranje transkripata |
+| **Sprint** | 10 |
 | **Prioritet** | Medium |
-| **Poslovna vrijednost** | Olakšava analizu i prioritizaciju grešaka u odgovorima chatbota |
+| **Poslovna vrijednost** | Smanjuje vrijeme pretrage i olakšava pronalazak relevantnih transkripata |
 
 **Uloga:**
-Kao korisnik call centra, želim odabrati vrstu greške pri prijavi problema kako bi administrator lakše razumio prirodu problema.
+Kao administrator, želim pretraživati i filtrirati transkripate po ključnim riječima, datumu i agentu kako bih brzo pronašao relevantne zapise.
 
 **Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da su kategorije grešaka unaprijed definisane (npr. netačna informacija, nerelevantni odgovor, tehnička greška).
+Pretpostavlja se da transkripati postoje u sistemu.
 
 **Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Prijava netačnog odgovora chatbota (28.1).
+Zavisi od Lista svih unesenih transkripata (33.1).
 
 **Acceptance Criteria:**
-- Kada korisnik otvori formu za prijavu, tada sistem mora prikazati listu kategorija grešaka
-- Kada korisnik odabere kategoriju, tada sistem mora vezati tu kategoriju za prijavljeni problem
-- Sistem ne smije dozvoliti slanje prijave bez odabrane kategorije
+- Kada administrator unese ključnu riječ ili primijeni filter, tada sistem mora prikazati odgovarajuće transkripate
+- Kada nema rezultata, tada sistem mora prikazati poruku 'Nema rezultata'
+- Kada administrator resetuje filtere, tada sistem mora prikazati sve transkripate
+
+---
+
+### PB 34 — Pregled postavljenih pitanja i odgovora
+
+#### User Story 34.1 — Pregled svih pitanja i odgovora — administratorski prikaz
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 20 |
+| **Naziv** | Pregled svih pitanja i odgovora — administratorski prikaz |
+| **Sprint** | 10 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Pruža administratoru uvid u česta pitanja i kvalitet odgovora radi unapređenja baze znanja |
+
+**Uloga:**
+Kao administrator, želim pregledati sva pitanja koja su korisnici postavili chatbotu, zajedno s odgovorima, kako bih identificirao najčešća pitanja i eventualne slabosti sistema.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su interakcije korisnika sačuvane i dostupne administratoru.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In. Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
+
+**Acceptance Criteria:**
+- Kada administrator otvori pregled, tada sistem mora prikazati sve zabilježene interakcije s pitanjima i odgovorima
+- Administrator mora moći filtrirati prikaz po datumu, korisniku i ocjeni odgovora
+- Sistem mora prikazati poruku 'Nema zabilježenih interakcija' ako je lista prazna
+- Sistem ne smije prikazati grešku pri učitavanju liste
 
 ---
 
@@ -655,9 +605,9 @@ Zavisi od Prijava netačnog odgovora chatbota (28.1).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 23 |
+| **ID** | 21 |
 | **Naziv** | Lista svih prijavljenih problema |
-| **Sprint** | 7 |
+| **Sprint** | 10 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Daje administratoru centralizovan pregled svih grešaka chatbota koje su korisnici prijavili |
 
@@ -682,9 +632,9 @@ Zavisi od Prijava netačnog odgovora chatbota (28.1). Zavisi od Sign In.
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 24 |
+| **ID** | 22 |
 | **Naziv** | Detaljan pregled pojedinačne prijave |
-| **Sprint** | 7 |
+| **Sprint** | 10 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Omogućava administratoru dubinsku analizu svake prijave radi korekcije baze znanja |
 
@@ -704,15 +654,19 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 
 ---
 
+## Sprint 11
+
+---
+
 ### PB 31 — Odgovor kada nema sigurnog responsea
 
 #### User Story 31.1 — Pregled pitanja bez odgovora chatbota — agentski prikaz
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 25 |
+| **ID** | 23 |
 | **Naziv** | Pregled pitanja bez odgovora chatbota — agentski prikaz |
-| **Sprint** | 7 |
+| **Sprint** | 11 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Omogućava agentu da identificira i preuzme pitanja na koja chatbot nije bio u stanju odgovoriti, smanjujući broj neuspješnih korisničkih interakcija |
 
@@ -737,9 +691,9 @@ Zavisi od Sign In. Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 26 |
+| **ID** | 24 |
 | **Naziv** | Unos agentovog odgovora na neodgovoreno pitanje |
-| **Sprint** | 7 |
+| **Sprint** | 11 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Osigurava kontinuitet korisničke podrške kada chatbot ne može pružiti odgovor |
 
@@ -761,7 +715,93 @@ Zavisi od Pregled pitanja bez odgovora chatbota — agentski prikaz (31.1).
 
 ---
 
-## Sprint 8
+## Sprint 12
+
+---
+
+### PB 22 — Chat UI (nastavak)
+
+#### User Story 22.3 — Pregled istorije pitanja i odgovora — korisnički prikaz
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 25 |
+| **Naziv** | Pregled istorije pitanja i odgovora — korisnički prikaz |
+| **Sprint** | 12 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava korisnicima uvid u prethodne interakcije s chatbotom |
+
+**Uloga:**
+Kao korisnik call centra, želim pregledati historiju mojih pitanja i odgovora chatbota kako bih se mogao referirati na prethodne interakcije.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su prethodne interakcije sačuvane u sistemu. Otvoreno pitanje: Koliko dugo se čuva istorija razgovora?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Postavljanje pitanja chatbotu tekstom (22.1). Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada korisnik otvori historiju, tada sistem mora prikazati listu prethodnih pitanja i odgovora hronološkim redoslijedom
+- Svaki zapis mora sadržavati datum i vrijeme interakcije
+- Kada nema istorije, tada sistem mora prikazati poruku 'Nema prethodnih razgovora'
+- Sistem ne smije prikazati grešku prilikom učitavanja istorije
+
+---
+
+#### User Story 22.4 — Brisanje pitanja iz istorije — korisnički prikaz
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 26 |
+| **Naziv** | Brisanje pitanja iz istorije — korisnički prikaz |
+| **Sprint** | 12 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Daje korisnicima kontrolu nad vlastitom istorijom interakcija i podržava pravo na brisanje podataka |
+
+**Uloga:**
+Kao korisnik call centra, želim moći izbrisati jedno ili više svojih prethodnih pitanja iz historije kako bih upravljao vlastitim podacima.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da korisnik ima pristup historiji pitanja i odgovora. Otvoreno pitanje: Da li brisanje treba biti trajno ili je moguć oporavak u određenom roku?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Pregled istorije pitanja i odgovora — korisnički prikaz (22.3).
+
+**Acceptance Criteria:**
+- Kada korisnik otvori historiju, tada sistem mora prikazati opciju za brisanje uz svaki zapis
+- Kada korisnik odabere brisanje, tada sistem mora zatražiti potvrdu prije trajnog brisanja
+- Kada korisnik potvrdi brisanje, tada sistem mora ukloniti zapis iz historije i odmah ažurirati prikaz
+- Sistem mora podržati brisanje više zapisa odjednom (bulk delete)
+- Sistem ne smije prikazati grešku pri uspješnom brisanju
+
+---
+
+### PB 31 — Odgovor kada nema sigurnog responsea (nastavak)
+
+#### User Story 31.3 — Upotreba agentovog odgovora za poboljšanje chatbota
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 27 |
+| **Naziv** | Upotreba agentovog odgovora za poboljšanje chatbota |
+| **Sprint** | 12 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Kontinuirano unapređuje bazu znanja chatbota na osnovu stvarnih korisničkih pitanja i agentovih odgovora |
+
+**Uloga:**
+Kao administrator, želim da agentovi odgovori na neodgovorena pitanja budu iskorišteni za treniranje chatbota kako bih smanjio broj budućih neuspješnih interakcija.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da postoji mehanizam za označavanje odgovora kao pogodnih za uključivanje u bazu znanja. Otvoreno pitanje: Da li administrator treba ručno odobravati odgovore prije dodavanja u trening dataset?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Unos agentovog odgovora na neodgovoreno pitanje (31.2).
+
+**Acceptance Criteria:**
+- Kada agentov odgovor bude označen kao validan, tada sistem mora ponuditi opciju za dodavanje tog para (pitanje/odgovor) u bazu znanja za treniranje
+- Administrator mora moći pregledati i odobriti ili odbaciti prijedloge za dodavanje u bazu znanja
+- Sistem mora prikazati potvrdu kada je par uspješno dodan u trening dataset
+- Sistem ne smije automatski dodavati odgovore u bazu znanja bez odobrenja
 
 ---
 
@@ -771,9 +811,9 @@ Zavisi od Pregled pitanja bez odgovora chatbota — agentski prikaz (31.1).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 27 |
+| **ID** | 28 |
 | **Naziv** | Promjena statusa prijave |
-| **Sprint** | 8 |
+| **Sprint** | 12 |
 | **Prioritet** | Medium |
 | **Poslovna vrijednost** | Omogućava praćenje procesa rješavanja prijavljenih grešaka |
 
@@ -798,9 +838,9 @@ Zavisi od Detaljan pregled pojedinačne prijave (35.2).
 
 | Polje | Vrijednost |
 |---|---|
-| **ID** | 28 |
+| **ID** | 29 |
 | **Naziv** | Filtriranje i pretraga prijavljenih problema |
-| **Sprint** | 8 |
+| **Sprint** | 12 |
 | **Prioritet** | Medium |
 | **Poslovna vrijednost** | Smanjuje vrijeme potrebno za pronalazak relevantnih prijava i prioritizaciju grešaka |
 
@@ -818,32 +858,3 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 - Kada nema rezultata za odabrane filtere, tada sistem mora prikazati poruku 'Nema rezultata'
 - Kada administrator resetuje filtere, tada sistem mora prikazati sve prijave
 - Sistem ne smije prikazati grešku pri primjeni filtera
-
----
-
-### PB 31 — Odgovor kada nema sigurnog responsea (nastavak)
-
-#### User Story 31.3 — Upotreba agentovog odgovora za poboljšanje chatbota
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 29 |
-| **Naziv** | Upotreba agentovog odgovora za poboljšanje chatbota |
-| **Sprint** | 8 |
-| **Prioritet** | Medium |
-| **Poslovna vrijednost** | Kontinuirano unapređuje bazu znanja chatbota na osnovu stvarnih korisničkih pitanja i agentovih odgovora |
-
-**Uloga:**
-Kao administrator, želim da agentovi odgovori na neodgovorena pitanja budu iskorišteni za treniranje chatbota kako bih smanjio broj budućih neuspješnih interakcija.
-
-**Pretpostavke i otvorena pitanja:**
-Pretpostavlja se da postoji mehanizam za označavanje odgovora kao pogodnih za uključivanje u bazu znanja. Otvoreno pitanje: Da li administrator treba ručno odobravati odgovore prije dodavanja u trening dataset?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od Unos agentovog odgovora na neodgovoreno pitanje (31.2).
-
-**Acceptance Criteria:**
-- Kada agentov odgovor bude označen kao validan, tada sistem mora ponuditi opciju za dodavanje tog para (pitanje/odgovor) u bazu znanja za treniranje
-- Administrator mora moći pregledati i odobriti ili odbaciti prijedloge za dodavanje u bazu znanja
-- Sistem mora prikazati potvrdu kada je par uspješno dodan u trening dataset
-- Sistem ne smije automatski dodavati odgovore u bazu znanja bez odobrenja
