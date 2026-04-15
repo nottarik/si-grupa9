@@ -235,6 +235,54 @@
 
 ---
 
+#### RIZ-032 – Kompromitacija JWT tokena (krađa, replay napad, predugi rok važenja)
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-032 |
+| **Opis rizika** | Arhitektura eksplicitno navodi da svaki API poziv nosi JWT token koji Auth API verifikuje. Ako napadač dođe do validnog tokena (npr. kroz XSS napad na frontend, nesigurno pohranjivanje u browser, ili MITM napad), može preuzeti sesiju korisnika ili administratora bez znanja o lozinki. Posebno je opasan slučaj kompromitovanog admin tokena koji daje pristup cijelom sistemu. |
+| **Uzrok** | Pohranjivanje JWT tokena u localStorage umjesto httpOnly cookiea, predugačak expiry time tokena, nedostatak token revocation mehanizma, odsustvo refresh token rotacije. |
+| **Vjerovatnoća** | S |
+| **Uticaj** | V |
+| **Prioritet rizika** | Visok |
+| **Plan mitigacije** | Pohraniti JWT tokene isključivo u httpOnly, Secure, SameSite=Strict cookieje – nikad u localStorage ili sessionStorage. Definisati kratak expiry za access token (npr. 15 minuta) uz refresh token rotaciju. Implementirati token blacklist / revocation mehanizam u Auth API-ju za slučaj kompromitacije. Dodatno zaštititi admin rute s MFA (multi-factor authentication). Logovati sve neuspješne i sumnjive autentifikacijske pokušaje. |
+| **Odgovorna osoba / uloga** | Security Engineer / Auth API developer |
+| **Status** | Identificiran |
+
+---
+
+#### RIZ-033 – Nekompatibilnost vektorske baze pri promjeni embedding modela
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-033 |
+| **Opis rizika** | Processing Pipeline generiše embeddings koristeći odabrani embedding model i pohranjuje ih u vektorsku bazu. Ako se u kasnijoj fazi promijeni embedding model (npr. prelazak na noviju verziju ili drugog provajdera), svi postojeći vektori u bazi postaju nekompatibilni s novim modelom jer vektori različitih modela nisu usporedivi u istom prostoru. To zahtijeva potpuni re-index cijele baze znanja, što može biti vremenski i troškovno zahtjevno, a za to vrijeme retrieval može davati pogrešne ili bezvrijedne rezultate. |
+| **Uzrok** | Odsustvo verzioniranja embedding modela uz vektorske zapise, nedostatak strategije za migraciju embeddinga, podcjenjivanje troška promjene modela u ranoj fazi arhitekturalnog dizajna. |
+| **Vjerovatnoća** | S |
+| **Uticaj** | V |
+| **Prioritet rizika** | Visok |
+| **Plan mitigacije** | Uz svaki embedding zapis pohraniti metapodatak o modelu i verziji koja ga je generisala (npr. model_id, model_version). Dizajnirati re-indexing pipeline koji može ponoviti obradu svih dokumenata s novim modelom bez gubitka podataka. Testirati kompatibilnost retrieval-a nakon svake izmjene embedding modela. Razmotriti dual-indexing strategiju tokom tranzicije (stari i novi model paralelno) kako bi se izbjegao downtime. |
+| **Odgovorna osoba / uloga** | ML inženjer / Arhitekt sistema |
+| **Status** | Identificiran |
+
+---
+
+#### RIZ-034 – Kvar Processing Pipelinea blokira sve tokove unosa podataka
+
+| Atribut | Vrijednost |
+|---------|------------|
+| **ID** | RIZ-034 |
+| **Opis rizika** | Processing Pipeline je centralna tačka kroz koju prolaze i tekstualni transkripti i audio snimci (nakon transkripcije) prije pohrane u vektorsku bazu. Za razliku od RIZ-030 koji pokriva kvar u RAG toku za korisnike, ovaj rizik se odnosi na upload i ingest tok: ako Pipeline zakaže, ni administrator ne može dodati niti ažurirati sadržaj baze znanja. Sistem nastavlja raditi sa zastarjelim podacima bez mogućnosti osvježavanja, a problem može proći neopaženo ako nema adekvatnog monitoringa. |
+| **Uzrok** | Pipeline je implementiran kao jedinstven servis bez redundancije, odsustvo monitoringa na razini pojedinih faza pipeline-a (normalizacija, maskiranje, embedding generisanje), greška u jednoj fazi obaraju cijeli proces bez parcijalnog oporavka. |
+| **Vjerovatnoća** | N |
+| **Uticaj** | S |
+| **Prioritet rizika** | Srednji |
+| **Plan mitigacije** | Implementirati health check endpoint za Processing Pipeline koji backend može periodično provjeravati. Uspostaviti monitoring i alerting koji detektuje neuspjele ingest zadatke. Dizajnirati pipeline s retry mehanizmom po fazama – greška u embedding fazi ne smije poništiti već završenu normalizaciju i maskiranje. Implementirati dead-letter queue za neuspjele zapise radi kasnijeg ponovnog pokušaja. Administratoru prikazati jasan status ingest toka u Admin Dashboardu. |
+| **Odgovorna osoba / uloga** | Backend Developer / DevOps |
+| **Status** | Identificiran |
+
+---
+
 ### GRUPA 3 – Projektni i organizacioni rizici
 
 ---
@@ -541,6 +589,9 @@
 | RIZ-028 | Eksfiltracija internih podataka putem chatbota (RAG leakage) | S | V | Kritičan |
 | RIZ-030 | Single point of failure u RAG arhitekturi | N | V | Visok |
 | RIZ-031 | Neintuitivan korisnički interfejs chatbota | S | S | Srednji |
+| RIZ-032 | Kompromitacija JWT tokena (krađa, replay napad) | S | V | Visok |
+| RIZ-033 | Nekompatibilnost vektorske baze pri promjeni embedding modela | S | V | Visok |
+| RIZ-034 | Kvar Processing Pipelinea blokira sve tokove unosa podataka | N | S | Srednji |
 
 ---
 
@@ -549,9 +600,9 @@
 | Prioritet | Broj rizika |
 |-----------|-------------|
 | Kritičan | 7 |
-| Visok | 12 |
+| Visok | 15 |
 | Srednji | 10 |
 | Nizak | 1 |
-| **Ukupno** | **30** |
+| **Ukupno** | **33** |
 
 ---
