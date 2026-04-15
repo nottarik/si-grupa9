@@ -8,7 +8,6 @@
 - Istraživanje ulaznih formata: → Done  
 - Not Started (sa prošlog sprinta): → In Progress  
 - Ispravka : Backlog više nije podijeljen na sprintove, usaglašen način opisa stavki i ažurirani statusi i napomene
-- Dodano: Sign In i Sign Out
 ---
 
 ## Napomena (iduće aktivnosti)
@@ -54,8 +53,8 @@
 | 33 | Pregled unesenih transkripata | Tabela s listom fajlova, datumom, statusom obrade | feature | High | 3 | Not Started | MVP inkrement |
 | 34 | Pregled postavljenih pitanja i odgovora |Omogućava administratoru prikaz postavljenih pitanja i odgovora| feature | High | 3 | Not Started | MVP inkrement |
 | 35 | Pregled prijavljenih problema | Omogućava administratoru prikaz prijavljenih odgovora  | feature | Medium | 3 | Not Started | MVP inkrement |
-| 36 | Sign In | Sistem za autentifikaciju korisnika  | technical task | Medium | 5 | Not Started | MVP inkrement |
-| 37 | Sign Out | Odjava iz sistema  | technical task | Medium | 5 | Not Started | MVP inkrement |
+
+
 
 
 
