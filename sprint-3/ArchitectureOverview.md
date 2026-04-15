@@ -223,50 +223,79 @@ Sva komunikacija između Frontenda i Backenda odvija se putem RESTful HTTP/HTTPS
 
 - Mikroservisi → prevelika kompleksnost za ranu fazu razvoja
 - Treniranje modela od nule → visoki troškovi i složenost; RAG pristup je efikasnija alternativa
-
+- SQL full-text search umjesto vektorske baze  → Nije dovoljno za semantičku pretragu; ne hvata sinonime i parafraziranja pitanja 
+- Session-based autentifikacija  → Otežava horizontalno skaliranje; JWT je bolje rješenje za REST API 
 ---
 
 ## 6. Ograničenja i rizici
 
+Rizici navedeni u ovoj sekciji detaljno su razrađeni u dokumentu **Risk Registar** projekta, uz planove mitigacije i odgovorne osobe. Svaki rizik je označen odgovarajućim ID-om (RIZ-XXX) radi lakšeg praćenja i unakrsnog referenciranja između dokumenata.
+
 ### 6.1 Tehnička ograničenja
 
-- Kvalitet transkripcije ovisi o kvalitetu audio zapisa. Loš zvuk može zahtijevati ručnu korekciju. *(Speech-to-Text tačnost)*
-- AI analiza i generisanje odgovora mogu imati veću latenciju kod kompleksnijih upita. Asinhrona obrada ublažava ovo, ali korisnici ne dobijaju uvijek trenutne rezultate. *(LLM latencija)*
-- Relacijska baza može postati usko grlo pri velikom broju simultanih interakcija. *(Skalabilnost baze)*
-- Sistem je dizajniran kao online aplikacija; nema podrške za offline rad. *(Ograničena offline funkcionalnost)*
+- Kvalitet transkripcije ovisi o kvalitetu audio zapisa. Loš zvuk može zahtijevati ručnu korekciju. *(Speech-to-Text tačnost → **RIZ-001, RIZ-010**)*
+- AI analiza i generisanje odgovora mogu imati veću latenciju kod kompleksnijih upita. Asinhrona obrada ublažava ovo, ali korisnici ne dobijaju uvijek trenutne rezultate. *(LLM latencija → **RIZ-007**)*
+- Relacijska baza može postati usko grlo pri velikom broju simultanih interakcija. *(Skalabilnost baze → **RIZ-011**)*
+- Sistem je dizajniran kao online aplikacija; nema podrške za offline rad. *(Ograničena offline funkcionalnost → **RIZ-023**)*
+- Dostupnost i pokrivenost podataka u bazi znanja direktno određuju kvalitet odgovora chatbota. *(Reprezentativnost podataka → **RIZ-002, RIZ-004, RIZ-005**)*
 
 ---
 
 ### 6.2 Sigurnosni rizici
 
-| Rizik | Utjecaj | Mitigacija |
-|---|---|---|
-| SQL Injection / XSS | Visok | ORM, input validacija, Content Security Policy headeri |
-| Neautorizovani pristup podacima | Visok | JWT + RBAC; svaki API poziv prolazi kroz Auth API |
-| LLM hallucination | Visok | RAG pristup ograničava odgovore na dostupni kontekst |
-| Privacy i GDPR | Visok | Maskiranje osjetljivih podataka u Processing Pipelineu |
-| Zavisnost od eksternih API-ja | Visok | Retry i fallback mehanizmi; mogućnost zamjene provajdera |
-| Loš kvalitet transkripata | Srednji | Validacija i filtriranje podataka u Pipelineu |
-| Performanse semantičke pretrage | Srednji | Optimizacija indeksiranja i caching čestih upita |
+| Rizik | Utjecaj | Mitigacija | Risk Registar |
+|---|---|---|---|
+| SQL Injection / XSS | Visok | ORM, input validacija, Content Security Policy headeri | RIZ-009 |
+| Neautorizovani pristup podacima | Visok | JWT + RBAC; svaki API poziv prolazi kroz Auth API | RIZ-009 |
+| LLM hallucination | Visok | RAG pristup ograničava odgovore na dostupni kontekst | RIZ-006 |
+| Privacy i GDPR | Visok | Maskiranje osjetljivih podataka u Processing Pipelineu | RIZ-003, RIZ-020 |
+| Zavisnost od eksternih API-ja | Visok | Retry i fallback mehanizmi; mogućnost zamjene provajdera | RIZ-008 |
+| Loš kvalitet transkripata | Srednji | Validacija i filtriranje podataka u Pipelineu | RIZ-001 |
+| Performanse semantičke pretrage | Srednji | Optimizacija indeksiranja i caching čestih upita | RIZ-007 |
+| Prompt injection / RAG leakage | Kritičan | Output filtering, access control po segmentima baze znanja | RIZ-028 |
+| Data poisoning | Visok | RBAC za pisanje u bazu, audit log, review workflow | RIZ-026 |
+| Single point of failure u RAG lancu | Visok | Circuit breaker pattern, health check po komponenti | RIZ-030 |
 
 ---
 
 ### 6.3 Arhitektonski rizici
 
-- Ako odabrani LLM ili Speech-to-Text provajder ne daje zadovoljavajuće rezultate, zamjena zahtijeva redizajn odgovarajućeg servisa. *(Ovisnost o eksternim AI provajderima)*
-- Trenutna arhitektura je monolitni backend. Ako sistem značajno poraste po obimu, može biti potrebna migracija prema mikroservisima. *(Monolitni backend)*
+- Ako odabrani LLM ili Speech-to-Text provajder ne daje zadovoljavajuće rezultate, zamjena zahtijeva redizajn odgovarajućeg servisa. *(Ovisnost o eksternim AI provajderima → **RIZ-008**)*
+- Trenutna arhitektura je monolitni backend. Ako sistem značajno poraste po obimu, može biti potrebna migracija prema mikroservisima. *(Monolitni backend → **RIZ-011**)*
+- RAG pipeline je sekvencijalan lanac komponenti – kvar jedne onemogućuje cijeli chatbot tok. *(Single point of failure → **RIZ-030**)*
+- Neadekvatno testiranje u ranim fazama može propustiti greške u AI-generisanom kodu. *(Kvalitet koda → **RIZ-027, RIZ-025**)*
 
 ---
 
 ## 7. Otvorena pitanja
 
-| # | Pitanje | Prioritet |
+| # | Pitanje | Prioritet | Veza s rizikom |
+|---|---|---|---|
+| 1 | Koji LLM koristiti u produkciji? (GPT-4, Claude, Mistral...) | Visok | RIZ-006, RIZ-008 |
+| 2 | Koju vektorsku bazu koristiti? (Pinecone, Weaviate, pgvector...) | Visok | RIZ-007, RIZ-011, RIZ-030 |
+| 3 | Koji Speech-to-Text provajder koristiti? (Whisper, Google, AWS Transcribe...) | Visok | RIZ-001, RIZ-010 |
+| 4 | Kako osigurati zaštitu podataka u skladu s GDPR-om? | Visok | RIZ-003, RIZ-020 |
+| 5 | Hosting i deployment – on-premise ili cloud? | Visok | RIZ-023, RIZ-024 |
+| 6 | Kako optimizirati performanse semantičke pretrage? | Srednji | RIZ-007 |
+| 7 | Kako riješiti monitoring i logging sistema? | Srednji | RIZ-022, RIZ-030 |
+| 8 | Strategija backup-a baze podataka | Srednji | RIZ-026 |
+
+---
+
+## 8. Mapiranje arhitekturalnih komponenti na rizike
+
+Svaka komponenta sistema nosi specifičan skup rizika koji su detaljno razrađeni u Risk Registru. Ova sekcija služi kao unakrsna referenca između arhitekturalnog dizajna i upravljanja rizicima.
+
+| Komponenta | Primarni rizici (Risk Registar) | Napomena |
 |---|---|---|
-| 1 | Koji LLM koristiti u produkciji? (GPT-4, Claude, Mistral...) | Visok |
-| 2 | Koju vektorsku bazu koristiti? (Pinecone, Weaviate, pgvector...) | Visok |
-| 3 | Koji Speech-to-Text provajder koristiti? (Whisper, Google, AWS Transcribe...) | Visok |
-| 4 | Kako osigurati zaštitu podataka u skladu s GDPR-om? | Visok |
-| 5 | Hosting i deployment – on-premise ili cloud? | Visok |
-| 6 | Kako optimizirati performanse semantičke pretrage? | Srednji |
-| 7 | Kako riješiti monitoring i logging sistema? | Srednji |
-| 8 | Strategija backup-a baze podataka | Srednji |
+| **Frontend – Chat UI** | RIZ-009, RIZ-017, RIZ-019, RIZ-031 | Izloženost prompt injection napadima; korisnička adopcija i UX |
+| **Frontend – Admin Dashboard** | RIZ-009, RIZ-026, RIZ-022 | Kontrola pristupa pisanju u bazu znanja; audit vidljivost |
+| **Backend API** | RIZ-009, RIZ-012, RIZ-025, RIZ-027 | Centralna tačka validacije; rizik od scope creep-a i AI-generisanog koda |
+| **Auth API** | RIZ-009, RIZ-020 | Neautorizovani pristup; GDPR usklađenost sesija i logova |
+| **Audio-to-Transcript API** | RIZ-001, RIZ-010, RIZ-008 | Kvalitet transkripcije; zavisnost od eksternog Speech-to-Text provajdera |
+| **Processing Pipeline** | RIZ-003, RIZ-001, RIZ-005, RIZ-020 | Maskiranje PII podataka; kvalitet i bias u ulaznim podacima |
+| **AI Chatbot modul (RAG)** | RIZ-006, RIZ-007, RIZ-028, RIZ-030 | Halucinacije; latencija; RAG leakage; single point of failure u lancu |
+| **Vektorska baza** | RIZ-007, RIZ-011, RIZ-026, RIZ-030 | Skalabilnost; data poisoning; kvar koji blokira cijeli RAG tok |
+| **Relacijska baza** | RIZ-004, RIZ-022, RIZ-023 | Zastarijevanje sadržaja; audit log; dostupnost sistema |
+| **Eksterni AI servisi (LLM, STT, Embedding)** | RIZ-006, RIZ-008, RIZ-024 | Halucinacije; nedostupnost ili promjena API-ja; prekoračenje budžeta |
+| **Docker infrastruktura** | RIZ-023, RIZ-030 | Nedostupnost kontejnera; izolacija kvarova između servisa |
