@@ -8,6 +8,7 @@
 - Istraživanje ulaznih formata: → Done  
 - Not Started (sa prošlog sprinta): → In Progress  
 - Ispravka : Backlog više nije podijeljen na sprintove, usaglašen način opisa stavki i ažurirani statusi i napomene
+- Dodano: Sign In i Sign Out
 ---
 
 ## Napomena (iduće aktivnosti)
