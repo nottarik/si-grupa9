@@ -1,7 +1,6 @@
 
 # Product Backlog
 
-## Sprint 2
 
 > **Promjene**
 >- Dodano: Sign In i Sign Out
