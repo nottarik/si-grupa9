@@ -1,9 +1,7 @@
-# Risk Registar – Sistem za treniranje i implementaciju AI chatbot asistenta
+# Risk Registar 
 
 **Projekt:** Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu poziva iz call centra  
 ---
-
-## Risk Registar
 
 ### GRUPA 1 – Rizici podataka
 
