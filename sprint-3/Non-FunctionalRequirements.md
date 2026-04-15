@@ -1,15 +1,16 @@
 
-## Izmjene NFR zahtjeva
-
-- NFR zahtjevi → Uvedeni mjerljivi kriteriji za sigurnost, performanse, dostupnost, obradu podataka i operativna pravila 
-- Sigurnost sistema  → Precizirani limiti i standardi 
-- Performanse sistema  →  Definisani maksimalni pragoviDone
-- Upravljanje podacima  →  Dodani jasni rokovi i pravila brisanja 
-- Logovi i dostupnost  →  Definisani minimalni period čuvanja i maksimalni downtime 
-- Model update i obavijesti  →  Uvedeni mjerljivi vremenski limiti 
-#### Ispravka: NFR stavke standardizirane i pretvorene u mjerljive i testabilne zahtjeve
 
 ## Non-Functional Requirements (NFR)
+> **Promjene**
+
+>- NFR zahtjevi → Uvedeni mjerljivi kriteriji za sigurnost, performanse, dostupnost, obradu podataka i operativna pravila 
+>- Sigurnost sistema  → Precizirani limiti i standardi 
+>- Performanse sistema  →  Definisani maksimalni pragoviDone
+>- Upravljanje podacima  →  Dodani jasni rokovi i pravila brisanja 
+>- Logovi i dostupnost  →  Definisani minimalni period čuvanja i maksimalni downtime 
+>- Model update i obavijesti  →  Uvedeni mjerljivi vremenski limiti 
+>#### Ispravka: NFR stavke standardizirane i pretvorene u mjerljive i testabilne zahtjeve
+
 
 | ID | Kategorija | Opis zahtjeva | Kako će se provjeriti | Prioritet | Napomena |
 |----|------------|---------------|-----------------------|-----------|----------|
