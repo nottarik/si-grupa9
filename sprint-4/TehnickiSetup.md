@@ -73,7 +73,7 @@ chore:    build, konfiguracija, dependencies
 
 ### Python 3.12
 
-Cijeli backend pišemo u Pythonu zbog superiorne podrške za AI biblioteke (LangChain, Hugging Face, sentence-transformers) koje su ključne za RAG sistem. Node.js bi omogućio jedan jezik kroz cijeli stack, ali frontend i backend ionako razvijaju odvojeni timovi – ta prednost ovdje ne dolazi do izražaja.
+Cijeli backend pišemo u Pythonu jer ima najbolju i najzreliju podršku za AI i RAG ekosistem (LangChain, Hugging Face, sentence-transformers, Qdrant klijenti), što omogućava bržu i jednostavniju implementaciju modela, embeddinga i retrieval logike. Node.js nije odabran jer, iako je dobar za web i real-time aplikacije, ima slabiju i manje razvijenu AI/ML podršku, pa bi razvoj RAG sistema bio kompleksniji i manje efikasan.
 
 ---
 
@@ -117,15 +117,15 @@ Groq koristi vlastite LPU čipove i odgovara za manje od sekunde. Besplatni tier
 
 ### sentence-transformers – `paraphrase-multilingual-MiniLM-L12-v2`
 
-Embedding model koji radi lokalno bez API troška. Podržava 50+ jezika (uključujući ex-Yu), veličina ~470 MB, radi na CPU-u. Veći modeli (npr. multilingual-e5-large) daju bolje rezultate ali su 3–4× sporiji na CPU-u – za MVP fazu MiniLM nudi dobar balans. Zamjena je jedna linija u LangChain konfiguraciji.
+Embedding model koji radi lokalno bez API troška. Podržava 50+ jezika, veličina ~470 MB, radi na CPU-u. Veći modeli (npr. multilingual-e5-large) daju bolje rezultate ali su 3–4× sporiji na CPU-u – za MVP fazu MiniLM nudi dobar balans. Zamjena je jedna linija koda u LangChain konfiguraciji.
 
 ### faster-whisper (small model)
 
-Open-source Whisper reimplementacija koja radi do 4× brže od originalnog `openai-whisper` paketa zahvaljujući CTranslate2 engineu, uz manji RAM footprint. Radi lokalno unutar Dockera bez GPU-a. ~1 min audia ≈ 30–60 s transkripcije na prosječnom CPU-u.
+Open-source Whisper reimplementacija koja radi do 4× brže od originalnog `openai-whisper`, uz manji RAM footprint. Radi lokalno unutar Dockera bez GPU-a. ~1 min audia ≈ 30–60 s transkripcije na prosječnom CPU-u.
 
 ### LangChain
 
-RAG pipeline zahtijeva retrieval, formatiranje konteksta, prompt template management i logovanje – direktni Groq API pozivi su previše rudimentarni za to. LangChain daje apstrakcije za sve komponente i omogućava zamjenu LLM-a ili vektorske baze bez refaktoringa cijelog koda.
+RAG pipeline zahtijeva retrieval, formatiranje konteksta, upravljanje promptovima i logovanje. Direktni Groq API pozivi su previše niskog nivoa za ovakvu strukturu. LangChain pruža standardizovane komponente za sve ove dijelove i omogućava zamjenu LLM-a ili vektorske baze bez potrebe za promjenom ostatka sistema.
 
 ---
 
@@ -133,7 +133,7 @@ RAG pipeline zahtijeva retrieval, formatiranje konteksta, prompt template manage
 
 ### Celery + Redis
 
-Transkripcija i embedding generisanje traju 30–120 s. Backend odmah vraća `202 Accepted`, posao ide u queue. Odabran umjesto RQ-a zbog ugrađenog retry mehanizma s exponential backoff (neophodan za Groq rate limit greške) i **Flower** monitoring UI-ja. Redis koristimo i kao Celery broker jer ga već imamo u stacku – jedan servis manje.
+Transkripcija i generisanje embeddinga su dugotrajne operacije, pa se ne izvršavaju sinhrono kako ne bi blokirale backend. Umjesto toga, zadaci se šalju u queue i obrađuju u pozadini, dok backend odmah vraća odgovor. Celery je odabran jer pouzdano upravlja takvim background taskovima, uključujući ponovne pokušaje u slučaju grešaka, dok Redis služi kao jednostavan i brz sistem za red čekanja i komunikaciju između servisa, posebno jer je već dio postojećeg stacka.
 
 ---
 
@@ -141,7 +141,7 @@ Transkripcija i embedding generisanje traju 30–120 s. Backend odmah vraća `20
 
 ### PostgreSQL 16
 
-Superioran JSON support (`jsonb`), bolji full-text search i stroža SQL conformance u poređenju s MySQL-om. SQLite nije opcija za produkciju zbog file-based lockinga.
+Bolji JSON support (`jsonb`), bolji full-text search i stroža SQL conformance u poređenju s MySQL-om. SQLite nije opcija za produkciju zbog file-based lockinga.
 
 ### Qdrant
 
@@ -149,7 +149,7 @@ Self-hosted, open-source, bez eksternih dependencija – radi u Dockeru. Pinecon
 
 ### Redis 7
 
-Pokriva i Celery task queue i session cache u jednoj instanci. Memcached ne podržava persistence ni kompleksne strukture podataka koje Celery koristi.
+Koristi se kao zajednički sistem za task queue (Celery) i cache sesija, čime se smanjuje broj dodatnih servisa u sistemu. Za razliku od Memcached-a, Redis podržava trajno čuvanje podataka i kompleksnije strukture (liste, setove, hashove), što je potrebno za rad Celery queue-a i fleksibilno upravljanje podacima u aplikaciji.
 
 ---
 
@@ -164,7 +164,7 @@ Pokriva i Celery task queue i session cache u jednoj instanci. Memcached ne podr
 | Storage | 200 GB |
 | Transfer | 10 TB/mj |
 
-Bez vremenskog ograničenja, servisi se nikad ne gase. Render i Railway imaju besplatne tierove, ali gase servise nakon 15 min neaktivnosti i imaju stroge CPU/RAM limite. Za registraciju je potrebna kreditna kartica (verifikacija identiteta), ali se ne naplaćuje ništa dok se koriste Always Free resursi. Preporučeni region: `eu-frankfurt-1` ili `eu-amsterdam-1` (GDPR).
+Bez vremenskog ograničenja, servisi se nikad ne gase. Render i Railway imaju besplatne tierove, ali gase servise nakon 15 min neaktivnosti i imaju stroge CPU/RAM limite. Za registraciju je potrebna kreditna kartica (verifikacija identiteta), ali se ne naplaćuje ništa dok se koriste Always Free resursi. 
 
 ### Docker + Docker Compose
 
@@ -255,7 +255,7 @@ Nginx kao reverse proxy zbog rasprostranjene dokumentacije i produkcijske dokaza
 
 ## Napomena: Prelaz na produkciju
 
-Kad projekat preraste studentsku fazu, plaćene alternative su direktna zamjena bez refaktoringa:
+Ukoliko projekat preraste studentsku fazu, plaćene alternative su direktna zamjena bez refaktoringa:
 
 | Komponenta | Studentska verzija | Produkcijska verzija |
 |---|---|---|
