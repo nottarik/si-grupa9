@@ -30,12 +30,12 @@ Odabrali smo **GitHub Flow** zbog jednostavnosti i prilagođenosti timovima koji
 ### Konvencija commit poruka
 
 ```
-feat:     nova funkcionalnost
-fix:      ispravka greške
-refactor: refaktorisanje bez promjene funkcionalnosti
-docs:     izmjene dokumentacije
-test:     dodavanje ili izmjena testova
-chore:    build, konfiguracija, dependencies
+[feat]     nova funkcionalnost
+[fix]      ispravka greške
+[refactor] refaktorisanje
+[docs]     dokumentacija
+[test]     testovi
+[chore]    build, konfiguracija
 ```
 
 ### Tok rada
