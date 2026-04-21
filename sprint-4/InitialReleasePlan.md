@@ -36,7 +36,10 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 - Normalizacija teksta i razdvajanje transkripata po ulogama Agent/Korisnik (US-23.1, US-23.2)
 - Maskiranje osjetljivih podataka (JMBG, telefon, ime) prije pohrane i obrade (US-26.1, NFR-3)
 - Generisanje embeddinga iz tekstualnih podataka i pohrana u vektorsku bazu (PB-27)
-- Retrieval mehanizam — semantička pretraga za RAG pretragu 
+- Retrieval mehanizam — semantička pretraga za RAG pretragu
+- Minimalni administratorski UI za upload i unos transkripata
+- Pregled detalja transkripta
+- Status obrade transkripta
 
 ### Zavisnosti
 
