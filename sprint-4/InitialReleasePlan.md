@@ -37,9 +37,8 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 - Maskiranje osjetljivih podataka (JMBG, telefon, ime) prije pohrane i obrade (US-26.1, NFR-3)
 - Generisanje embeddinga iz tekstualnih podataka i pohrana u vektorsku bazu (PB-27)
 - Retrieval mehanizam — semantička pretraga za RAG pretragu
-- Minimalni administratorski UI za upload i unos transkripata
-- Pregled detalja transkripta
-- Status obrade transkripta
+-  Minimalni administratorski UI za upload, unos i pregled transkripata
+
 
 ### Zavisnosti
 
@@ -73,7 +72,8 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 - Chat UI — web interfejs s poljem za unos pitanja i prikazom odgovora (PB-22, US-22.1)
 - AI transparentnost — poruka da korisnik komunicira s AI sistemom (NFR-14)
 - Mehanizam za prepoznavanje nesigurnosti odgovora i eskalacija (PB-31, NFR-6)
-- Glasovni unos pitanja putem mikrofona (US-22.2)  
+- Glasovni unos pitanja putem mikrofona (US-22.2)
+- Eskalacija korisničkog upita ljudskom agentu 
 
 ### Zavisnosti
 
@@ -110,7 +110,8 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 - Filtriranje i pretraga podataka
 - Pregled neodgovorenih pitanja — agent panel (US-31.1)
 - Agent odgovara na eskalirana pitanja bez gubitka konteksta (US-31.2)
-- Dodavanje odobrenih odgovora u bazu znanja (US-31.3)  
+- Dodavanje odobrenih odgovora u bazu znanja (US-31.3)
+- Administratorski dashboard za praćenje kvaliteta sistema
 
 ### Zavisnosti
 
@@ -141,7 +142,8 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 - Brisanje podataka iz historije (US-22.4)
 - Opt-out iz korištenja razgovora za treniranje
 - Finalna optimizacija i bug fixing
-- Korisnička i tehnička dokumentacija 
+- Korisnička i tehnička dokumentacija
+- Finalna optimizacija korisničkog interfejsa
 
 ### Zavisnosti
 
