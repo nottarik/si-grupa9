@@ -9,13 +9,11 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 
 | Inkrement | Naziv | Sprintovi | Ključni cilj |
 |-----------|------|-----------|-------------|
-| **I1** | Osnovni chatbot i transkripti | Sprint 5–6 | Osnovna interakcija korisnika i unos podataka |
-| **I2** | Obrada podataka i baza znanja | Sprint 7 | Priprema podataka za AI |
-| **I3** | AI chatbot (RAG) | Sprint 8 | Inteligentno odgovaranje |
-| **I4** | Audio obrada i glasovni unos | Sprint 9 | Rad sa audio podacima |
-| **I5** | Feedback i evaluacija | Sprint 10 | Praćenje kvaliteta |
-| **I6** | Administracija i agent workflow | Sprint 11 | Upravljanje i unapređenje |
-| **I7** | Finalizacija sistema | Sprint 12 | Privatnost i stabilizacija |
+| **I1** | Autentifikacija, RBAC i upravljanje transkriptima | Sprint 5–6 | Sigurna prijava, upravljanje ulogama i osnovna CRUD operacije nad transkriptima |
+| **I2** | Obrada podataka i izgradnja baze znanja | Sprint 7–8 | Processing pipeline — STT, normalizacija, maskiranje, embeddinzi i vektorska baza |
+| **I3** | AI chatbot i glasovni unos | Sprint 9–10 | Korisnici komuniciraju s funkcionalnim RAG chatbotom tekstom i glasom |
+| **I4** | Feedback, evaluacija i administracija | Sprint 11 | Praćenje kvaliteta odgovora i upravljanje sistemom; agenti rješavaju eskalacije |
+| **I5** | Finalizacija sistema i korisnički kontrolni mehanizmi | Sprint 12 | Privatnost, GDPR usklađenost i stabilizacija sistema za produkciju |
 
 ---
 
@@ -23,200 +21,175 @@ Plan je organiziran u inkremente koji pokrivaju sprintove od 5 do 12.
 
 ---
 
-## Inkrement 1: Osnovni chatbot i transkripti (MVP)
+## Inkrement 1: Autentifikacija, RBAC i upravljanje transkriptima
 
 | | |
 |---|---|
-| **Naziv inkrementa** | Inkrement 1 – Osnovni chatbot i transkripti |
-| **Cilj inkrementa** | Omogućiti osnovnu funkcionalnost sistema kroz unos transkripata i komunikaciju korisnika sa chatbotom |
+| **Naziv inkrementa** | Inkrement 1 – Autentifikacija, RBAC i upravljanje transkriptima |
+| **Cilj inkrementa** | Uspostaviti sigurnu osnovu sistema kroz mehanizme autentifikacije i RBAC-a te omogućiti administratorima unos, pregled, uređivanje i brisanje transkripata. Na kraju ovog inkrementa sistem je funkcionalan za rad s podacima — bez AI komponenti |
 | **Okvirni sprintovi** | Sprint 5–6 |
-### Glavne funkcionalnosti
-
-- Implementacija modula za upload transkripata putem fajla i ručni unos (PB 18, US 18.1–18.3)  
-- Razvoj osnovnog chat interfejsa za komunikaciju korisnika sa sistemom (PB 22, US 22.1)  
-- Implementacija jednostavne logike odgovaranja bez korištenja AI modela (rule-based ili fallback pristup)  
-- Mehanizam za prepoznavanje nesigurnosti i prikaz odgovarajuće fallback poruke (PB 31)  
-- Prikaz i pregled unesenih transkripata kroz listu (PB 33)  
-
-### Zavisnosti
-
-- Zavisi od autentifikacije i RBAC sistema  
-- Potrebna inicijalna struktura baze podataka za pohranu transkripata  
-- Osnovna validacija podataka mora biti definisana  
-
-### Glavni rizici
-
-- Loš kvalitet ulaznih transkripata može direktno uticati na kvalitet odgovora (RIZ-001)  
-- Fallback mehanizam može biti nedovoljno jasan korisniku i narušiti UX (RIZ-019)  
-- Korisnici možda neće koristiti sistem ukoliko odgovori nisu korisni (RIZ-017)  
-
----
-
-## Inkrement 2: Obrada podataka i baza znanja
-
-| | |
-|---|---|
-| **Naziv inkrementa** | Inkrement 2 – Obrada podataka i baza znanja |
-| **Cilj inkrementa** | Transformisati transkripte u strukturiranu i sigurnu bazu znanja pogodnu za AI obradu |
-| **Okvirni sprintovi** | Sprint 7 |
 
 ### Glavne funkcionalnosti
 
-- Implementacija parsiranja i normalizacije teksta kako bi podaci bili konzistentni (US 23.1)  
-- Razdvajanje transkripata prema ulogama (agent / korisnik) radi boljeg razumijevanja konteksta (US 23.2)  
-- Maskiranje osjetljivih podataka prije pohrane i obrade (US 26.1)  
-- Generisanje embeddinga iz tekstualnih podataka  
-- Kreiranje i upravljanje vektorskom bazom za čuvanje semantičkih reprezentacija (PB 27)  
+- Prijava korisnika (Sign In) – unos korisničkog imena i lozinke
+- Odjava korisnika (Sign Out) – sigurno zatvaranje sesije
+- Upravljanje sesijama i automatski timeout neaktivnih sesija
+- Zaštita svih ruta koje zahtijevaju autentifikaciju
+- Definisanje korisničkih uloga: **Administrator**, **Agent**, **Korisnik**
+- Dodjela uloga korisnicima i ograničenje pristupa funkcijama prema ulozi (RBAC)
+- Pregled i izmjena korisničkih uloga kroz administratorski panel
+- Upload transkripata putem fajla (TXT, PDF) s validacijom formata i pohranom (PB-18, US-18.1–18.3)
+- Ručni unos transkripata putem forme s obaveznim poljima (datum, agent, sadržaj)
+- Uređivanje (edit) postojećih transkripata s logom izmjena
+- Brisanje transkripata s potvrdom akcije
+- Prikaz i pregled liste unesenih transkripata s pretragom po ključnoj riječi, datumu i agentu (PB-33)
+- Minimalni administratorski UI za upload, unos, pregled, pretragu i upravljanje transkriptima
 
 ### Zavisnosti
 
-- Zavisi od kvalitetno unesenih transkripata iz prethodnog inkrementa  
-- Potrebna integracija sa servisima za generisanje embeddinga  
-- Mora biti ispunjen NFR za privatnost i sigurnost podataka  
+- Inicijalna struktura baze podataka mora biti definisana
+- Korisničke uloge i RBAC matrica moraju biti dogovoreni prije implementacije
+- NFR zahtjevi za privatnost i sigurnost podataka moraju biti definirani (NFR-3, NFR-4)
 
 ### Glavni rizici
 
-- Neadekvatno maskiranje može dovesti do izlaganja ličnih podataka (RIZ-003)  
-- Nekvalitetni ili pristrani podaci mogu negativno uticati na AI model (RIZ-026)  
-- Kvar u processing pipeline-u može zaustaviti dalji razvoj sistema (RIZ-034)  
+- Složenost RBAC matrice može uzrokovati kašnjenje — preporučuje se rano definiranje svih uloga i permisija
+- Nejasne sesijske politike (trajanje sesije, timeout) mogu uzrokovati UX probleme
+- Kasno definiranje korisničkih podataka može blokirati razvoj
+- Loša UX forme za unos transkripata može usporiti korištenje sistema
 
 ---
 
-## Inkrement 3: AI chatbot (RAG)
+## Inkrement 2: Obrada podataka i izgradnja baze znanja
 
 | | |
 |---|---|
-| **Naziv inkrementa** | Inkrement 3 – AI chatbot (RAG) |
-| **Cilj inkrementa** | Omogućiti inteligentno generisanje odgovora korištenjem baze znanja i LLM modela |
-| **Okvirni sprintovi** | Sprint 8 |
+| **Naziv inkrementa** | Inkrement 2 – Obrada podataka i izgradnja baze znanja |
+| **Cilj inkrementa** | Pretvoriti unesene transkripte u strukturiranu vektorsku bazu znanja pogodnu za AI obradu. Na kraju ovog inkrementa processing pipeline je stabilan i baza znanja je popunjena — ovo je preduvjet za sve AI funkcionalnosti |
+| **Okvirni sprintovi** | Sprint 7–8 |
 
 ### Glavne funkcionalnosti
 
-- Implementacija semantičke pretrage nad vektorskom bazom  
-- Prikupljanje relevantnog konteksta za korisnički upit  
-- Slanje konteksta i upita LLM modelu  
-- Generisanje odgovora na osnovu dostupnih podataka (RAG pristup)  
+- Konverzija audio zapisa u transkript — integracija s eksternim Speech-to-Text servisima (US-13.1)
+- Normalizacija teksta i razdvajanje transkripata po ulogama Agent/Korisnik (US-23.1, US-23.2)
+- Maskiranje osjetljivih podataka (JMBG, telefon, ime) prije pohrane i obrade (US-26.1, NFR-3)
+- Generisanje embeddinga iz tekstualnih podataka i pohrana u vektorsku bazu (PB-27)
+- Retrieval mehanizam — semantička pretraga za RAG pretragu
+- Prikaz statusa obrade transkripata u administratorskom UI-u
 
 ### Zavisnosti
 
-- Zavisi od embeddinga i vektorske baze iz prethodnog inkrementa  
-- Potrebna integracija sa LLM API servisom  
+- Inkrement I1 mora biti završen (transkripti moraju biti dostupni u sistemu)
+- LLM API i embedding servis moraju biti odabrani i pristup konfigurisan
+- STT servis mora biti odabran i pristup konfigurisan
+- NFR zahtjevi za privatnost moraju biti definirani (NFR-3, NFR-4)
 
 ### Glavni rizici
 
-- Chatbot može generisati netačne ili izmišljene odgovore (halucinacije) (RIZ-006)  
-- Postoji rizik od curenja podataka kroz model (RAG leakage) (RIZ-028)  
-- Performanse sistema mogu biti narušene zbog kompleksnosti pretrage (RIZ-007)  
+- Loš kvalitet ulaznih transkripata narušava bazu znanja i tačnost budućih odgovora (RIZ-001)
+- Neadekvatno maskiranje može dovesti do izlaganja ličnih podataka (RIZ-003)
+- Nekvalitetni ili pristrani podaci mogu negativno uticati na AI model (RIZ-026)
+- Kvar u processing pipeline-u može zaustaviti dalji razvoj sistema (RIZ-034)
+- Zavisnost od eksternih Speech-to-Text servisa može uticati na dostupnost sistema (RIZ-008)
 
 ---
 
-## Inkrement 4: Audio obrada i glasovni unos
+## Inkrement 3: AI chatbot i glasovni unos
 
 | | |
 |---|---|
-| **Naziv inkrementa** | Inkrement 4 – Audio obrada |
-| **Cilj inkrementa** | Omogućiti obradu audio zapisa i interakciju putem glasa |
-| **Okvirni sprintovi** | Sprint 9 |
+| **Naziv inkrementa** | Inkrement 3 – AI chatbot i glasovni unos |
+| **Cilj inkrementa** | Uvesti kompletnu korisničku interakciju s chatbotom — tekstualnu i glasovnu — s inteligentnim generisanjem odgovora korištenjem RAG pristupa i baze znanja iz prethodnog inkrementa. Na kraju ovog inkrementa sistem je funkcionalan za krajnje korisnike |
+| **Okvirni sprintovi** | Sprint 9–10 |
 
 ### Glavne funkcionalnosti
 
-- Implementacija konverzije audio zapisa u tekst (US 13.1)  
-- Integracija sa eksternim speech-to-text servisima  
-- Omogućavanje glasovnog unosa u chatbot interfejsu (US 22.2)  
+- Implementacija semantičke pretrage nad vektorskom bazom i prikupljanje relevantnog konteksta
+- Slanje konteksta i upita LLM modelu i generisanje odgovora (RAG pristup)
+- Chat UI — web interfejs s poljem za unos pitanja i prikazom odgovora (PB-22, US-22.1)
+- AI transparentnost — poruka da korisnik komunicira s AI sistemom (NFR-14)
+- Mehanizam za prepoznavanje nesigurnosti odgovora i eskalacija (PB-31, NFR-6)
+- Glasovni unos pitanja putem mikrofona (US-22.2)
+- Eskalacija korisničkog upita ljudskom agentu
 
 ### Zavisnosti
 
-- Zavisi od eksternih AI servisa za obradu govora  
-- Zavisi od postojeće logike obrade teksta  
+- Inkrement I2 mora biti završen (vektorska baza mora biti popunjena i retrieval mehanizam mora raditi)
+- LLM API servis mora biti konfigurisan
+- Speech-to-Text servis mora biti konfigurisan
 
 ### Glavni rizici
 
-- Loš kvalitet audio zapisa može dovesti do pogrešne transkripcije (RIZ-010)  
-- Zavisnost od eksternih servisa može uticati na dostupnost sistema (RIZ-008)  
-- Varijacije u govoru mogu smanjiti tačnost sistema (RIZ-001)  
+- Halucinacije modela i netačni odgovori (RIZ-006)
+- Curenje podataka kroz model (RIZ-028)
+- Spor odziv sistema (RIZ-007)
+- Slaba adopcija korisnika ako odgovori nisu korisni (RIZ-017)
+- Loš fallback UX (RIZ-019)
 
 ---
 
-## Inkrement 5: Feedback i evaluacija
+## Inkrement 4: Feedback, evaluacija i administracija
 
 | | |
 |---|---|
-| **Naziv inkrementa** | Inkrement 5 – Feedback i evaluacija |
-| **Cilj inkrementa** | Omogućiti mjerenje i unapređenje kvaliteta chatbot odgovora |
-| **Okvirni sprintovi** | Sprint 10 |
-
-### Glavne funkcionalnosti
-
-- Omogućavanje korisnicima da ocijene odgovore chatbot-a (US 15.1, 15.2)  
-- Implementacija sistema za prijavu netačnih odgovora (US 28.1, 28.2)  
-- Logovanje svih interakcija radi analize i poboljšanja sistema  
-
-### Zavisnosti
-
-- Zavisi od funkcionalnog chatbot sistema  
-- Potrebna baza za čuvanje interakcija i evaluacija  
-
-### Glavni rizici
-
-- Nedovoljno testiranje može dovesti do lošeg kvaliteta sistema (RIZ-025)  
-- Nedostatak auditabilnosti otežava analizu problema (RIZ-022)  
-- Korisnici možda neće koristiti opciju feedback-a (RIZ-017)  
-
----
-## Inkrement 6: Administracija i agent workflow
-
-| | |
-|---|---|
-| **Naziv inkrementa** | Inkrement 6 – Administracija i agent workflow |
-| **Cilj inkrementa** | Omogućiti upravljanje sistemom i kontinuirano poboljšanje chatbot-a |
+| **Naziv inkrementa** | Inkrement 4 – Feedback, evaluacija i administracija |
+| **Cilj inkrementa** | Uvesti mehanizme za praćenje kvaliteta chatbot odgovora i pružiti administratorima i agentima alate za upravljanje sistemom i kontinuirano poboljšanje baze znanja |
 | **Okvirni sprintovi** | Sprint 11 |
 
 ### Glavne funkcionalnosti
 
-- Pregled svih pitanja i odgovora kroz administratorski panel (PB 34)  
-- Upravljanje prijavljenim problemima i njihov status (PB 35)  
-- Filtriranje i pretraga podataka radi lakšeg upravljanja (US 33.3, 35.4)  
-- Pregled neodgovorenih pitanja (US 31.1)  
-- Omogućavanje agentima da odgovore na pitanja (US 31.2)  
-- Dodavanje odgovora u bazu znanja za buduće korištenje (US 31.3)  
+- Ocjena odgovora chatbota s komentarom (US-15.1, US-15.2)
+- Prijava netačnih odgovora (US-28.1, US-28.2)
+- Logovanje svih interakcija (NFR-11)
+- Pregled pitanja i odgovora kroz admin panel s pretragom i filtriranjem po datumu, agentu i statusu (PB-34)
+- Upravljanje prijavljenim problemima (PB-35)
+- Pregled neodgovorenih pitanja — agent panel (US-31.1)
+- Agent odgovara na eskalirana pitanja bez gubitka konteksta (US-31.2)
+- Dodavanje odobrenih odgovora u bazu znanja (US-31.3)
+- Administratorski dashboard za praćenje kvaliteta sistema
 
 ### Zavisnosti
 
-- Zavisi od feedback sistema  
-- Zavisi od baze podataka i logova  
+- Inkrement I3 mora biti završen
+- Mora postojati funkcionalna baza za feedback i logove
+- Fallback mehanizam mora raditi
 
 ### Glavni rizici
 
-- Baza znanja može postati zastarjela bez redovnog održavanja (RIZ-004)  
-- Nedostatak podataka može smanjiti kvalitet sistema (RIZ-002)  
-- Loš fallback može povećati opterećenje agenata (RIZ-019)  
+- Korisnici ne koriste feedback opcije (RIZ-017)
+- Nepotpuni logovi otežavaju analizu (RIZ-022)
+- Zastarjela baza znanja (RIZ-004)
+- Nekvalitetni agentovi odgovori bez validacije (RIZ-002)
 
 ---
 
-## Inkrement 7: Finalizacija sistema
+## Inkrement 5: Finalizacija i korisnički kontrolni mehanizmi
 
 | | |
 |---|---|
-| **Naziv inkrementa** | Inkrement 7 – Finalizacija sistema |
-| **Cilj inkrementa** | Osigurati privatnost korisnika i stabilnost sistema za produkciju |
+| **Naziv inkrementa** | Inkrement 5 – Finalizacija i korisnički kontrolni mehanizmi |
+| **Cilj inkrementa** | Implementirati finalne korisničke kontrole nad podacima, ispuniti GDPR zahtjeve i stabilizovati sistem za produkcijsko puštanje |
 | **Okvirni sprintovi** | Sprint 12 |
 
 ### Glavne funkcionalnosti
 
-- Pregled historije razgovora (US 22.3)  
-- Brisanje podataka korisnika (US 22.4)  
-- Upravljanje privatnošću (opt-out iz treninga)  
-- Finalna optimizacija i stabilizacija sistema  
+- Pregled historije razgovora (US-22.3)
+- Brisanje podataka iz historije (US-22.4)
+- Opt-out iz korištenja razgovora za treniranje
+- Finalna optimizacija i bug fixing
+- Korisnička i tehnička dokumentacija
+- Finalna optimizacija korisničkog interfejsa
 
 ### Zavisnosti
 
-- Zavisi od logova i baze podataka  
-- Mora zadovoljiti sve NFR zahtjeve  
+- Svi prethodni inkrementi moraju biti završeni
+- Logovi i baza podataka moraju biti stabilni
+- Svi NFR zahtjevi moraju biti zadovoljeni
 
 ### Glavni rizici
 
-- Neusklađenost sa GDPR regulativama (RIZ-020)  
-- Rizik izlaganja ličnih podataka (RIZ-003)  
-- Problemi sa dostupnošću sistema (RIZ-023)  
+- Neusklađenost sa GDPR pravilima (RIZ-020)
+- Rizik izlaganja ličnih podataka (RIZ-003)
+- Problemi sa dostupnošću kasno otkriveni (RIZ-023)
 
 ---

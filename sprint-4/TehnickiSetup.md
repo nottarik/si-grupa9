@@ -2,19 +2,53 @@
 
 ## Sadržaj
 
-1. [Pregled stacka](#1-pregled-stacka)
-2. [Programski jezik i runtime](#2-programski-jezik-i-runtime)
-3. [Frontend](#3-frontend)
-4. [Backend servisi](#4-backend-servisi)
-5. [AI i RAG komponente](#5-ai-i-rag-komponente)
-6. [Asinhrona obrada](#6-asinhrona-obrada)
-7. [Baze podataka](#7-baze-podataka)
-8. [Infrastruktura i deployment](#8-infrastruktura-i-deployment)
-9. [Rezime – sve tehnologije](#9-rezime--sve-tehnologije)
+1. [Branching strategija](#1-branching-strategija)
+2. [Pregled stacka](#2-pregled-stacka)
+3. [Programski jezik i runtime](#3-programski-jezik-i-runtime)
+4. [Frontend](#4-frontend)
+5. [Backend servisi](#5-backend-servisi)
+6. [AI i RAG komponente](#6-ai-i-rag-komponente)
+7. [Asinhrona obrada](#7-asinhrona-obrada)
+8. [Baze podataka](#8-baze-podataka)
+9. [Infrastruktura i deployment](#9-infrastruktura-i-deployment)
+10. [Rezime – sve tehnologije](#10-rezime--sve-tehnologije)
 
 ---
 
-## 1. Pregled stacka
+## 1. Branching strategija — GitHub Flow
+
+Odabrali smo **GitHub Flow** zbog jednostavnosti i prilagođenosti timovima koji rade kontinuirani razvoj bez kompleksnih release ciklusa. Strategija je linearna, pregledna i svim članovima tima odmah razumljiva.
+
+### Grane
+
+| Grana | Namjena |
+|---|---|
+| `main` | Uvijek stabilan, direktno deployabilan kod |
+| `feature/naziv-stavke` | Svaka backlog stavka = jedna grana |
+| `fix/naziv-buga` | Ispravke grešaka |
+
+### Konvencija commit poruka
+
+```
+[feat]     nova funkcionalnost
+[fix]      ispravka greške
+[refactor] refaktorisanje
+[docs]     dokumentacija
+[test]     testovi
+[chore]    build, konfiguracija
+```
+
+### Tok rada
+
+1. Kreirati granu iz `main`: `git checkout -b feature/budget-planning`
+2. Razviti funkcionalnost uz redovne commitove
+3. Otvoriti Pull Request prema `main`
+4. Minimalno jedan član tima radi code review
+5. Nakon odobrenja — merge u `main` i brisanje feature grane
+
+---
+
+## 2. Pregled stacka
 
 | Sloj | Tehnologija |
 |---|---|
@@ -35,232 +69,130 @@
 
 ---
 
-## 2. Programski jezik i runtime
+## 3. Programski jezik i runtime
 
 ### Python 3.12
 
-Cijeli backend – glavni API, auth servis, audio servis, AI chatbot modul i processing pipeline – pišu se u **Pythonu 3.12**.
-
-**Zašto Python, a ne Node.js:**
-
-Node.js ima prednost jednog jezika kroz cijeli stack (frontend + backend u JavaScriptu), ali za ovaj sistem to nije presudna prednost jer frontend i backend ionako razvijaju isti timovi u odvojenim repozitorijima. Python je odabran zbog bolje podrške za AI biblioteke (LangChain, Hugging Face), koje su ključne za implementaciju RAG sistema u ovom projektu.
-
+Cijeli backend pišemo u Pythonu jer ima najbolju i najzreliju podršku za AI i RAG ekosistem (LangChain, Hugging Face, sentence-transformers, Qdrant klijenti), što omogućava bržu i jednostavniju implementaciju modela, embeddinga i retrieval logike. Node.js nije odabran jer, iako je dobar za web i real-time aplikacije, ima slabiju i manje razvijenu AI/ML podršku, pa bi razvoj RAG sistema bio kompleksniji i manje efikasan.
 
 ---
 
-## 3. Frontend
+## 4. Frontend
 
-### React 18
+### React 18 + Vite + Tailwind CSS
 
-**Zašto React, a ne Vue ili Svelte:**
+**React** ima najveću bazu developera i bogat ekosistem UI biblioteka relevantnih za ovaj projekat (react-markdown, react-virtuoso). Vue i Svelte su tehnički odlični, ali manji ekosistem znači manje gotovih rješenja za chat interfejs i admin panel.
 
-Vue i Svelte su tehnički odlični, ali React ima daleko veću bazu developera, više gotovih UI biblioteka kompatibilnih s chatbot interfejsima (react-markdown za renderovanje AI odgovora, react-virtuoso za virtualizaciju dugih lista poruka), i bolji TypeScript support. Za Admin Dashboard s tabelama, filterima i uploadom fajlova – React ekosistem ima gotova rješenja za svaki od tih zahtjeva.
+**Vite** zamjenjuje Create React App zbog brzine – dev server startuje za ispod sekunde umjesto 10–30 s, a produkcijski build je optimizovaniji zahvaljujući Rollup-u.
 
-### Vite
-
-**Zašto Vite, a ne Create React App:**
-
-Create React App se rjeđe koristi u novim projektima, jer Webpack koji koristi ispod haube je spor (cold start od 10-30 sekundi na većim projektima). Vite koristi native ES module i esbuild, pa dev server startuje za manje od sekundu. Za produkciju koristi Rollup koji generiše optimiziranije bundle-ove. Vite je pogodniji izbor za novi projekat.
-
-### Tailwind CSS
-
-**Zašto Tailwind, a ne Bootstrap ili Material UI:**
-
-Bootstrap i Material UI nameću vlastiti vizualni jezik koji se teško mijenja. Tailwind je utility-first – gradiš vlastiti dizajn sistem bez override-anja tuđeg. Za call centar aplikaciju koja treba specifičan branding, Tailwind daje punu kontrolu bez borbe s gotovim komponentama.
-
-**Zašto Tailwind, a ne čisti CSS:**
-
-Čisti CSS zahtijeva konstantno prebacivanje između JSX i CSS fajlova i izmišljanje naziva klasa. Tailwind drži stilove direktno uz markup, što je brže za razvoj Chat UI komponenti – posebno za responsive dizajn gdje Tailwind-ovi sm:, md:, lg: prefiksi eliminišu pisanje media query-ja.
+**Tailwind** daje punu kontrolu nad dizajnom bez override-anja tuđeg vizualnog jezika kao što nameću Bootstrap ili Material UI. Utility klase drže stilove uz markup, što ubrzava razvoj responsive komponenti.
 
 ### Axios + React Query
 
-**Axios** umjesto nativnog fetch API-ja zbog interceptora – automatsko dodavanje JWT tokena na svaki zahtjev piše se jednom, ne po svakom pozivnom mjestu.
-
-**React Query** umjesto Reduxa za server state, jer je vrlo kompleksan. React Query rješava caching, background refetching i error stanja u nekoliko linija koda, što je sve što nam treba za Admin Dashboard i Chat UI.
+**Axios** umjesto nativnog fetch-a zbog interceptora – JWT token se dodaje jednom globalno, ne po svakom pozivu. **React Query** zamjenjuje Redux za server state: caching, refetching i error handling u nekoliko linija, bez boilerplatea.
 
 ---
 
-## 4. Backend servisi
+## 5. Backend servisi
 
 ### FastAPI
 
-**Zašto FastAPI, a ne Django ili Flask:**
+Odabran umjesto Djanga (previše funkcionalnosti koje ne koristimo – ORM, template engine, admin panel) i Flaska (sinhroni po defaultu, nema automatsku validaciju). FastAPI ključne prednosti:
 
-Django je full-stack framework s ORM-om, admin panelom i template engineom – uključuje funkcionalnosti koje nisu potrebne u ovom projektu, jer imamo React frontend. Flask je minimalan kao FastAPI, ali je sinhroni po defaultu i nema automatsku validaciju podataka ni generisanje dokumentacije.
+- Automatski Swagger UI na `/docs` bez konfiguracije
+- Pydantic validacija ulaznih podataka i jasne error poruke
+- Native `async/await` – endpoint ne blokira server dok čeka LLM odgovor (5–10 s)
 
-FastAPI je odabran jer::
+### SQLAlchemy 2.0 + Alembic
 
-- **Automatska API dokumentacija** – na /docs imaš Swagger UI odmah, bez konfiguracije. Svaki endpoint je testabilan iz browsera dok razvijaš.
-- **Pydantic validacija** – definišeš model jednom, FastAPI automatski validira ulazne podatke i vraća jasne error poruke. Nema ručne validacije.
-- **Nativna async podrška** – async def endpoint ne blokira server dok čeka LLM odgovor koji može trajati 5-10 sekundi.
-- **Brz runtime** – benchmarci pokazuju FastAPI kao jedan od najbržih Python web frameworka, uporediv s Node.js Expressom.
-
-### python-jose + passlib + bcrypt
-
-- **python-jose** za JWT generisanje i verifikaciju – standard u Python ekosistemu
-- **passlib + bcrypt** za hashiranje passworda (salt rounds: 12)
-
-### SQLAlchemy + Alembic
-
-**Zašto SQLAlchemy, a ne Tortoise ORM:**
-
-SQLAlchemy je najzreliji Python ORM s najboljom PostgreSQL podrškom i najbogatijim query API-jem. SQLAlchemy 2.0 uvodi async session support koji pokriva iste slučajeve kao Tortoise. Alembic generiše revizionalne migration skripte s mogućnošću rollbacka.
+Najzreliji Python ORM s najboljom PostgreSQL podrškom. SQLAlchemy 2.0 uvodi async session support. Alembic generiše revizionalne migration skripte s rollback podrškom.
 
 ---
 
-## 5. AI i RAG komponente
+## 6. AI i RAG komponente
 
-### Groq API
+### Groq API (Llama 3.1 70B)
 
-**Groq** nudi besplatan API s pristupom moćnim open-source modelima:
+Groq koristi vlastite LPU čipove i odgovara za manje od sekunde. Besplatni tier: 14.400 zahtjeva/dan, 500.000 tokena/min – dovoljno za razvoj i testiranje. Lokalni pristup (Ollama) je besplatan ali zahtijeva 8+ GB RAM-a samo za model i 30–60 s po odgovoru bez GPU-a.
 
-- **Llama 3.1 70B** (Meta) – model usporediv s GPT-4o za zadatke odgovaranja na pitanja iz konteksta
-- **Mixtral 8x7B** – odličan za duže kontekste kakve RAG pipeline proizvodi
-- Besplatni tier: 14.400 zahtjeva dnevno, 500.000 tokena u minuti – više nego dovoljno za razvoj i testiranje
+### sentence-transformers – `paraphrase-multilingual-MiniLM-L12-v2`
 
-**Zašto Groq, a ne Ollama (lokalni LLM):**
+Embedding model koji radi lokalno bez API troška. Podržava 50+ jezika, veličina ~470 MB, radi na CPU-u. Veći modeli (npr. multilingual-e5-large) daju bolje rezultate ali su 3–4× sporiji na CPU-u – za MVP fazu MiniLM nudi dobar balans. Zamjena je jedna linija koda u LangChain konfiguraciji.
 
-Ollama pokreće modele lokalno na tvom računaru – besplatno, ali zahtijeva minimum 8 GB RAM-a samo za model, i na računarima bez dedicirane GPU-e odgovor traje 30-60 sekundi. Groq koristi vlastiti hardver (LPU čipovi) i odgovara za manje od sekunde čak i na besplatnom tieru. Za razvoj i demo, Groq je daleko praktičniji.
+### faster-whisper (small model)
 
-LangChain integracija postoji za oba, pa je prelazak na plaćeni model (Claude, GPT-4o) u budućnosti samo promjena jedne linije koda.
-
-### sentence-transformers (lokalno)
-
-**sentence-transformers** je Python biblioteka koja pokreće embedding modele lokalno, bez API troška.
-
-Odabrani model: paraphrase-multilingual-MiniLM-L12-v2
-
-- Podržava 50+ jezika uključujući bosanski, srpski i hrvatski
-- Veličina modela: ~470 MB (preuzima se jednom pri prvom pokretanju)
-- Radi na CPU-u bez GPU-a
-- Kvalitet embeddinga dovoljan za semantičku pretragu call centar transkripata
-
-**Zašto ovaj model, a ne veći multilingualni model:**
-
-Veći modeli (npr. multilingual-e5-large) daju bolje rezultate, ali su 3-4× sporiji na CPU-u. Za MVP fazu MiniLM-L12-v2 pruža dobar balans brzine i kvaliteta, a zamjena modela je jedna linija koda u LangChain konfiguraciji.
-
-### faster-whisper (lokalno)
-
-**faster-whisper** je open-source reimplementacija Whisper modela koja radi na CPU-u i do 4× brže od originalne implementacije.
-
-- Besplatno, bez API ključa, bez limita
-- Odabrani model: small (244 MB) – dobar balans brzine i tačnosti za ex-Yu jezike
-- Na prosječnom CPU-u: ~1 minuta audio ≈ 30-60 sekundi transkripcije
-- Radi unutar Docker kontejnera bez GPU-a
-
-**Zašto faster-whisper, a ne originalni openai-whisper paket:**
-
-Originalni openai-whisper Python paket je sporiji i zahtijeva više memorije za isti model. faster-whisper koristi CTranslate2 engine koji daje identične rezultate ali znatno brže i s manjim RAM footprintom – što je važno jer Oracle Cloud Always Free instanca ima 24 GB RAM-a koji dijele svi kontejneri.
+Open-source Whisper reimplementacija koja radi do 4× brže od originalnog `openai-whisper`, uz manji RAM footprint. Radi lokalno unutar Dockera bez GPU-a. ~1 min audia ≈ 30–60 s transkripcije na prosječnom CPU-u.
 
 ### LangChain
 
-**Zašto LangChain, a ne direktni API pozivi:**
-
-Direktni pozivi ka Groq API-ju su jednostavniji za trivijalne slučajeve, ali RAG pipeline zahtijeva: retrieval iz vektorske baze, formatiranje konteksta, prompt template management, output parsiranje i logovanje poziva. LangChain daje gotove apstrakcije za sve to i omogućava zamjenu bilo koje komponente (drugi LLM, druga vektorska baza) bez refaktoringa cijelog pipeline-a.
+RAG pipeline zahtijeva retrieval, formatiranje konteksta, upravljanje promptovima i logovanje. Direktni Groq API pozivi su previše niskog nivoa za ovakvu strukturu. LangChain pruža standardizovane komponente za sve ove dijelove i omogućava zamjenu LLM-a ili vektorske baze bez potrebe za promjenom ostatka sistema.
 
 ---
 
-## 6. Asinhrona obrada
+## 7. Asinhrona obrada
 
 ### Celery + Redis
 
-Transkripcija audio fajla i generisanje embeddinga mogu trajati 30–120 sekundi (lokalno na CPU-u). Korisnik ne čeka – backend odmah vraća 202 Accepted, a posao ide u queue.
-
-**Zašto Celery, a ne RQ ili dramatiq:**
-
-RQ (Redis Queue) je jednostavniji od Celerya, ali nema ugrađeni retry mehanizam s exponential backoff koji je neophodan kad Groq API vrati rate limit grešku ili kad faster-whisper padne na oštećenom audio fajlu. Celery je industrijski standard za Python async taskove s najboljom dokumentacijom i **Flower** monitoring UI-jem za praćenje queue stanja.
-
-**Zašto Redis kao broker, a ne RabbitMQ:**
-
-Redis već koristimo za session cache, pa ga koristimo i kao Celery broker – jedan servis manje u Docker Compose stacku.
+Transkripcija i generisanje embeddinga su dugotrajne operacije, pa se ne izvršavaju sinhrono kako ne bi blokirale backend. Umjesto toga, zadaci se šalju u queue i obrađuju u pozadini, dok backend odmah vraća odgovor. Celery je odabran jer pouzdano upravlja takvim background taskovima, uključujući ponovne pokušaje u slučaju grešaka, dok Redis služi kao jednostavan i brz sistem za red čekanja i komunikaciju između servisa, posebno jer je već dio postojećeg stacka.
 
 ---
 
-## 7. Baze podataka
+## 8. Baze podataka
 
 ### PostgreSQL 16
 
-**Zašto PostgreSQL, a ne MySQL ili SQLite:**
-
-SQLite nije opcija za produkciju s više concurrent korisnika (file-based locking). PostgreSQL ima superiorniji JSON support (jsonb tip kolone za metadata uz transkripte), bolji full-text search, i strožu SQL conformance. Sve besplatno i open-source.
+Bolji JSON support (`jsonb`), bolji full-text search i stroža SQL conformance u poređenju s MySQL-om. SQLite nije opcija za produkciju zbog file-based lockinga.
 
 ### Qdrant
 
-**Zašto Qdrant, a ne Pinecone, Weaviate ili pgvector:**
-
-Pinecone je managed cloud servis bez self-hosted opcije – ima besplatni tier, ali s limitom od 100k vektora i jednim indexom, što je restriktivno. Weaviate ima veći footprint i kompleksniju konfiguraciju. pgvector nema HNSW indeksiranje – što znači znatno sporije pretrage pri većem broju embeddinga (10k+). Qdrant radi u Dockeru bez eksternih dependencija, besplatan je i open-source, ima odličan Python klijent, i podržava payload filtere (pretraga samo unutar određenog transkript ID-a ili datumskog raspona).
+Self-hosted, open-source, bez eksternih dependencija – radi u Dockeru. Pinecone nema self-hosted opciju i limitira besplatni tier na 100k vektora. pgvector nema HNSW indeksiranje, što znači znatno sporije pretrage pri 10k+ embeddinga. Qdrant podržava payload filtere (pretraga unutar određenog transkript ID-a ili datumskog raspona).
 
 ### Redis 7
 
-**Zašto Redis, a ne Memcached:**
+Koristi se kao zajednički sistem za task queue (Celery) i cache sesija, čime se smanjuje broj dodatnih servisa u sistemu. Za razliku od Memcached-a, Redis podržava trajno čuvanje podataka i kompleksnije strukture (liste, setove, hashove), što je potrebno za rad Celery queue-a i fleksibilno upravljanje podacima u aplikaciji.
 
-Memcached je čisti key-value cache bez persistence i bez podrške za kompleksne strukture. Redis podržava liste i sorted setove koje Celery koristi za queue implementaciju. Jedna instanca Redisa pokriva i task queue i session cache.
 ---
 
-## 8. Infrastruktura i deployment
+## 9. Infrastruktura i deployment
 
 ### Oracle Cloud Always Free
-
-**Oracle Cloud Always Free** tier je trenutno najmoćnija besplatna cloud opcija na tržištu:
 
 | Spec | Oracle Always Free (ARM) |
 |---|---|
 | vCPU | 4 ARM Ampere A1 |
 | RAM | 24 GB |
-| Storage | 200 GB block storage |
+| Storage | 200 GB |
 | Transfer | 10 TB/mj |
 
-Ovo nije trial – Oracle Always Free nema vremenskog ograničenja. 4 ARM CPU jezgra i 24 GB RAM-a su dovoljni za pokretanje cijelog Docker Compose stacka uključujući faster-whisper i sentence-transformers koji rade lokalno.
-
-**Zašto Oracle, a ne GitHub Pages, Render ili Railway:**
-
-GitHub Pages servira samo statičke fajlove – bez backenda. Render i Railway imaju besplatne tierove, ali servisi se gase nakon 15 minuta neaktivnosti (cold start od 30+ sekundi pri prvom zahtjevu) i imaju stroge limite na CPU i memoriju. Oracle Always Free ne gasi servise i daje znatno više resursa.
-
-**Registracija:** Potrebna je kreditna kartica za verifikaciju identiteta, ali se **ne naplaćuje ništa** dok se koriste Always Free resursi. Potrebno je odabrati region pri registraciji – preporučuje se eu-frankfurt-1 ili eu-amsterdam-1 zbog GDPR usklađenosti (EU data centar).
-
-### Ubuntu 22.04 LTS
-
-**Zašto Ubuntu, a ne Debian ili CentOS:**
-
-CentOS je de facto ugašen (CentOS Stream nije isti produkt). Ubuntu 22.04 LTS ima podršku do April 2027, svi Docker tutoriali i Nginx konfiguracije su primarno pisani za Ubuntu, i Oracle Cloud nudi Ubuntu kao first-class image.
-
-### Nginx
-
-**Zašto Nginx, a ne Apache ili Caddy:**
-
-Apache je stariji i teži web server s kompleksnijim konfiguracionim sistemom. Caddy automatski pribavlja SSL certifikate bez Certbota, ali nema tako bogatu dokumentaciju za specifičnije reverse proxy scenarije. Nginx je najrasprostranjeniji reverse proxy u produkcijskim okruženjima.
-
-**Let's Encrypt + Certbot** za besplatne SSL/TLS certifikate koji se automatski obnavljaju svakih 90 dana.
+Bez vremenskog ograničenja, servisi se nikad ne gase. Render i Railway imaju besplatne tierove, ali gase servise nakon 15 min neaktivnosti i imaju stroge CPU/RAM limite. Za registraciju je potrebna kreditna kartica (verifikacija identiteta), ali se ne naplaćuje ništa dok se koriste Always Free resursi. 
 
 ### Docker + Docker Compose
 
-**Zašto Docker, a ne direktna instalacija:**
-
-Docker garantuje da isti kontejner koji radi lokalno radi identično na Oracle Cloud instanci. Docker Compose opisuje cijeli sistem u jednom docker-compose.yml fajlu – nov developer klonira repo i pokreće docker compose up, sistem je pokrenut za dvije minute.
-
-**Zašto Docker Compose, a ne Kubernetes:**
-
-Kubernetes je dizajniran za sisteme koji zahtijevaju automatsko skaliranje na klasteru više mašina. Za MVP fazu to je prevelika kompleksnost. Granice između servisa su jasno postavljene kontejnerima, što migraciju na Kubernetes čini pravolinijskom kad za to dođe stvarna potreba.
-
+Garantuje identično okruženje lokalno i na serveru. Nov developer klonira repo i pokreće `docker compose up` – sistem je gore za dvije minute. Kubernetes je prevelika kompleksnost za MVP fazu; granice između servisa su već jasno postavljene kontejnerima, što migraciju čini pravolinijskom kad za to dođe potreba.
 
 Kontejneri:
-  frontend              → Nginx servira React build
-  backend               → Glavni FastAPI servis
-  auth-service          → Auth FastAPI servis
-  audio-service         → faster-whisper transkripcija
-  ai-chatbot-service    → RAG Chatbot (Groq + sentence-transformers)
-  processing-pipeline   → Celery worker za obradu transkripata
-  database              → PostgreSQL 16
-  vector-db             → Qdrant
-  redis                 → Redis 7
-  nginx                 → Reverse proxy
+```
+frontend              → Nginx servira React build
+backend               → Glavni FastAPI servis
+auth-service          → Auth FastAPI servis
+audio-service         → faster-whisper transkripcija
+ai-chatbot-service    → RAG Chatbot (Groq + sentence-transformers)
+processing-pipeline   → Celery worker
+database              → PostgreSQL 16
+vector-db             → Qdrant
+redis                 → Redis 7
+nginx                 → Reverse proxy
+```
 
+**GitHub Actions** za CI/CD: svaki push na `main` automatski builda Docker image-ove i restarta servise na Oracle instanci via SSH.
 
-**GitHub Actions** za CI/CD: svaki push na main branch automatski builda Docker image-ove i restarta servise na Oracle instanci via SSH – nema ručnog deployanja.
+### Nginx + Let's Encrypt
+
+Nginx kao reverse proxy zbog rasprostranjene dokumentacije i produkcijske dokazanosti. Caddy automatski pribavlja SSL ali ima manje resursa za specifičnije proxy scenarije. Let's Encrypt + Certbot za besplatne SSL/TLS certifikate koji se automatski obnavljaju svakih 90 dana.
 
 ---
 
-## 9. Rezime – sve tehnologije
+## 10. Rezime – sve tehnologije
 
 ### Runtime i jezik
 
@@ -295,7 +227,7 @@ Kontejneri:
 |---|---|---|
 | LangChain | RAG pipeline orkestracija | direktni API pozivi |
 | Groq API (Llama 3.1 70B) | LLM za generisanje odgovora | Claude API, GPT-4o |
-| faster-whisper (small model) | Audio transkripcija lokalno | OpenAI Whisper API |
+| faster-whisper (small) | Audio transkripcija lokalno | OpenAI Whisper API |
 | sentence-transformers (MiniLM) | Embeddinzi lokalno | OpenAI embedding API |
 | Celery | Asinhroni task queue | RQ, dramatiq |
 
@@ -315,15 +247,15 @@ Kontejneri:
 | Docker Compose | Orkestracija kontejnera | Kubernetes |
 | Nginx | Reverse proxy + SSL | Apache, Caddy |
 | Let's Encrypt + Certbot | SSL/TLS certifikati | plaćeni certifikati |
-| Ubuntu 22.04 LTS | Serverski operativni sistem | Debian, CentOS |
-| Oracle Cloud Always Free | Cloud hosting | Hetzner VPS, DigitalOcean, AWS |
+| Ubuntu 22.04 LTS | Serverski OS | Debian, CentOS |
+| Oracle Cloud Always Free | Cloud hosting | Render, Railway, DigitalOcean |
 | GitHub Actions | CI/CD pipeline | Jenkins, GitLab CI |
 
 ---
 
 ## Napomena: Prelaz na produkciju
 
-Kad projekat preraste studentsku fazu, plaćene alternative su direktna zamjena bez refaktoringa:
+Ukoliko projekat preraste studentsku fazu, plaćene alternative su direktna zamjena bez refaktoringa:
 
 | Komponenta | Studentska verzija | Produkcijska verzija |
 |---|---|---|
@@ -332,8 +264,4 @@ Kad projekat preraste studentsku fazu, plaćene alternative su direktna zamjena 
 | Audio | faster-whisper (lokalno, sporije) | OpenAI Whisper API |
 | Hosting | Oracle Always Free | Hetzner VPS CPX31 (~17 €/mj) |
 
-LangChain apstrakcija osigurava da je svaka od ovih zamjena promjena jedne linije u konfiguraciji, ne refaktoring koda.
-
----
-
-> **Napomena o performansama:** Lokalno pokretanje faster-whisper i sentence-transformers na Oracle ARM instanci je sporije nego API pozivi. Transkripcija minute audio zapisa traje 30-60 sekundi, generisanje embeddinga za jedan transkript 5-15 sekundi. Za studentski projekat i demo to je prihvatljivo – korisnici čekaju u pozadini dok Celery worker radi posao, a potvrda stiže notifikacijom kad je obrada gotova.
+LangChain apstrakcija osigurava da je svaka zamjena promjena jedne linije u konfiguraciji, ne refaktoring koda.
