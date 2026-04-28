@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 import enum
@@ -6,29 +6,81 @@ import enum
 from app.db.session import Base
 
 
-class TranscriptStatus(str, enum.Enum):
-    pending = "pending"
-    processing = "processing"
-    processed = "processed"
-    failed = "failed"
+class TranskStatusTip(str, enum.Enum):
+    sirovi = "Sirovi"
+    obradjeno = "Obradjeno"
+    odbacen = "Odbacen"
 
 
-class TranscriptType(str, enum.Enum):
-    text = "text"
+class FormatTip(str, enum.Enum):
     audio = "audio"
+    tekst = "tekst"
 
 
-class Transcript(Base):
-    __tablename__ = "transcripts"
+class KvalitetTip(str, enum.Enum):
+    visok = "Visok"
+    srednji = "Srednji"
+    nizak = "Nizak"
+
+
+class SegStatusTip(str, enum.Enum):
+    validan = "Validan"
+    nevalidan = "Nevalidan"
+    na_cekanju = "NaCekanju"
+
+
+class SegTip(str, enum.Enum):
+    pitanje = "Pitanje"
+    odgovor = "Odgovor"
+    kontekst = "Kontekst"
+
+
+class Transkript(Base):
+    __tablename__ = "transkript"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    original_filename = Column(String, nullable=False)
+    naziv = Column(String, nullable=False)
+    datum_poziva = Column(DateTime(timezone=True), nullable=True)
+    trajanje_sec = Column(Integer, nullable=True)
+    format = Column(
+        Enum("audio", "tekst", name="format_tip", create_type=False),
+        nullable=False,
+    )
+    status = Column(
+        Enum("Sirovi", "Obradjeno", "Odbacen", name="transk_status_tip", create_type=False),
+        nullable=False,
+        default="Sirovi",
+    )
+    id_korisnika_upload = Column(UUID(as_uuid=True), ForeignKey("korisnik.id"), nullable=False)
+    datum_uploada = Column(DateTime(timezone=True), server_default=func.now())
+    jezik = Column(String, nullable=True)
+    kvalitet = Column(
+        Enum("Visok", "Srednji", "Nizak", name="kvalitet_tip", create_type=False),
+        nullable=True,
+    )
+    # Operational columns for the processing pipeline (add via ALTER TABLE in Supabase)
     file_path = Column(String, nullable=True)
-    transcript_type = Column(Enum(TranscriptType), nullable=False)
     raw_text = Column(Text, nullable=True)
     processed_text = Column(Text, nullable=True)
-    status = Column(Enum(TranscriptStatus), default=TranscriptStatus.pending)
     celery_task_id = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class Segment(Base):
+    __tablename__ = "segment"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tekst = Column(Text, nullable=False)
+    tip_segmenta = Column(
+        Enum("Pitanje", "Odgovor", "Kontekst", name="seg_tip", create_type=False),
+        nullable=False,
+    )
+    pozicija_u_transkriptu = Column(Integer, nullable=True)
+    id_transkripta = Column(UUID(as_uuid=True), ForeignKey("transkript.id"), nullable=False)
+    status = Column(
+        Enum("Validan", "Nevalidan", "NaCekanju", name="seg_status_tip", create_type=False),
+        nullable=False,
+        default="NaCekanju",
+    )
+    id_kategorije = Column(UUID(as_uuid=True), ForeignKey("kategorija.id"), nullable=True)
+    pouzdanost_score = Column(Float, nullable=True)
+    datum_ekstrakcije = Column(DateTime(timezone=True), server_default=func.now())

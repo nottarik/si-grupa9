@@ -5,7 +5,7 @@ celery_app = Celery(
     "chatbot_worker",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.transcript_tasks"],
+    include=["app.tasks.transcript_tasks", "app.tasks.cleanup_tasks"],
 )
 
 celery_app.conf.update(
@@ -17,3 +17,13 @@ celery_app.conf.update(
     task_track_started=True,
     result_expires=3600,
 )
+
+# Periodic task: clear raw transcript text after 24 h (privacy requirement).
+# Run Celery Beat alongside the worker to activate this schedule:
+#   celery -A app.workers.celery_app beat --loglevel=info
+celery_app.conf.beat_schedule = {
+    "cleanup-raw-transcripts-hourly": {
+        "task": "app.tasks.cleanup_tasks.cleanup_raw_transcripts",
+        "schedule": 3600.0,  # every hour
+    },
+}

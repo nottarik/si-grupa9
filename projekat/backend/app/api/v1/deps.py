@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.core.security import decode_token
 from app.db.session import get_db
-from app.db.models.user import User, UserRole
+from app.db.models.user import Korisnik, UlogaTip
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -14,7 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
-) -> User:
+) -> Korisnik:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -28,17 +28,16 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(select(Korisnik).where(Korisnik.id == user_id))
     user = result.scalar_one_or_none()
-    if user is None or not user.is_active:
+    if user is None or not user.aktivan:
         raise credentials_exception
     return user
 
 
-def require_role(*roles: UserRole):
-    """Dependency factory - require one of the given roles."""
-    async def role_checker(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role not in roles:
+def require_role(*roles: UlogaTip):
+    async def role_checker(current_user: Korisnik = Depends(get_current_user)) -> Korisnik:
+        if current_user.uloga not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions",
@@ -47,5 +46,5 @@ def require_role(*roles: UserRole):
     return role_checker
 
 
-require_admin = require_role(UserRole.admin)
-require_admin_or_agent = require_role(UserRole.admin, UserRole.agent)
+require_admin = require_role(UlogaTip.administrator)
+require_admin_or_agent = require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)

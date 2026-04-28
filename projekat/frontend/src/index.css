@@ -5,5 +5,227 @@
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: 'Inter', sans-serif;
   }
 }
+
+/* ── Admin panel custom classes ─────────────────────────────────────── */
+
+/* Full-bleed background with parchment gradient + subtle noise overlay */
+.admin-bg {
+  background:
+    radial-gradient(circle at 40% 0%, #fff 0%, #f5f3ef 55%, #edeae4 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018 0.03' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.92 0 0 0 0 0.87 0 0 0 0.14 0'/%3E%3C/filter%3E%3Crect width='500' height='500' filter='url(%23m)'/%3E%3C/svg%3E");
+  background-blend-mode: normal, multiply;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.card {
+  background: #fff;
+  border: 1px solid rgba(197, 160, 89, 0.28);
+  border-radius: 6px;
+}
+
+/* ── Sidebar ── */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: #3a3020;
+  transition: all 0.15s;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-family: 'Inter', sans-serif;
+}
+.sidebar-item:hover { background: rgba(197, 160, 89, 0.09); color: #7a5c10; }
+.sidebar-item.active {
+  background: rgba(197, 160, 89, 0.13);
+  color: #7a5c10;
+  font-weight: 600;
+  border-left: 3px solid #C5A059;
+  padding-left: 13px;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.badge-green  { background: #f0ead8; color: #5c3d00; }
+.badge-yellow { background: #e8ecf2; color: #1e2e52; }
+.badge-red    { background: #ede8f0; color: #3b1a52; }
+.badge-blue   { background: #e6ede0; color: #2d3e10; }
+.badge-gray   { background: #f0ede8; color: #4a4030; }
+
+/* ── Buttons ── */
+.gold-btn {
+  background: linear-gradient(135deg, #d4b86a 0%, #c5a059 50%, #a8863a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.15s, filter 0.15s;
+  letter-spacing: 0.01em;
+}
+.gold-btn:hover   { filter: brightness(1.06); }
+.gold-btn:active  { filter: brightness(0.96); }
+.gold-btn:disabled { opacity: 0.6; cursor: not-allowed; filter: none; }
+
+.outline-btn {
+  background: #fff;
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  color: #6b4e10;
+  border-radius: 5px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.outline-btn:hover { background: #fdf8ee; border-color: #C5A059; color: #5a3e08; }
+
+/* ── Form inputs ── */
+.input-field {
+  background: #fff;
+  border: 1px solid rgba(197, 160, 89, 0.35);
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-family: 'Inter', sans-serif;
+  color: #1c1c2e;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-field:focus {
+  border-color: rgba(197, 160, 89, 0.75);
+  box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.1);
+}
+.input-field::placeholder { color: #9a8a6a; }
+.input-field.error {
+  border-color: rgba(198, 40, 40, 0.6);
+  box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.1);
+}
+select.input-field { cursor: pointer; }
+
+/* ── Table ── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5a4a30;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.22);
+}
+.tbl td {
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: #1c1c2e;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.09);
+}
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: rgba(197, 160, 89, 0.03); }
+
+/* ── Stat card ── */
+.stat-card {
+  background: #fff;
+  border: 1px solid rgba(197, 160, 89, 0.25);
+  border-radius: 8px;
+  padding: 20px 22px;
+}
+
+/* ── Greek meander divider ── */
+.meander {
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='12'%3E%3Cpath d='M0 9 L3 9 L3 3 L9 3 L9 6 L6 6 L6 9 L13 9 L13 1 L16 1 L16 9 L20 9 L20 3 L26 3 L26 6 L23 6 L23 9 L30 9 L30 1 L33 1 L33 9 L37 9 L37 3 L43 3 L43 6 L40 6 L40 9 L47 9 L47 1 L50 1 L50 9 L54 9 L54 3 L60 3 L60 6 L57 6 L57 9 L64 9' stroke='%23C5A059' stroke-width='1' fill='none' opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+/* ── Upload drop zone ── */
+.upload-zone {
+  border: 1.5px dashed rgba(197, 160, 89, 0.45);
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.upload-zone:hover { border-color: #C5A059; background: rgba(197, 160, 89, 0.03); }
+
+/* ── Typography ── */
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1c1c2e;
+  letter-spacing: 0.08em;
+}
+
+/* ── Tab buttons ── */
+.tab-btn {
+  padding: 7px 18px;
+  font-size: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #5a4a30;
+}
+.tab-btn.active { background: #fff; border-color: rgba(197, 160, 89, 0.45); color: #6b4e10; }
+.tab-btn:not(.active):hover { color: #C5A059; }
+
+/* ── Textual / Audio type toggle ── */
+.type-toggle {
+  display: inline-flex;
+  background: #f5f0e8;
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 2px;
+}
+.type-toggle button {
+  padding: 7px 20px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: transparent;
+  color: #5a4a30;
+  border: 1px solid transparent;
+}
+.type-toggle button.on { background: #fff; color: #6b4e10; border-color: rgba(197, 160, 89, 0.4); }
+.type-toggle button:not(.on):hover { color: #C5A059; }
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(197, 160, 89, 0.28); border-radius: 99px; }

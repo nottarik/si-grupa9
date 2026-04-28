@@ -1,79 +1,181 @@
+import io
+import os
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.db.session import get_db
-from app.db.models.user import User, UserRole
-from app.db.models.transcript import Transcript, TranscriptType
+from app.db.models.user import Korisnik, UlogaTip
+from app.db.models.transcript import Transkript, FormatTip, TranskStatusTip
 from app.api.v1.deps import require_role
-from app.schemas.transcript import TranscriptRead, TranscriptUploadResponse
+from app.schemas.transcript import (
+    TranscriptDetail,
+    TranscriptManualCreate,
+    TranscriptManualResponse,
+    TranscriptRead,
+    TranscriptUploadResponse,
+)
 from app.tasks.transcript_tasks import process_transcript_task
 
 router = APIRouter(prefix="/transcripts", tags=["transcripts"])
 
-ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a"}
-ALLOWED_TEXT_TYPES = {"text/plain"}
+ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a", "audio/ogg"}
+ALLOWED_TEXT_TYPES = {"text/plain", "text/x-plain"}
+ALLOWED_PDF_TYPES = {"application/pdf"}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def _classify_file(content_type: str, filename: str) -> tuple[bool, bool, bool]:
+    ct = content_type.lower()
+    is_audio = ct in ALLOWED_AUDIO_TYPES
+    is_text = ct in ALLOWED_TEXT_TYPES
+    is_pdf = ct in ALLOWED_PDF_TYPES
+
+    if not (is_audio or is_text or is_pdf):
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        if ext == "pdf":
+            is_pdf = True
+        elif ext == "txt":
+            is_text = True
+        elif ext in {"mp3", "wav", "m4a", "ogg"}:
+            is_audio = True
+
+    return is_audio, is_text, is_pdf
+
+
+def _extract_pdf_text(content: bytes) -> str:
+    try:
+        import pdfplumber
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            return "\n".join(page.extract_text() or "" for page in pdf.pages)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Could not extract text from PDF: {exc}")
 
 
 @router.post("/upload", response_model=TranscriptUploadResponse)
 async def upload_transcript(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.admin, UserRole.agent)),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    """
-    Upload a transcript (text) or audio file.
-    Triggers async Celery task for processing.
-    """
-    is_audio = file.content_type in ALLOWED_AUDIO_TYPES
-    is_text = file.content_type in ALLOWED_TEXT_TYPES
-
-    if not is_audio and not is_text:
-        raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
-
-    # TODO: save file to storage (filesystem / S3)
-    file_path = f"uploads/{file.filename}"
-
-    transcript = Transcript(
-        uploaded_by=current_user.id,
-        original_filename=file.filename,
-        file_path=file_path,
-        transcript_type=TranscriptType.audio if is_audio else TranscriptType.text,
+    is_audio, is_text, is_pdf = _classify_file(
+        file.content_type or "", file.filename or ""
     )
-    db.add(transcript)
-    await db.commit()
-    await db.refresh(transcript)
 
-    # Dispatch Celery task
-    task = process_transcript_task.delay(str(transcript.id))
-    transcript.celery_task_id = task.id
+    if not (is_audio or is_text or is_pdf):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported file type '{file.content_type}'. "
+                "Accepted: .txt, .pdf, .mp3, .wav, .m4a, .ogg"
+            ),
+        )
+
+    file_bytes = await file.read()
+
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File exceeds the 10 MB size limit")
+
+    safe_name = f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, safe_name)
+    with open(file_path, "wb") as fh:
+        fh.write(file_bytes)
+
+    raw_text: str | None = None
+    if is_text:
+        raw_text = file_bytes.decode("utf-8", errors="replace")
+    elif is_pdf:
+        raw_text = _extract_pdf_text(file_bytes)
+
+    transkript = Transkript(
+        id_korisnika_upload=current_user.id,
+        naziv=file.filename,
+        file_path=file_path,
+        format=FormatTip.audio if is_audio else FormatTip.tekst,
+        raw_text=raw_text,
+        status=TranskStatusTip.sirovi,
+    )
+    db.add(transkript)
+    await db.commit()
+    await db.refresh(transkript)
+
+    task = process_transcript_task.delay(str(transkript.id))
+    transkript.celery_task_id = task.id
     await db.commit()
 
     return TranscriptUploadResponse(
-        transcript_id=transcript.id,
+        transcript_id=transkript.id,
         task_id=task.id,
         message="Upload successful. Processing started.",
+    )
+
+
+@router.post("/manual", response_model=TranscriptManualResponse)
+async def create_manual_transcript(
+    body: TranscriptManualCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
+):
+    from app.services.pipeline.pipeline_service import PipelineService
+    from app.db.models.knowledge import UnosBazeZnanja
+
+    pipeline = PipelineService()
+    result = pipeline.process(body.content)
+
+    transkript = Transkript(
+        id_korisnika_upload=current_user.id,
+        naziv=f"manual_{body.agent_name.replace(' ', '_')}_{body.date}.txt",
+        file_path=None,
+        format=FormatTip.tekst,
+        raw_text=body.content,
+        processed_text=result.masked_text,
+        status=TranskStatusTip.obradjeno,
+    )
+    db.add(transkript)
+    await db.commit()
+    await db.refresh(transkript)
+
+    for pair in result.qa_pairs:
+        db.add(UnosBazeZnanja(
+            pitanje=pair["question"],
+            odgovor=pair["answer"],
+            status_aprovacije="NaCekanju",
+        ))
+    await db.commit()
+
+    return TranscriptManualResponse(
+        transcript_id=transkript.id,
+        message=(
+            f"Transcript saved successfully. "
+            f"{len(result.qa_pairs)} Q&A pair(s) extracted and queued for review."
+        ),
     )
 
 
 @router.get("/", response_model=list[TranscriptRead])
 async def list_transcripts(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.admin, UserRole.agent)),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    from sqlalchemy import select
-    result = await db.execute(select(Transcript).order_by(Transcript.created_at.desc()))
+    result = await db.execute(select(Transkript).order_by(Transkript.datum_uploada.desc()))
     return result.scalars().all()
 
 
-@router.get("/{transcript_id}", response_model=TranscriptRead)
+@router.get("/{transcript_id}", response_model=TranscriptDetail)
 async def get_transcript(
     transcript_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.admin, UserRole.agent)),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    from sqlalchemy import select
-    result = await db.execute(select(Transcript).where(Transcript.id == transcript_id))
-    transcript = result.scalar_one_or_none()
-    if not transcript:
+    result = await db.execute(
+        select(Transkript).where(Transkript.id == transcript_id)
+    )
+    transkript = result.scalar_one_or_none()
+    if not transkript:
         raise HTTPException(status_code=404, detail="Transcript not found")
-    return transcript
+    return transkript

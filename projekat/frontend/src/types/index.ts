@@ -49,11 +49,27 @@ export interface Transcript {
   transcript_type: TranscriptType;
   status: TranscriptStatus;
   celery_task_id: string | null;
+  created_at: string | null;
+}
+
+export interface TranscriptDetail extends Transcript {
+  processed_text: string | null;
 }
 
 export interface TranscriptUploadResponse {
   transcript_id: string;
-  task_id: string;
+  task_id: string | null;
+  message: string;
+}
+
+export interface TranscriptManualCreate {
+  date: string;
+  content: string;
+  agent_name: string;
+}
+
+export interface TranscriptManualResponse {
+  transcript_id: string;
   message: string;
 }
 

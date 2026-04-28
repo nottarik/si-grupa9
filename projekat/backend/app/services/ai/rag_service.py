@@ -1,32 +1,15 @@
+from datetime import datetime, timezone
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models.knowledge import ChatInteraction
+from app.db.models.knowledge import ChatSesija, Poruka, Odgovor
 from app.schemas.chat import ChatResponse
-
-# TODO: instantiate once at startup via lifespan, not per-request
-# from app.services.ai.embedding_service import EmbeddingService
-# from app.services.ai.llm_service import LLMService
-# from app.services.ai.vector_store import VectorStoreService
 
 
 class RagService:
-    """
-    Orchestrates the RAG pipeline:
-      1. Embed the user question
-      2. Retrieve top-k similar Q&A pairs from Qdrant
-      3. Compute confidence score (cosine similarity)
-      4. If confident: send context + question to LLM and return answer
-      5. If not confident: return fallback message
-      6. Persist interaction to DB
-    """
-
     def __init__(self, db: AsyncSession):
         self.db = db
-        # self.embedder = EmbeddingService()
-        # self.llm = LLMService()
-        # self.vector_store = VectorStoreService()
 
     async def answer(self, question: str, user_id: UUID) -> ChatResponse:
         # Step 1: embed question
@@ -35,10 +18,7 @@ class RagService:
         # Step 2: semantic search
         # hits = await self.vector_store.search(question_vector, top_k=settings.RAG_TOP_K)
 
-        # Step 3: confidence score (max similarity of top hit)
-        # confidence = hits[0].score if hits else 0.0
         confidence = 0.9  # placeholder
-
         is_low_confidence = confidence < settings.RAG_CONFIDENCE_THRESHOLD
 
         if is_low_confidence:
@@ -46,31 +26,53 @@ class RagService:
                 "Nisam siguran/a u odgovor na vaše pitanje. "
                 "Molimo kontaktirajte agenta za dodatnu pomoć."
             )
+            metoda = "Fallback"
             source_id = None
         else:
-            # Step 4: build prompt and call LLM
-            # context = "\n\n".join([h.payload["answer"] for h in hits])
-            # answer_text = await self.llm.generate(question=question, context=context)
-            answer_text = "Placeholder odgovor – LLM integracija u toku."  # placeholder
-            source_id = None  # hits[0].payload.get("item_id") if hits else None
+            answer_text = "Placeholder odgovor – LLM integracija u toku."
+            metoda = "Retrieval"
+            source_id = None
 
-        # Step 5: persist interaction
-        interaction = ChatInteraction(
-            user_id=user_id,
-            question=question,
-            answer=answer_text,
-            confidence_score=confidence,
-            source_item_id=source_id,
-            is_low_confidence=is_low_confidence,
+        # Create session
+        sesija = ChatSesija(
+            id_korisnika=user_id,
+            kanal_pristupa="web",
+            status="Aktivna",
+            broj_poruka=1,
         )
-        self.db.add(interaction)
+        self.db.add(sesija)
+        await self.db.flush()
+
+        # Create user message — id_odgovora set after Odgovor is created
+        poruka = Poruka(
+            tekst=question,
+            tip="KorisnickoP",
+            timestamp_msg=datetime.now(timezone.utc),
+            id_sesije=sesija.id,
+        )
+        self.db.add(poruka)
+        await self.db.flush()
+
+        # Create the answer
+        odgovor = Odgovor(
+            tekst_odgovora=answer_text,
+            id_unosa_baze_znanja=source_id,
+            metoda_generisanja=metoda,
+            skor_pouzdanosti=confidence,
+            id_poruke=poruka.id,
+        )
+        self.db.add(odgovor)
+        await self.db.flush()
+
+        # Link poruka → odgovor
+        poruka.id_odgovora = odgovor.id
         await self.db.commit()
-        await self.db.refresh(interaction)
+        await self.db.refresh(odgovor)
 
         return ChatResponse(
             answer=answer_text,
             confidence_score=confidence,
             is_low_confidence=is_low_confidence,
             source_id=source_id,
-            interaction_id=interaction.id,
+            interaction_id=odgovor.id,
         )

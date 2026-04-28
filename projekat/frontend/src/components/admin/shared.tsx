@@ -1,0 +1,108 @@
+import React from "react";
+
+// ── Generic SVG icon ─────────────────────────────────────────────────
+interface IcProps {
+  d: React.ReactNode;
+  size?: number;
+}
+export const Ic = ({ d, size = 16 }: IcProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {typeof d === "string" ? <path d={d} /> : d}
+  </svg>
+);
+
+// ── Icon path registry ───────────────────────────────────────────────
+export const icons = {
+  dashboard: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </>
+  ),
+  transcripts: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </>
+  ),
+  chat: (
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  ),
+  ratings: (
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  ),
+  issues: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </>
+  ),
+  training: (
+    <>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </>
+  ),
+  upload: (
+    <>
+      <polyline points="16 16 12 12 8 16" />
+      <line x1="12" y1="12" x2="12" y2="21" />
+      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </>
+  ),
+  check: "M20 6L9 17l-5-5",
+  x: "M18 6L6 18M6 6l12 12",
+};
+
+// ── Star rating display ──────────────────────────────────────────────
+export const Stars = ({ n }: { n: number }) => (
+  <span className="text-sm" style={{ color: "#C5A059" }}>
+    {"★".repeat(Math.round(n))}
+    {"☆".repeat(5 - Math.round(n))}
+  </span>
+);
+
+// ── Coloured status badge ────────────────────────────────────────────
+const BADGE_MAP: Record<string, string> = {
+  Processed: "badge-green",
+  Pending: "badge-yellow",
+  Flagged: "badge-red",
+  Open: "badge-red",
+  "In Progress": "badge-yellow",
+  Resolved: "badge-green",
+  High: "badge-red",
+  Medium: "badge-yellow",
+  Low: "badge-blue",
+  processed: "badge-green",
+  pending: "badge-yellow",
+  processing: "badge-yellow",
+  failed: "badge-red",
+  approved: "badge-green",
+  rejected: "badge-red",
+  pending_approval: "badge-yellow",
+};
+
+export const StatusBadge = ({ s }: { s: string }) => (
+  <span className={`badge ${BADGE_MAP[s] ?? "badge-gray"}`}>{s}</span>
+);

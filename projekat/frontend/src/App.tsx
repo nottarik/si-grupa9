@@ -18,11 +18,9 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Admin-only routes */}
+        {/* Admin panel – full-screen shell, no Layout wrapper */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
-          <Route element={<Layout />}>
-            <Route path="/admin" element={<AdminPage />} />
-          </Route>
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

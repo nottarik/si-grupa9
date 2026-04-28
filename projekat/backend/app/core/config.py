@@ -30,11 +30,20 @@ class Settings(BaseSettings):
     WHISPER_DEVICE: str = "cpu"
 
     # CORS
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:5173"]
+    ALLOWED_ORIGINS: str = "http://localhost:5173"
+
+    @property
+    def allowed_origins_list(self) -> list[str]:
+        v = self.ALLOWED_ORIGINS.strip()
+        if v.startswith("["):
+            import json
+            return json.loads(v)
+        return [item.strip() for item in v.split(",") if item.strip()]
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 @lru_cache()

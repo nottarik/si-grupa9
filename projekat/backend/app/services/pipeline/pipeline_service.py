@@ -3,13 +3,31 @@ from dataclasses import dataclass
 
 
 # ---------------------------------------------------------------------------
-# PII masking patterns (GDPR)
+# PII masking patterns (GDPR / privacy)
+# Order matters: more specific patterns first.
 # ---------------------------------------------------------------------------
-PII_PATTERNS = [
-    (r"\b\d{13}\b", "[JMBG]"),                          # JMBG
-    (r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b", "[KARTICA]"),  # broj kartice
-    (r"\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b", "[EMAIL]"),     # email
-    (r"\b(\+?387|0)\s?6[0-9][\s-]?\d{3}[\s-]?\d{3}\b", "[TELEFON]"),  # BiH mobitel
+PII_PATTERNS: list[tuple[str, str]] = [
+    # JMBG — BiH/YU national ID (13 digits)
+    (r"\b\d{13}\b", "[JMBG]"),
+    # Credit/debit card numbers (4×4 digit groups, optional separators)
+    (r"\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b", "[KARTICA]"),
+    # IBAN (e.g. BA39 1234 5678 9012 3456)
+    (r"\b[A-Z]{2}\d{2}(?:[\s\-]?\d{4}){2,5}\b", "[IBAN]"),
+    # Email addresses
+    (r"\b[\w.+\-]+@[\w\-]+\.[a-zA-Z]{2,}\b", "[EMAIL]"),
+    # BiH mobile: 06x-xxx-xxx (with/without +387 prefix)
+    (r"\b(\+?387|0)\s?6[0-9][\s\-]?\d{3}[\s\-]?\d{3}\b", "[TELEFON]"),
+    # BiH/HR fixed line: 0[1-5]x-xxx-xxx
+    (r"\b0[1-5]\d[\s\-]?\d{3}[\s\-]?\d{3}\b", "[TELEFON]"),
+    # International phone with + prefix
+    (r"\+[1-9]\d{0,2}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{3,4}[\s\-]?\d{3,4}\b", "[TELEFON]"),
+    # Name after common Bosnian/English introductory phrases
+    # Keeps the phrase and replaces only the name(s)
+    (
+        r"(?i)((?:my name is|i am|i'm|zovem se|moje ime je|ime mi je|ja sam)\s+)"
+        r"([A-ZČŠŽĐ][a-zčšžđ]+(?:\s+[A-ZČŠŽĐ][a-zčšžđ]+)?)",
+        r"\1[IME]",
+    ),
 ]
 
 
@@ -18,17 +36,17 @@ class ProcessedTranscript:
     raw_text: str
     normalized_text: str
     masked_text: str
-    segments: list[dict]   # [{"role": "agent"|"user", "text": "..."}]
+    segments: list[dict]   # [{"role": "agent"|"user"|"unknown", "text": "..."}]
     qa_pairs: list[dict]   # [{"question": "...", "answer": "..."}]
 
 
 class PipelineService:
     """
-    Processes a raw transcript text through all pipeline stages:
-      1. Normalize
-      2. Split by role
-      3. Mask PII
-      4. Extract Q&A pairs
+    Processes a raw transcript through all pipeline stages:
+      1. Normalize whitespace / line endings
+      2. Split into role-labelled segments
+      3. Mask PII (GDPR)
+      4. Extract Q&A pairs for knowledge base
     """
 
     def process(self, raw_text: str) -> ProcessedTranscript:
@@ -54,18 +72,20 @@ class PipelineService:
 
     def _split_roles(self, text: str) -> list[dict]:
         """
-        Expects lines prefixed with 'Agent:' or 'Korisnik:'.
-        Falls back to alternating turns if no prefix found.
+        Expects lines prefixed with 'Agent:' or 'Korisnik:' / 'Customer:'.
+        Falls back to 'unknown' role when no prefix is found.
         """
-        segments = []
+        segments: list[dict] = []
         for line in text.split("\n"):
             line = line.strip()
             if not line:
                 continue
-            if line.lower().startswith("agent:"):
+            low = line.lower()
+            if low.startswith("agent:"):
                 segments.append({"role": "agent", "text": line[6:].strip()})
-            elif line.lower().startswith("korisnik:"):
-                segments.append({"role": "user", "text": line[9:].strip()})
+            elif low.startswith("korisnik:") or low.startswith("customer:"):
+                cut = 9 if low.startswith("korisnik:") else 9
+                segments.append({"role": "user", "text": line[cut:].strip()})
             else:
                 segments.append({"role": "unknown", "text": line})
         return segments
@@ -76,17 +96,11 @@ class PipelineService:
         return text
 
     def _extract_qa(self, segments: list[dict]) -> list[dict]:
-        """
-        Simple heuristic: pair each user turn with the following agent turn.
-        More sophisticated extraction can replace this later.
-        """
-        qa_pairs = []
+        """Pair each user turn with the following agent turn."""
+        qa_pairs: list[dict] = []
         for i, seg in enumerate(segments):
             if seg["role"] == "user" and i + 1 < len(segments):
-                next_seg = segments[i + 1]
-                if next_seg["role"] == "agent":
-                    qa_pairs.append({
-                        "question": seg["text"],
-                        "answer": next_seg["text"],
-                    })
+                nxt = segments[i + 1]
+                if nxt["role"] == "agent":
+                    qa_pairs.append({"question": seg["text"], "answer": nxt["text"]})
         return qa_pairs
