@@ -1,4 +1,21 @@
+version: "1"
+
 services:
+  - type: web
+    name: chatbot-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    dockerCommand: ""
+    plan: starter
+    # Render builduje prod stage
+    buildFilter:
+      paths:
+        - frontend/**
+    envVars:
+      - key: VITE_API_URL
+        value: https://chatbot-backend.onrender.com
+
   - type: web
     name: chatbot-backend
     runtime: docker
@@ -39,12 +56,3 @@ services:
     name: chatbot-redis
     plan: starter
     maxmemoryPolicy: allkeys-lru
-
-  - type: static
-    name: chatbot-frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    rootDir: ./frontend
-    envVars:
-      - key: VITE_API_URL
-        value: https://chatbot-backend.onrender.com
