@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from uuid import UUID
 
 from app.db.session import get_db
 from app.db.models.user import Korisnik, UlogaTip
@@ -22,10 +21,10 @@ async def list_pending(
     items = result.scalars().all()
     return [
         {
-            "id": str(i.id),
+            "id": i.id,
             "pitanje": i.pitanje,
             "odgovor": i.odgovor,
-            "id_kategorije": str(i.id_kategorije) if i.id_kategorije else None,
+            "id_kategorije": i.id_kategorije,
         }
         for i in items
     ]
@@ -33,7 +32,7 @@ async def list_pending(
 
 @router.post("/{item_id}/approve")
 async def approve_item(
-    item_id: UUID,
+    item_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):
@@ -50,7 +49,7 @@ async def approve_item(
 
 @router.post("/{item_id}/reject")
 async def reject_item(
-    item_id: UUID,
+    item_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):

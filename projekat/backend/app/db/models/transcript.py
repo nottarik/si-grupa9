@@ -1,6 +1,5 @@
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import BigInteger, Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
-import uuid
 import enum
 
 from app.db.session import Base
@@ -38,7 +37,7 @@ class SegTip(str, enum.Enum):
 class Transkript(Base):
     __tablename__ = "transkript"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     naziv = Column(String, nullable=False)
     datum_poziva = Column(DateTime(timezone=True), nullable=True)
     trajanje_sec = Column(Integer, nullable=True)
@@ -68,19 +67,19 @@ class Transkript(Base):
 class Segment(Base):
     __tablename__ = "segment"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     tekst = Column(Text, nullable=False)
     tip_segmenta = Column(
         Enum("Pitanje", "Odgovor", "Kontekst", name="seg_tip", create_type=False),
         nullable=False,
     )
     pozicija_u_transkriptu = Column(Integer, nullable=True)
-    id_transkripta = Column(UUID(as_uuid=True), ForeignKey("transkript.id"), nullable=False)
+    id_transkripta = Column(BigInteger, ForeignKey("transkript.id"), nullable=False)
     status = Column(
         Enum("Validan", "Nevalidan", "NaCekanju", name="seg_status_tip", create_type=False),
         nullable=False,
         default="NaCekanju",
     )
-    id_kategorije = Column(UUID(as_uuid=True), ForeignKey("kategorija.id"), nullable=True)
+    id_kategorije = Column(BigInteger, ForeignKey("kategorija.id"), nullable=True)
     pouzdanost_score = Column(Float, nullable=True)
     datum_ekstrakcije = Column(DateTime(timezone=True), server_default=func.now())

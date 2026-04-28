@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from uuid import UUID
 
 
 class ChatRequest(BaseModel):
@@ -10,12 +9,12 @@ class ChatResponse(BaseModel):
     answer: str
     confidence_score: float
     is_low_confidence: bool
-    source_id: UUID | None = None
-    interaction_id: UUID
+    source_id: int | None = None
+    interaction_id: int
 
 
 class FeedbackRequest(BaseModel):
-    interaction_id: UUID
+    interaction_id: int
     is_positive: bool | None = None
     rating: float | None = None
     comment: str | None = None

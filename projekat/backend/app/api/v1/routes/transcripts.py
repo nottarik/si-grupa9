@@ -104,7 +104,7 @@ async def upload_transcript(
     await db.commit()
     await db.refresh(transkript)
 
-    task = process_transcript_task.delay(str(transkript.id))
+    task = process_transcript_task.delay(transkript.id)
     transkript.celery_task_id = task.id
     await db.commit()
 
@@ -168,7 +168,7 @@ async def list_transcripts(
 
 @router.get("/{transcript_id}", response_model=TranscriptDetail)
 async def get_transcript(
-    transcript_id: str,
+    transcript_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):

@@ -3,7 +3,6 @@ import LoginPage from "./pages/LoginPage";
 import ChatPage from "./pages/ChatPage";
 import AdminPage from "./pages/AdminPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
-import Layout from "./components/common/Layout";
 
 export default function App() {
   return (
@@ -13,12 +12,10 @@ export default function App() {
 
         {/* Protected routes – any authenticated user */}
         <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/" element={<ChatPage />} />
-          </Route>
+          <Route path="/" element={<ChatPage />} />
         </Route>
 
-        {/* Admin panel – full-screen shell, no Layout wrapper */}
+        {/* Admin panel – admin role required */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
           <Route path="/admin" element={<AdminPage />} />
         </Route>

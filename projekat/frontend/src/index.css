@@ -229,3 +229,210 @@ select.input-field { cursor: pointer; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(197, 160, 89, 0.28); border-radius: 99px; }
+
+/* ── Login page ── */
+.auth-toggle {
+  display: flex;
+  background: #f5f0e8;
+  border: 1px solid rgba(197, 160, 89, 0.28);
+  border-radius: 6px;
+  padding: 3px;
+  gap: 2px;
+}
+.auth-toggle button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.03em;
+  background: transparent;
+  color: #5a4a30;
+}
+.auth-toggle button.on {
+  background: #fff;
+  border-color: rgba(197, 160, 89, 0.4);
+  color: #6b4e10;
+}
+.auth-toggle button:not(.on):hover { color: #C5A059; }
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  color: #6b4e10;
+  border-radius: 5px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  width: 100%;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+}
+.ghost-btn:hover { background: #fdf8ee; border-color: #C5A059; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #C5A059;
+  font-size: inherit;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.link-btn:hover { color: #a8863a; text-decoration: underline; }
+
+.coin-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #e8cc80, #c5a059, #8a6d1f);
+  border: 1.5px solid rgba(197, 160, 89, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
+  margin: 0 auto;
+}
+
+.divider-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #9a8a6a;
+  font-size: 12px;
+}
+.divider-or::before, .divider-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(197, 160, 89, 0.25);
+}
+
+/* ── Chat page ── */
+.chat-bg {
+  background:
+    radial-gradient(circle at 50% 0%, #ffffff 0%, #f4f4f2 60%, #eeece8 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.018 0.03' numOctaves='5' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.96 0 0 0 0 0.94 0 0 0 0 0.90 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23m)'/%3E%3C/svg%3E");
+  background-blend-mode: normal, multiply;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+}
+
+.meander-top {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='14'%3E%3Cpath d='M0 10 L4 10 L4 4 L10 4 L10 7 L7 7 L7 10 L14 10 L14 1 L17 1 L17 10 L21 10 L21 4 L27 4 L27 7 L24 7 L24 10 L31 10 L31 1 L34 1 L34 10 L38 10 L38 4 L44 4 L44 7 L41 7 L41 10 L48 10 L48 1 L51 1 L51 10 L55 10 L55 4 L61 4 L61 7 L58 7 L58 10 L64 10' stroke='%23C5A059' stroke-width='1.1' fill='none' opacity='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: top center;
+  height: 14px;
+}
+
+.user-bubble {
+  background: #ffffff;
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(197, 160, 89, 0.15);
+}
+
+.ai-bubble {
+  background: #ffffff;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  border-left: 3px solid #C5A059;
+  border-radius: 4px 16px 16px 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+}
+
+.coin-avatar {
+  background: radial-gradient(circle at 38% 35%, #e8cc80, #c5a059, #8a6d1f);
+  box-shadow: 0 2px 8px rgba(197, 160, 89, 0.35), inset 0 1px 0 rgba(255, 240, 180, 0.4);
+}
+
+.starter-pill {
+  background: #ffffff;
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  color: #3a3020;
+  transition: all 0.15s;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.starter-pill:hover {
+  background: #FDF8EE;
+  border-color: #C5A059;
+  color: #8a6d1f;
+}
+
+.send-btn {
+  background: radial-gradient(circle at 38% 35%, #e0c070, #c5a059, #9a7a30);
+  box-shadow: 0 2px 8px rgba(197, 160, 89, 0.4), inset 0 1px 0 rgba(255, 240, 180, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.send-btn:hover:not(:disabled) {
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px rgba(197, 160, 89, 0.45);
+}
+.send-btn:active:not(:disabled) { transform: scale(0.95); }
+.send-btn:disabled { opacity: 0.38; cursor: default; }
+
+.input-wrap {
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-wrap:focus-within {
+  border-color: rgba(197, 160, 89, 0.85);
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+}
+
+.chat-textarea {
+  outline: none;
+  background: transparent;
+  color: #1C1C2E;
+  caret-color: #C5A059;
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.55;
+  resize: none;
+  border: none;
+}
+.chat-textarea::placeholder { color: #b5a88a; }
+
+/* ── Message animation ── */
+.msg-in { animation: msgIn 0.28s cubic-bezier(.2,.8,.4,1) both; }
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Typing indicator dots ── */
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #C5A059;
+  display: inline-block;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1.1); }
+}

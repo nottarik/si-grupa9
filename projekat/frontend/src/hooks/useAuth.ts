@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { login as apiLogin, getMe } from "../api/auth";
+import { login as apiLogin, register as apiRegister, getMe } from "../api/auth";
+import type { RegisterPayload } from "../api/auth";
 import type { User } from "../types";
 
 interface AuthState {
@@ -15,7 +16,6 @@ export function useAuth() {
     isAuthenticated: false,
   });
 
-  // On mount, try to restore session from stored token
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
@@ -40,10 +40,19 @@ export function useAuth() {
     return user;
   }, []);
 
+  const register = useCallback(async (payload: RegisterPayload) => {
+    await apiRegister(payload);
+    const token = await apiLogin(payload.email, payload.password);
+    localStorage.setItem("access_token", token.access_token);
+    const user = await getMe();
+    setState({ user, isLoading: false, isAuthenticated: true });
+    return user;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem("access_token");
     setState({ user: null, isLoading: false, isAuthenticated: false });
   }, []);
 
-  return { ...state, login, logout };
+  return { ...state, login, register, logout };
 }

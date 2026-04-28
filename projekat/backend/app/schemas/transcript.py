@@ -1,12 +1,11 @@
 from pydantic import BaseModel, field_validator
-from uuid import UUID
 from datetime import date, datetime
 
 from app.db.models.transcript import TranskStatusTip, FormatTip
 
 
 class TranscriptRead(BaseModel):
-    id: UUID
+    id: int
     naziv: str
     format: FormatTip
     status: TranskStatusTip
@@ -17,7 +16,7 @@ class TranscriptRead(BaseModel):
 
 
 class TranscriptDetail(BaseModel):
-    id: UUID
+    id: int
     naziv: str
     format: FormatTip
     status: TranskStatusTip
@@ -29,7 +28,7 @@ class TranscriptDetail(BaseModel):
 
 
 class TranscriptUploadResponse(BaseModel):
-    transcript_id: UUID
+    transcript_id: int
     task_id: str | None
     message: str
 
@@ -57,5 +56,5 @@ class TranscriptManualCreate(BaseModel):
 
 
 class TranscriptManualResponse(BaseModel):
-    transcript_id: UUID
+    transcript_id: int
     message: str
