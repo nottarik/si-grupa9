@@ -1,0 +1,52 @@
+version: "1"
+
+services:
+  - type: web
+    name: chatbot-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: chatbot-redis
+          type: redis
+          property: connectionString
+      - key: VECTOR_STORE_ENABLED
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+
+  - type: worker
+    name: chatbot-celery
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    startCommand: celery -A app.workers.celery_app worker --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: chatbot-redis
+          type: redis
+          property: connectionString
+
+  - type: redis
+    name: chatbot-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+
+  - type: static
+    name: chatbot-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    rootDir: ./frontend
+    envVars:
+      - key: VITE_API_URL
+        value: https://chatbot-backend.onrender.com
