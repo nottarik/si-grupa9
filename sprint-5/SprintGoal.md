@@ -15,16 +15,10 @@ Pokretanje AI-enabled faze kroz implementaciju prvog funkcionalnog inkrementa si
 - Decision Log: Uspostava i vođenje evidencije ključnih tehničkih i projektnih odluka kroz standardizovani obrazac.  
 - AI Usage Log: Dokumentovanje svih relevantnih slučajeva korištenja AI alata, uključujući analizu prihvaćenih i odbijenih prijedloga.  
 - Validacija implementacionog toka: Provjera da razvojni proces (od zadatka do implementacije) funkcioniše konzistentno i reproducibilno.  
-- Sprint Review Summary: Sažetak rezultata sprinta sa fokusom na funkcionalnost, odluke i način korištenja AI.  
-
----  
-
-## Napomena za Sprint Review Summary  
-Sprint Review Summary se u ovom sprintu neće izrađivati odmah po završetku sprinta, već u narednom sprintu, nakon dobijenog feedbacka od asistenta. Dokument će se voditi sa jednim sprint zakašnjenja, tako da reflektuje stvarni tok rada i evaluaciju.
-
+- Sprint Review Summary: Sažetak rezultata sprinta sa fokusom na funkcionalnost, odluke i način korištenja AI.
+Sprint Review Summary se u ovom sprintu neće izrađivati odmah po završetku sprinta, već u narednom sprintu, nakon dobijenog feedbacka. 
 U Sprint Review Summary će biti dokumentovan pregled prethodnog sprinta, uključujući: šta je implementirano, šta je demonstrirano, koje sugestije ili izmjene je predložio asistent tokom sastanka, te na koji način je tim reagovao na taj feedback.
 
-Ovakav pristup omogućava kvalitetniju refleksiju, jasnije povezivanje feedbacka sa konkretnim izmjenama i transparentnije praćenje napretka tima kroz sprintove.
 
 ---  
 
