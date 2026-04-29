@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc *)",
+      "Bash(grep -E '\\\\.\\(json|yml|env|py|js|ts|tsx|jsx\\)$')",
+      "Bash(xargs head *)"
+    ]
+  }
+}
