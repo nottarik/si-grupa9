@@ -6,7 +6,10 @@ VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output dimension
 
 
 def get_qdrant_client() -> QdrantClient:
-    return QdrantClient(url=settings.QDRANT_URL)
+    kwargs = {"url": settings.QDRANT_URL}
+    if settings.QDRANT_API_KEY:
+        kwargs["api_key"] = settings.QDRANT_API_KEY
+    return QdrantClient(**kwargs)
 
 
 class VectorStoreService:

@@ -5,6 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
     volumes:
@@ -17,21 +18,6 @@ services:
     depends_on:
       - redis
       - qdrant
-
-  celery_worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    command: celery -A app.workers.celery_app worker --loglevel=info
-    volumes:
-      - ./backend:/app
-    env_file:
-      - ./backend/.env
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    depends_on:
-      - redis
 
   db:
     image: postgres:16-alpine

@@ -1,0 +1,36 @@
+name: Release
+
+# Triggers a production deploy.
+# Two ways to release:
+#   1. Push a semver tag:  git tag v1.0.0 && git push origin v1.0.0
+#   2. Click "Run workflow" in the GitHub Actions tab (manual dispatch)
+#
+# Render re-deploys the web service via a deploy hook.
+# Cloudflare Pages auto-deploys the frontend from `main` independently.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Release notes / reason"
+        required: false
+        default: "Manual deploy"
+
+jobs:
+  ci:
+    name: Run CI before deploy
+    uses: ./.github/workflows/ci.yml
+
+  deploy-render:
+    name: Deploy backend to Render
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render web service deploy
+        run: curl -fsSL -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK_URL }}"
+
+      - name: Done
+        run: echo "Render deploy triggered. Check the Render dashboard for build status."

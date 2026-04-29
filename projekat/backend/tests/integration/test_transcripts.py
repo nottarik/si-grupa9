@@ -33,10 +33,8 @@ async def test_upload_unsupported_file_type():
 
 @pytest.mark.asyncio
 async def test_upload_txt_file():
-    from unittest.mock import patch, MagicMock
-    mock_task = MagicMock()
-    mock_task.id = "fake-task-id"
-    with patch("app.api.v1.routes.transcripts.process_transcript_task.delay", return_value=mock_task):
+    from unittest.mock import AsyncMock, patch
+    with patch("app.api.v1.routes.transcripts.process_transcript", new=AsyncMock()):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await get_auth_token(client)
             content = b"Korisnik: kako platiti racun?\nAgent: putem internet bankarstva."

@@ -17,17 +17,23 @@ class Settings(BaseSettings):
     # Qdrant
     QDRANT_URL: str = "http://localhost:6333"
     QDRANT_COLLECTION_NAME: str = "knowledge_base"
+    QDRANT_API_KEY: str = ""
 
     # AI
     GROQ_API_KEY: str = ""
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     LLM_MODEL: str = "llama-3.1-70b-versatile"
+    WHISPER_MODEL: str = "whisper-large-v3"
     RAG_TOP_K: int = 5
     RAG_CONFIDENCE_THRESHOLD: float = 0.6
 
-    # Whisper
-    WHISPER_MODEL_SIZE: str = "small"
-    WHISPER_DEVICE: str = "cpu"
+    # Supabase Storage
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+    SUPABASE_BUCKET: str = "transcripts"
+
+    # Internal API (used by GitHub Actions cron to hit /internal/* endpoints)
+    INTERNAL_API_KEY: str = ""
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:5173"

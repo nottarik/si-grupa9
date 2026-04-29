@@ -1,8 +1,7 @@
 import io
-import os
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -17,7 +16,8 @@ from app.schemas.transcript import (
     TranscriptRead,
     TranscriptUploadResponse,
 )
-from app.tasks.transcript_tasks import process_transcript_task
+from app.services.storage.storage_service import StorageService
+from app.tasks.transcript_tasks import process_transcript
 
 router = APIRouter(prefix="/transcripts", tags=["transcripts"])
 
@@ -25,9 +25,6 @@ ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a", "a
 ALLOWED_TEXT_TYPES = {"text/plain", "text/x-plain"}
 ALLOWED_PDF_TYPES = {"application/pdf"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 def _classify_file(content_type: str, filename: str) -> tuple[bool, bool, bool]:
@@ -59,6 +56,7 @@ def _extract_pdf_text(content: bytes) -> str:
 
 @router.post("/upload", response_model=TranscriptUploadResponse)
 async def upload_transcript(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
@@ -82,20 +80,30 @@ async def upload_transcript(
         raise HTTPException(status_code=400, detail="File exceeds the 10 MB size limit")
 
     safe_name = f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, safe_name)
-    with open(file_path, "wb") as fh:
-        fh.write(file_bytes)
 
     raw_text: str | None = None
-    if is_text:
-        raw_text = file_bytes.decode("utf-8", errors="replace")
-    elif is_pdf:
-        raw_text = _extract_pdf_text(file_bytes)
+    storage_path: str | None = None
+
+    if is_audio:
+        storage = StorageService()
+        try:
+            storage_path = storage.upload(
+                path=safe_name,
+                data=file_bytes,
+                content_type=file.content_type or "application/octet-stream",
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Storage upload failed: {exc}")
+    else:
+        if is_text:
+            raw_text = file_bytes.decode("utf-8", errors="replace")
+        elif is_pdf:
+            raw_text = _extract_pdf_text(file_bytes)
 
     transkript = Transkript(
         id_korisnika_upload=current_user.id,
         naziv=file.filename,
-        file_path=file_path,
+        file_path=storage_path,
         format=FormatTip.audio if is_audio else FormatTip.tekst,
         raw_text=raw_text,
         status=TranskStatusTip.sirovi,
@@ -104,13 +112,11 @@ async def upload_transcript(
     await db.commit()
     await db.refresh(transkript)
 
-    task = process_transcript_task.delay(transkript.id)
-    transkript.celery_task_id = task.id
-    await db.commit()
+    background_tasks.add_task(process_transcript, transkript.id)
 
     return TranscriptUploadResponse(
         transcript_id=transkript.id,
-        task_id=task.id,
+        task_id=None,
         message="Upload successful. Processing started.",
     )
 

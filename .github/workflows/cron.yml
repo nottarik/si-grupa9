@@ -1,0 +1,32 @@
+name: Cron — reconcile + cleanup
+
+# Runs every 15 minutes.
+# - Reconcile: re-queues any transcript stuck in "Sirovi" for > 5 min
+#   (covers the case where the Render dyno restarted mid-job).
+# - Cleanup: nullifies raw_text for transcripts older than 24 h (privacy).
+#
+# Required secrets:
+#   BACKEND_URL       — e.g. https://chatbot-backend-i8yb.onrender.com
+#   INTERNAL_API_KEY  — must match the env var set on the Render service
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  reconcile-and-cleanup:
+    name: Reconcile stuck transcripts + cleanup raw text
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reconcile stuck transcripts
+        run: |
+          curl -fsSL -X POST \
+            -H "x-internal-key: ${{ secrets.INTERNAL_API_KEY }}" \
+            "${{ secrets.BACKEND_URL }}/api/v1/internal/reconcile-transcripts"
+
+      - name: Cleanup raw text (privacy)
+        run: |
+          curl -fsSL -X POST \
+            -H "x-internal-key: ${{ secrets.INTERNAL_API_KEY }}" \
+            "${{ secrets.BACKEND_URL }}/api/v1/internal/cleanup-raw-text"

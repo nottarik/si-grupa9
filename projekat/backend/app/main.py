@@ -9,11 +9,15 @@ from app.api.v1.router import api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure Qdrant collection exists
+    import logging
     from app.services.ai.vector_store import VectorStoreService
-    VectorStoreService().ensure_collection()
+    try:
+        VectorStoreService().ensure_collection()
+    except Exception as exc:
+        logging.getLogger("app.startup").warning(
+            "Qdrant unreachable at startup — will retry on first request. %s", exc
+        )
     yield
-    # Shutdown: cleanup if needed
 
 
 app = FastAPI(
@@ -37,3 +41,9 @@ app.include_router(api_router)
 @app.get("/health", tags=["health"])
 async def health():
     return {"status": "ok", "env": settings.APP_ENV}
+
+
+@app.get("/heartbeat", tags=["health"])
+async def heartbeat():
+    """Lightweight liveness probe for Uptime Robot — no DB queries."""
+    return {"ok": True}

@@ -1,0 +1,57 @@
+# Render Blueprint — provisions the backend with one click.
+# https://render.com/docs/blueprint-spec
+#
+# Usage: Render dashboard → New → Blueprint → connect this repo.
+# Fill in the secret env vars marked `sync: false` when prompted.
+
+services:
+  - type: web
+    name: chatbot-backend
+    runtime: python
+    region: frankfurt
+    plan: free
+    rootDir: projekat/backend
+    buildCommand: pip install -r requirements.txt
+    pythonVersion: "3.12.0"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 60
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION_NAME
+        value: knowledge_base
+      - key: GROQ_API_KEY
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: all-MiniLM-L6-v2
+      - key: LLM_MODEL
+        value: llama-3.1-70b-versatile
+      - key: WHISPER_MODEL
+        value: whisper-large-v3
+      - key: RAG_TOP_K
+        value: 5
+      - key: RAG_CONFIDENCE_THRESHOLD
+        value: 0.6
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: supabucket
+      - key: INTERNAL_API_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false

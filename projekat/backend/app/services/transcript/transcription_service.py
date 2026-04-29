@@ -1,28 +1,32 @@
-from faster_whisper import WhisperModel
+import os
+from groq import Groq
+
 from app.core.config import settings
 
-_model: WhisperModel | None = None
+_client: Groq | None = None
 
 
-def get_whisper_model() -> WhisperModel:
-    global _model
-    if _model is None:
-        _model = WhisperModel(
-            settings.WHISPER_MODEL_SIZE,
-            device=settings.WHISPER_DEVICE,
-            compute_type="int8",
-        )
-    return _model
+def get_groq_client() -> Groq:
+    global _client
+    if _client is None:
+        _client = Groq(api_key=settings.GROQ_API_KEY)
+    return _client
 
 
 class TranscriptionService:
     """
-    Transcribes audio files locally using faster-whisper.
-    Returns a plain text transcript with speaker turns where possible.
+    Transcribes audio files via Groq's Whisper API.
+    Returns a plain text transcript.
     """
 
     def transcribe(self, audio_path: str, language: str = "bs") -> str:
-        model = get_whisper_model()
-        segments, info = model.transcribe(audio_path, language=language)
-        lines = [segment.text.strip() for segment in segments]
-        return "\n".join(lines)
+        client = get_groq_client()
+        filename = os.path.basename(audio_path)
+        with open(audio_path, "rb") as audio_file:
+            transcription = client.audio.transcriptions.create(
+                file=(filename, audio_file.read()),
+                model=settings.WHISPER_MODEL,
+                language=language,
+                response_format="text",
+            )
+        return transcription if isinstance(transcription, str) else str(transcription)
