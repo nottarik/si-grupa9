@@ -18,7 +18,7 @@ fi
 
 # Create a temporary self-signed cert so nginx can start before we have a real cert
 echo "Creating temporary self-signed certificate..."
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entrypoint \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entrypoint \
     "openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
      -keyout /etc/letsencrypt/live/$DOMAIN/privkey.pem \
      -out    /etc/letsencrypt/live/$DOMAIN/fullchain.pem \
@@ -27,11 +27,11 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entry
 
 # Start nginx (needs a cert to exist, even a dummy one)
 echo "Starting nginx..."
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --force-recreate -d nginx
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up --force-recreate -d nginx
 
 # Remove dummy cert and get the real one
 echo "Obtaining Let's Encrypt certificate for $DOMAIN..."
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entrypoint \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entrypoint \
     "certbot certonly --webroot -w /var/www/certbot \
      --email $EMAIL -d $DOMAIN \
      --rsa-key-size 4096 \
@@ -41,9 +41,9 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml run --rm --entry
 
 # Reload nginx to pick up the real cert
 echo "Reloading nginx..."
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec nginx nginx -s reload
 
 echo ""
 echo "Done! Certificate obtained for $DOMAIN"
 echo "Now start all services with:"
-echo "  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
+echo "  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
