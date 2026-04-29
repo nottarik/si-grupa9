@@ -44,12 +44,19 @@ export type TranscriptStatus = "pending" | "processing" | "processed" | "failed"
 export type TranscriptType = "text" | "audio";
 
 export interface Transcript {
-  id: string;
+  /*id: string;
   original_filename: string;
   transcript_type: TranscriptType;
   status: TranscriptStatus;
   celery_task_id: string | null;
-  created_at: string | null;
+  created_at: string | null;*/
+  id: string;
+  naziv: string;
+  format: string;
+  status: string;
+  celery_task_id: string | null;
+  datum_uploada: string | null;
+  transcript_type: TranscriptType;
 }
 
 export interface TranscriptDetail extends Transcript {

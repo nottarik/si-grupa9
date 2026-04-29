@@ -23,15 +23,21 @@ function DetailView({
       .finally(() => setLoading(false));
   }, [summary.id]);
 
-  const date = summary.created_at
-    ? new Date(summary.created_at).toLocaleDateString()
-    : "—";
+  const date = summary.datum_uploada
+  ? new Date(summary.datum_uploada).toLocaleDateString()
+  : "—";
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-title">{summary.original_filename}</h2>
+          <h2 className="section-title">
+              {(summary as any).original_filename ||
+              (summary as any).filename ||
+              (summary as any).file_name ||
+              (summary as any).name ||
+              "Bez naziva"}
+          </h2>
           <div className="text-xs text-gray-400 mt-1">
             {date} · {summary.transcript_type}
           </div>
@@ -91,6 +97,8 @@ export default function TranscriptList() {
       .catch(() => setError("Failed to load transcripts."))
       .finally(() => setLoading(false));
   }, []);
+  
+  const getTranscriptName = (t: Transcript) => t.naziv || "Bez naziva";
 
   if (selected) {
     return <DetailView summary={selected} onBack={() => setSelected(null)} />;
@@ -99,7 +107,7 @@ export default function TranscriptList() {
   const filtered = transcripts.filter((t) => {
     const matchSearch =
       !search ||
-      t.original_filename.toLowerCase().includes(search.toLowerCase());
+      getTranscriptName(t).toLowerCase().includes(search.toLowerCase());
     const matchStatus =
       statusFilter === "All" || t.status === statusFilter.toLowerCase();
     return matchSearch && matchStatus;
@@ -115,15 +123,15 @@ export default function TranscriptList() {
           style={{ borderBottom: "1px solid rgba(197,160,89,0.2)" }}
         >
           <div className="relative flex-1 min-w-40">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Ic d={icons.search} />
-            </span>
-            <input
-              className="input-field pl-9"
+             <input
+              className="input-field pr-9"
               placeholder="Search by filename…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Ic d={icons.search} />
+            </span>
           </div>
           <select
             className="input-field"
@@ -167,11 +175,11 @@ export default function TranscriptList() {
               {filtered.map((t) => (
                 <tr key={t.id}>
                   <td className="font-medium text-charcoal">
-                    {t.original_filename}
+                    {getTranscriptName(t)}
                   </td>
                   <td className="text-gray-400">
-                    {t.created_at
-                      ? new Date(t.created_at).toLocaleDateString()
+                    {t.datum_uploada
+                      ? new Date(t.datum_uploada).toLocaleDateString()
                       : "—"}
                   </td>
                   <td className="text-gray-400">{t.transcript_type}</td>
