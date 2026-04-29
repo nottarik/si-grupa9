@@ -17,10 +17,12 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    parts = payload.full_name.strip().split(" ", 1)
     user = Korisnik(
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
-        ime=payload.full_name,
+        ime=parts[0],
+        prezime=parts[1] if len(parts) > 1 else "",
         uloga=api_role_to_db(payload.role),
     )
     db.add(user)
