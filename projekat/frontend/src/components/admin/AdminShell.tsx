@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { Ic, icons } from "./shared";
+import { icons } from "./shared";
 import Dashboard from "./sections/Dashboard";
 import UploadSection from "./sections/UploadSection";
 import TranscriptList from "./sections/TranscriptList";
