@@ -32,11 +32,7 @@ function DetailView({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="section-title">
-              {(summary as any).original_filename ||
-              (summary as any).filename ||
-              (summary as any).file_name ||
-              (summary as any).name ||
-              "Bez naziva"}
+            {summary.naziv || "Bez naziva"}
           </h2>
           <div className="text-xs text-gray-400 mt-1">
             {date} · {summary.transcript_type}

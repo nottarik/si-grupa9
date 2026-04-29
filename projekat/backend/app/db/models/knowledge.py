@@ -4,6 +4,8 @@ import enum
 
 from app.db.session import Base
 
+_BigIntPK = BigInteger().with_variant(Integer, "sqlite")
+
 
 class AprovStatusTip(str, enum.Enum):
     odobren = "Odobren"
@@ -60,7 +62,7 @@ class AnomalijаStatus(str, enum.Enum):
 class Kategorija(Base):
     __tablename__ = "kategorija"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     naziv = Column(String, nullable=False)
     opis = Column(Text, nullable=True)
     nadredjena_kategorija_id = Column(BigInteger, ForeignKey("kategorija.id"), nullable=True)
@@ -70,7 +72,7 @@ class Kategorija(Base):
 class BazaZnanja(Base):
     __tablename__ = "baza_znanja"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     naziv = Column(String, nullable=False)
     verzija = Column(String, nullable=True)
     datum_kreiranja = Column(DateTime(timezone=True), server_default=func.now())
@@ -87,7 +89,7 @@ class UnosBazeZnanja(Base):
     """Main RAG table — replaces KnowledgeItem."""
     __tablename__ = "unos_baze_znanja"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     pitanje = Column(Text, nullable=False)
     odgovor = Column(Text, nullable=False)
     id_baze_znanja = Column(BigInteger, ForeignKey("baza_znanja.id"), nullable=True)
@@ -110,7 +112,7 @@ class UnosBazeZnanja(Base):
 class ChatSesija(Base):
     __tablename__ = "chat_sesija"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     datum_pocetka = Column(DateTime(timezone=True), server_default=func.now())
     datum_zavrsetka = Column(DateTime(timezone=True), nullable=True)
     id_korisnika = Column(UUID(as_uuid=True), ForeignKey("korisnik.id"), nullable=False)
@@ -130,7 +132,7 @@ class ChatSesija(Base):
 class Poruka(Base):
     __tablename__ = "poruka"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     tekst = Column(Text, nullable=False)
     tip = Column(
         Enum("KorisnickoP", "ChatbotOdgovor", name="poruka_tip", create_type=False),
@@ -148,7 +150,7 @@ class Poruka(Base):
 class Odgovor(Base):
     __tablename__ = "odgovor"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     tekst_odgovora = Column(Text, nullable=False)
     id_unosa_baze_znanja = Column(BigInteger, ForeignKey("unos_baze_znanja.id"), nullable=True)
     metoda_generisanja = Column(
@@ -164,7 +166,7 @@ class Odgovor(Base):
 class Feedback(Base):
     __tablename__ = "feedback"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     ocjena = Column(Float, nullable=True)
     komentar = Column(Text, nullable=True)
     tip = Column(
@@ -180,7 +182,7 @@ class Feedback(Base):
 class Anomalija(Base):
     __tablename__ = "anomalija"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     opis = Column(Text, nullable=True)
     tip = Column(
         Enum("NiskaPouzdanost", "BezOdgovora", "KontradiktoranOdgovor", "NevalidanPodatak",

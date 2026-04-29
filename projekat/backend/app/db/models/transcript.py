@@ -1,4 +1,8 @@
 from sqlalchemy import BigInteger, Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+
+# SQLite only autoincrements INTEGER primary keys, not BIGINT.
+# with_variant keeps BIGINT on PostgreSQL and switches to INTEGER for SQLite tests.
+_BigIntPK = BigInteger().with_variant(Integer, "sqlite")
 from sqlalchemy.dialects.postgresql import UUID
 import enum
 
@@ -37,7 +41,7 @@ class SegTip(str, enum.Enum):
 class Transkript(Base):
     __tablename__ = "transkript"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     naziv = Column(String, nullable=False)
     datum_poziva = Column(DateTime(timezone=True), nullable=True)
     trajanje_sec = Column(Integer, nullable=True)
@@ -67,7 +71,7 @@ class Transkript(Base):
 class Segment(Base):
     __tablename__ = "segment"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     tekst = Column(Text, nullable=False)
     tip_segmenta = Column(
         Enum("Pitanje", "Odgovor", "Kontekst", name="seg_tip", create_type=False),
