@@ -2,7 +2,7 @@
 
 ## Opis sprinta
 
-Sprint 5 fokusira se na implementaciju sistema autentifikacije (prijava i odjava korisnika), funkcionalnosti za upload i unos transkripata, te pregleda unesenih transkripata i postavljenih pitanja i odgovora. Ove stavke čine temelj sistema — bez prijave korisnici ne mogu pristupiti nijednoj funkcionalnosti, a upload transkripata direktno napaja bazu znanja chatbota.
+Sprint 5 se fokusira na implementaciju sistema autentifikacije (prijava i odjava korisnika), funkcionalnosti za upload i unos transkripata, te pregleda unesenih transkripata i postavljenih pitanja i odgovora. Ove stavke čine temelj sistema — bez prijave korisnici ne mogu pristupiti nijednoj funkcionalnosti, a upload transkripata direktno napaja bazu znanja chatbota.
 
 ---
 
@@ -12,9 +12,8 @@ Sprint 5 fokusira se na implementaciju sistema autentifikacije (prijava i odjava
 |----|--------------|-------------|-----|-----------|-----------------|--------|
 | PB-36 | Sign In | Sistem za autentifikaciju korisnika | Technical Task | High | 5 | Done |
 | PB-37 | Sign Out | Odjava iz sistema | Technical Task | High | 5 | Done |
-| PB-18 | Upload i unos transkripata | Prijem i pohrana transkripata s osnovnom validacijom | Feature | High | 8 | Done |
+| PB-18 | Upload i unos transkripata | Prijem i pohrana transkripata  | Feature | High | 8 | Done |
 | PB-33 | Pregled unesenih transkripata | Tabela s listom fajlova, datumom, statusom obrade | Feature | High | 3 | Done |
-| PB-34 | Pregled postavljenih pitanja i odgovora | Omogućava administratoru prikaz postavljenih pitanja i odgovora | Feature | High | 3 | Done |
 | PB-19 | AI Usage Log i Decision Log | Uspostava logova za praćenje korištenja AI alata i tehničkih odluka | Technical Task | Medium | — | Done |
 
 ---
@@ -105,17 +104,6 @@ Sprint 5 fokusira se na implementaciju sistema autentifikacije (prijava i odjava
 
 ---
 
-#### US-18.3 — Validacija unesenih transkripata
-
-**Uloga:** Kao administrator, želim da sistem provjeri ispravnost unesenih podataka kako bih spriječio pohranu nekompletnih ili nevalidnih transkripata.
-
-**Acceptance Criteria:**
-
-- Kada administrator pokuša pohraniti nepotpun transkript, tada sistem mora prikazati odgovarajuću poruku greške
-- Sistem ne smije dozvoliti pohranivanje transkripata koji ne zadovoljavaju validaciona pravila
-- Sistem mora jasno naznačiti koje polje sadrži grešku
-
----
 
 ### PB-33: Pregled unesenih transkripata
 
@@ -151,28 +139,6 @@ Sprint 5 fokusira se na implementaciju sistema autentifikacije (prijava i odjava
 
 ---
 
-### PB-34: Pregled postavljenih pitanja i odgovora
-
-**Naziv:** Pregled postavljenih pitanja i odgovora  
-**Prioritet:** High  
-**Poslovna vrijednost:** Omogućava administratoru nadzor nad interakcijama korisnika s chatbotom, što je osnova za analizu kvaliteta i daljnje poboljšanje sistema.  
-**Pretpostavke:** Korisnici su postavljali pitanja chatbotu i odgovori su pohranjeni u sistemu.  
-**Veze i zavisnosti:** Zavisi od PB-36 Sign In. Zavisi od Chat UI funkcionalnosti.
-
----
-
-#### US-34.1 — Lista svih postavljenih pitanja i odgovora
-
-**Uloga:** Kao administrator, želim pregledati sva pitanja koja su korisnici postavili chatbotu i odgovore koje je chatbot dao, kako bih mogao pratiti kvalitet i sadržaj interakcija.
-
-**Acceptance Criteria:**
-
-- Kada administrator otvori modul za pregled pitanja i odgovora, tada sistem mora prikazati listu svih interakcija
-- Svaki zapis mora sadržavati pitanje korisnika, odgovor chatbota i datum interakcije
-- Kada ne postoji nijedna interakcija, tada sistem mora prikazati odgovarajuću poruku
-- Sistem ne smije prikazati grešku prilikom učitavanja liste
-
----
 
 ### PB-19: AI Usage Log i Decision Log
 
