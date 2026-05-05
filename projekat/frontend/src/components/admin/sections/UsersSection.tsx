@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { listUsers, updateUserRole } from "../../../api/users";
+import { listUsers, updateUserRole, deleteUser } from "../../../api/users";
+import { useAuth } from "../../../hooks/useAuth";
 import type { User, UserRole } from "../../../types";
 
 const ROLES: { value: UserRole; label: string }[] = [
@@ -17,11 +18,13 @@ const ROLE_BADGE: Record<UserRole, string> = {
 };
 
 export default function UsersSection() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     listUsers()
@@ -29,6 +32,19 @@ export default function UsersSection() {
       .catch(() => setError("Failed to load users."))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleDelete(user: User) {
+    if (!window.confirm(`Obrisati korisnika ${user.email}? Ova akcija se ne može poništiti.`)) return;
+    setDeleting(user.id);
+    try {
+      await deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } catch {
+      setError(`Greška pri brisanju korisnika ${user.email}.`);
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   async function handleRoleChange(user: User, newRole: UserRole) {
     if (newRole === user.role) return;
@@ -112,7 +128,7 @@ export default function UsersSection() {
                   <div className="flex items-center gap-2">
                     <select
                       value={u.role}
-                      disabled={saving === u.id}
+                      disabled={saving === u.id || deleting === u.id}
                       onChange={(e) => handleRoleChange(u, e.target.value as UserRole)}
                       className="text-xs rounded-md px-2 py-1.5 border transition-colors"
                       style={{
@@ -135,6 +151,28 @@ export default function UsersSection() {
                       <span className="text-xs" style={{ color: "#22c55e" }}>
                         ✓ Sačuvano
                       </span>
+                    )}
+                    {u.id !== currentUser?.id && (
+                      <button
+                        onClick={() => handleDelete(u)}
+                        disabled={deleting === u.id || saving === u.id}
+                        title="Obriši korisnika"
+                        className="ml-1 p-1.5 rounded transition-colors"
+                        style={{ color: deleting === u.id ? "#d1d5db" : "#ef4444" }}
+                        onMouseEnter={(e) => {
+                          if (deleting !== u.id) (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.background = "transparent";
+                        }}
+                      >
+                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          <path d="M10 11v6M14 11v6" />
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                      </button>
                     )}
                   </div>
                 </td>

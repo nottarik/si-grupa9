@@ -10,3 +10,7 @@ export async function updateUserRole(userId: string, role: UserRole): Promise<Us
   const { data } = await apiClient.patch<User>(`/api/v1/users/${userId}/role`, { role });
   return data;
 }
+
+export async function deleteUser(userId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/users/${userId}`);
+}
