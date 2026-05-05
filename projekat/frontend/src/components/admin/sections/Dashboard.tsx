@@ -1,9 +1,32 @@
+import { useEffect, useState } from "react";
+import { listTranscripts } from "../../../api/transcripts";
+import { listUsers } from "../../../api/users";
+
 export default function Dashboard() {
+  const [transcriptTotal, setTranscriptTotal] = useState<number | null>(null);
+  const [transcriptProcessed, setTranscriptProcessed] = useState<number | null>(null);
+  const [userCount, setUserCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    listTranscripts()
+      .then((ts) => {
+        setTranscriptTotal(ts.length);
+        setTranscriptProcessed(ts.filter((t) => t.status === "Obradjeno").length);
+      })
+      .catch(() => {});
+
+    listUsers()
+      .then((users) => setUserCount(users.length))
+      .catch(() => {});
+  }, []);
+
+  const fmt = (n: number | null) => (n === null ? "…" : String(n));
+
   const stats = [
-    { label: "Avg. Rating", val: "4.3", sub: "Last 30 days", icon: "★" },
-    { label: "Total Calls", val: "1,284", sub: "This month", icon: "📞" },
-    { label: "Transcripts", val: "342", sub: "Processed", icon: "📄" },
-    { label: "Open Issues", val: "6", sub: "Requires attention", icon: "⚠" },
+    { label: "Avg. Rating",  val: "4.3",                   sub: "Last 30 days",                             icon: "★" },
+    { label: "Transkripti",  val: fmt(transcriptTotal),     sub: `${fmt(transcriptProcessed)} obrađeno`,     icon: "📄" },
+    { label: "Korisnici",    val: fmt(userCount),            sub: "Registrovani",                             icon: "👤" },
+    { label: "Open Issues",  val: "6",                      sub: "Requires attention",                       icon: "⚠" },
   ];
 
   const ratingPcts: Record<number, number> = { 5: 48, 4: 30, 3: 12, 2: 6, 1: 4 };
