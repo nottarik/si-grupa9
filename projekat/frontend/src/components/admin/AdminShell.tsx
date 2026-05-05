@@ -33,6 +33,7 @@ const TODAY = new Date().toLocaleDateString("en-US", {
 export default function AdminShell() {
   const [active, setActive] = useState<NavId>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [transcriptKey, setTranscriptKey] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -41,10 +42,15 @@ export default function AdminShell() {
     navigate("/login");
   }
 
+  function handleNavClick(id: NavId) {
+    if (id === "transcripts") setTranscriptKey((k) => k + 1);
+    setActive(id);
+  }
+
   const sections: Record<NavId, JSX.Element> = {
     dashboard:   <Dashboard />,
     upload:      <UploadSection />,
-    transcripts: <TranscriptList />,
+    transcripts: <TranscriptList key={transcriptKey} />,
     chat:        <ChatLogs />,
     ratings:     <Ratings />,
     issues:      <Issues />,
@@ -90,7 +96,7 @@ export default function AdminShell() {
             <button
               key={n.id}
               className={`sidebar-item ${active === n.id ? "active" : ""}`}
-              onClick={() => setActive(n.id)}
+              onClick={() => handleNavClick(n.id)}
             >
               <svg
                 width={15}

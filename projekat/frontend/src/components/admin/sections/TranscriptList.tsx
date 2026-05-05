@@ -5,9 +5,24 @@ import {
   listTranscripts,
   updateTranscript,
 } from "../../../api/transcripts";
+
 import { useAuth } from "../../../hooks/useAuth";
 import type { Transcript, TranscriptDetail, TranscriptUpdate } from "../../../types";
 import { Ic, StatusBadge, icons } from "../shared";
+
+function validateTranscriptFormat(content: string): string | null {
+  const lines = content.split("\n");
+  const hasAgent = lines.some(
+    (line) => /^\s*AGENT\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  );
+  const hasKorisnik = lines.some(
+    (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  );
+  if (!hasAgent && !hasKorisnik) return "Sadržaj mora biti u formatu 'AGENT: tekst' i 'KORISNIK: tekst'";
+  if (!hasAgent) return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'";
+  if (!hasKorisnik) return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'";
+  return null;
+}
 
 // ── Detail view ──────────────────────────────────────────────────────────────
 
@@ -92,6 +107,7 @@ function EditView({
   const [processedText, setProcessedText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [contentError, setContentError] = useState("");
 
   useEffect(() => {
     getTranscript(String(summary.id))
@@ -104,11 +120,24 @@ function EditView({
       .finally(() => setLoadingDetail(false));
   }, [summary.id]);
 
+  const date = summary.datum_uploada
+    ? new Date(summary.datum_uploada).toLocaleDateString("bs-BA")
+    : "—";
+  const isAudio = summary.format === "audio";
+
   async function handleSave() {
     if (!naziv.trim()) {
       setError("Naziv ne smije biti prazan.");
       return;
     }
+    if (!isAudio && processedText.trim()) {
+      const formatError = validateTranscriptFormat(processedText);
+      if (formatError) {
+        setContentError(formatError);
+        return;
+      }
+    }
+    setContentError("");
     setSaving(true);
     setError("");
     const payload: TranscriptUpdate = {};
@@ -123,11 +152,6 @@ function EditView({
       setSaving(false);
     }
   }
-
-  const date = summary.datum_uploada
-    ? new Date(summary.datum_uploada).toLocaleDateString("bs-BA")
-    : "—";
-  const isAudio = summary.format === "audio";
 
   return (
     <div className="space-y-5">
@@ -204,7 +228,7 @@ function EditView({
                 Sadržaj
               </label>
               <textarea
-                className="input-field"
+                className={`input-field ${contentError ? "error" : ""}`}
                 style={{
                   minHeight: 320,
                   resize: "vertical",
@@ -213,11 +237,17 @@ function EditView({
                   lineHeight: 1.6,
                 }}
                 value={processedText}
-                onChange={(e) => setProcessedText(e.target.value)}
+                onChange={(e) => {
+                  setProcessedText(e.target.value);
+                  if (contentError) setContentError("");
+                }}
                 placeholder="Sadržaj transkripta…"
               />
+              {contentError && (
+                <p className="text-xs text-red-600 mt-1">{contentError}</p>
+              )}
               <div className="text-xs text-gray-400 mt-1">
-                Izmjene sadržaja ne pokreću ponovnu obradu — ažurira se samo prikazani tekst.
+                Format: <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>AGENT: tekst</code> i <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>KORISNIK: tekst</code> · Izmjene ne pokreću ponovnu obradu.
               </div>
             </div>
           )}

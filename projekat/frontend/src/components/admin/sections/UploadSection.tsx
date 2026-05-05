@@ -54,6 +54,26 @@ interface ManualErrors {
   content?: string;
 }
 
+function validateTranscriptFormat(content: string): string | null {
+  const lines = content.split("\n");
+  const hasAgent = lines.some(
+    (line) => /^\s*AGENT\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  );
+  const hasKorisnik = lines.some(
+    (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  );
+  if (!hasAgent && !hasKorisnik) {
+    return "Sadržaj mora biti u formatu 'AGENT: tekst' i 'KORISNIK: tekst'";
+  }
+  if (!hasAgent) {
+    return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'";
+  }
+  if (!hasKorisnik) {
+    return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'";
+  }
+  return null;
+}
+
 function validateManual(
   agentName: string,
   date: string,
@@ -63,9 +83,12 @@ function validateManual(
   if (!agentName.trim()) errors.agent_name = "Agent name is required";
   if (!date) errors.date = "Date is required";
   if (!content.trim()) {
-    errors.content = "Content is required";
+    errors.content = "Sadržaj je obavezan";
   } else if (content.trim().length < 20) {
-    errors.content = "Content must be at least 20 characters";
+    errors.content = "Sadržaj mora imati najmanje 20 znakova";
+  } else {
+    const formatError = validateTranscriptFormat(content);
+    if (formatError) errors.content = formatError;
   }
   return errors;
 }
@@ -281,8 +304,8 @@ function ManualEntry() {
         <textarea
           className={`input-field ${errors.content ? "error" : ""}`}
           rows={10}
-          placeholder="Paste or type transcript text here…"
-          style={{ resize: "vertical" }}
+          placeholder={"AGENT: Dobar dan, kako vam mogu pomoći?\nKORISNIK: Imam problem sa fakturom.\nAGENT: Razumijem, možete li mi reći broj računa?"}
+          style={{ resize: "vertical", fontFamily: "monospace", fontSize: 13 }}
           value={content}
           onChange={(e) => {
             setContent(e.target.value);
@@ -293,7 +316,7 @@ function ManualEntry() {
           <p className="text-xs text-red-600 mt-1">{errors.content}</p>
         )}
         <p className="text-xs text-gray-400 mt-1">
-          {content.trim().length} characters (minimum 20)
+          Format: <code className="bg-gray-100 px-1 rounded">AGENT: tekst</code> i <code className="bg-gray-100 px-1 rounded">KORISNIK: tekst</code> · {content.trim().length} znakova (min. 20)
         </p>
       </div>
 
