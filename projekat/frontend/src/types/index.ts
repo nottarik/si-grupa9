@@ -80,6 +80,11 @@ export interface TranscriptManualResponse {
   message: string;
 }
 
+export interface TranscriptUpdate {
+  naziv?: string;
+  processed_text?: string | null;
+}
+
 // ── Knowledge ─────────────────────────────────────────────────────────
 export type QAStatus = "pending_approval" | "active" | "rejected" | "archived";
 

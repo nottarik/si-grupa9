@@ -1,9 +1,10 @@
 import io
-from datetime import datetime, timezone
+from datetime import date as DateType, datetime, timedelta, timezone
+from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.db.session import get_db
 from app.db.models.user import Korisnik, UlogaTip
@@ -14,6 +15,7 @@ from app.schemas.transcript import (
     TranscriptManualCreate,
     TranscriptManualResponse,
     TranscriptRead,
+    TranscriptUpdate,
     TranscriptUploadResponse,
 )
 from app.services.storage.storage_service import StorageService
@@ -165,10 +167,31 @@ async def create_manual_transcript(
 
 @router.get("/", response_model=list[TranscriptRead])
 async def list_transcripts(
+    q: Optional[str] = None,
+    date_from: Optional[DateType] = None,
+    date_to: Optional[DateType] = None,
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    result = await db.execute(select(Transkript).order_by(Transkript.datum_uploada.desc()))
+    stmt = select(Transkript).order_by(Transkript.datum_uploada.desc())
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(
+            or_(
+                Transkript.naziv.ilike(term),
+                Transkript.raw_text.ilike(term),
+                Transkript.processed_text.ilike(term),
+            )
+        )
+    if date_from:
+        stmt = stmt.where(
+            Transkript.datum_uploada >= datetime.combine(date_from, datetime.min.time())
+        )
+    if date_to:
+        stmt = stmt.where(
+            Transkript.datum_uploada < datetime.combine(date_to + timedelta(days=1), datetime.min.time())
+        )
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
@@ -185,3 +208,39 @@ async def get_transcript(
     if not transkript:
         raise HTTPException(status_code=404, detail="Transcript not found")
     return transkript
+
+
+@router.patch("/{transcript_id}", response_model=TranscriptDetail)
+async def update_transcript(
+    transcript_id: int,
+    payload: TranscriptUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
+):
+    result = await db.execute(select(Transkript).where(Transkript.id == transcript_id))
+    transkript = result.scalar_one_or_none()
+    if not transkript:
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    if payload.naziv is not None:
+        stripped = payload.naziv.strip()
+        if stripped:
+            transkript.naziv = stripped
+    if payload.processed_text is not None:
+        transkript.processed_text = payload.processed_text
+    await db.commit()
+    await db.refresh(transkript)
+    return transkript
+
+
+@router.delete("/{transcript_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_transcript(
+    transcript_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
+):
+    result = await db.execute(select(Transkript).where(Transkript.id == transcript_id))
+    transkript = result.scalar_one_or_none()
+    if not transkript:
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    await db.delete(transkript)
+    await db.commit()

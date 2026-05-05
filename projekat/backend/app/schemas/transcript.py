@@ -58,3 +58,8 @@ class TranscriptManualCreate(BaseModel):
 class TranscriptManualResponse(BaseModel):
     transcript_id: int
     message: str
+
+
+class TranscriptUpdate(BaseModel):
+    naziv: str | None = None
+    processed_text: str | None = None

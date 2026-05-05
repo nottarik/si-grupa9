@@ -4,6 +4,7 @@ import type {
   TranscriptDetail,
   TranscriptManualCreate,
   TranscriptManualResponse,
+  TranscriptUpdate,
   TranscriptUploadResponse,
 } from "../types";
 
@@ -30,8 +31,12 @@ export async function createManualTranscript(
   return data;
 }
 
-export async function listTranscripts(): Promise<Transcript[]> {
-  const { data } = await apiClient.get<Transcript[]>("/api/v1/transcripts/");
+export async function listTranscripts(params?: {
+  q?: string;
+  date_from?: string;
+  date_to?: string;
+}): Promise<Transcript[]> {
+  const { data } = await apiClient.get<Transcript[]>("/api/v1/transcripts/", { params });
   return data;
 }
 
@@ -40,4 +45,19 @@ export async function getTranscript(id: string): Promise<TranscriptDetail> {
     `/api/v1/transcripts/${id}`
   );
   return data;
+}
+
+export async function updateTranscript(
+  id: string,
+  payload: TranscriptUpdate
+): Promise<TranscriptDetail> {
+  const { data } = await apiClient.patch<TranscriptDetail>(
+    `/api/v1/transcripts/${id}`,
+    payload
+  );
+  return data;
+}
+
+export async function deleteTranscript(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/transcripts/${id}`);
 }
