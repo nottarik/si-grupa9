@@ -1,7 +1,25 @@
+import re
+
 from pydantic import BaseModel, field_validator
 from datetime import date, datetime
 
 from app.db.models.transcript import TranskStatusTip, FormatTip
+
+
+def _check_transcript_format(text: str) -> None:
+    lines = text.splitlines()
+    has_agent = any(
+        re.match(r"^\s*AGENT\s*:", line, re.IGNORECASE) and line.split(":", 1)[-1].strip()
+        for line in lines
+    )
+    has_korisnik = any(
+        re.match(r"^\s*KORISNIK\s*:", line, re.IGNORECASE) and line.split(":", 1)[-1].strip()
+        for line in lines
+    )
+    if not has_agent:
+        raise ValueError("Transkript mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'")
+    if not has_korisnik:
+        raise ValueError("Transkript mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'")
 
 
 class TranscriptRead(BaseModel):
@@ -40,10 +58,11 @@ class TranscriptManualCreate(BaseModel):
 
     @field_validator("content")
     @classmethod
-    def content_min_length(cls, v: str) -> str:
+    def content_valid(cls, v: str) -> str:
         stripped = v.strip()
         if len(stripped) < 20:
-            raise ValueError("Transcript content must be at least 20 characters long")
+            raise ValueError("Sadržaj transkripta mora imati najmanje 20 znakova")
+        _check_transcript_format(stripped)
         return stripped
 
     @field_validator("agent_name")
@@ -63,3 +82,10 @@ class TranscriptManualResponse(BaseModel):
 class TranscriptUpdate(BaseModel):
     naziv: str | None = None
     processed_text: str | None = None
+
+    @field_validator("processed_text")
+    @classmethod
+    def processed_text_format(cls, v: str | None) -> str | None:
+        if v is not None and v.strip():
+            _check_transcript_format(v.strip())
+        return v
