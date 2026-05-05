@@ -9,6 +9,7 @@ import ChatLogs from "./sections/ChatLogs";
 import Ratings from "./sections/Ratings";
 import Issues from "./sections/Issues";
 import Training from "./sections/Training";
+import UsersSection from "./sections/UsersSection";
 
 const NAV = [
   { id: "dashboard",   label: "Dashboard",        icon: icons.dashboard },
@@ -18,6 +19,7 @@ const NAV = [
   { id: "ratings",     label: "Ratings",           icon: icons.ratings },
   { id: "issues",      label: "Issues",            icon: icons.issues },
   { id: "training",    label: "Training Dataset",  icon: icons.training },
+  { id: "users",       label: "Korisnici",         icon: icons.users },
 ] as const;
 
 type NavId = (typeof NAV)[number]["id"];
@@ -47,6 +49,7 @@ export default function AdminShell() {
     ratings:     <Ratings />,
     issues:      <Issues />,
     training:    <Training />,
+    users:       <UsersSection />,
   };
 
   const currentLabel = NAV.find((n) => n.id === active)?.label ?? "";

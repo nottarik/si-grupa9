@@ -65,6 +65,10 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class UserRoleUpdate(BaseModel):
+    role: UserRole
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
