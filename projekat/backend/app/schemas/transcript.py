@@ -82,10 +82,3 @@ class TranscriptManualResponse(BaseModel):
 class TranscriptUpdate(BaseModel):
     naziv: str | None = None
     processed_text: str | None = None
-
-    @field_validator("processed_text")
-    @classmethod
-    def processed_text_format(cls, v: str | None) -> str | None:
-        if v is not None and v.strip():
-            _check_transcript_format(v.strip())
-        return v
