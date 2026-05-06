@@ -1,5 +1,4 @@
 # Sprint Review Summary
-## AI Call Centar
 
 **Datum pregleda:** 30. april 2026
 
