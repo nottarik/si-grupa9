@@ -7,6 +7,7 @@ import {
 } from "../../../api/transcripts";
 
 import { useAuth } from "../../../hooks/useAuth";
+import { useSubViewBack } from "../../../hooks/useSubViewBack";
 import type { Transcript, TranscriptDetail, TranscriptUpdate } from "../../../types";
 import { Ic, StatusBadge, icons } from "../shared";
 
@@ -18,9 +19,9 @@ function validateTranscriptFormat(content: string): string | null {
   const hasKorisnik = lines.some(
     (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
-  if (!hasAgent && !hasKorisnik) return "Sadržaj mora biti u formatu 'AGENT: tekst' i 'KORISNIK: tekst'";
-  if (!hasAgent) return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'";
-  if (!hasKorisnik) return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'";
+  if (!hasAgent && !hasKorisnik) return "Content must be in format 'AGENT: text' and 'KORISNIK: text'";
+  if (!hasAgent) return "Content must contain at least one line in format 'AGENT: text'";
+  if (!hasKorisnik) return "Content must contain at least one line in format 'KORISNIK: text'";
   return null;
 }
 
@@ -40,7 +41,7 @@ function DetailView({
   useEffect(() => {
     getTranscript(String(summary.id))
       .then(setDetail)
-      .catch(() => setError("Greška pri učitavanju sadržaja transkripta."))
+      .catch(() => setError("Error loading transcript content."))
       .finally(() => setLoading(false));
   }, [summary.id]);
 
@@ -52,7 +53,7 @@ function DetailView({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-title">{summary.naziv || "Bez naziva"}</h2>
+          <h2 className="section-title">{summary.naziv || "Untitled"}</h2>
           <div className="text-xs text-gray-400 mt-1">
             {date} · {summary.format}
           </div>
@@ -60,7 +61,7 @@ function DetailView({
         <div className="flex gap-2 items-center">
           <StatusBadge s={summary.status} />
           <button className="outline-btn text-xs py-1" onClick={onBack}>
-            ← Nazad
+            ← Back
           </button>
         </div>
       </div>
@@ -68,7 +69,7 @@ function DetailView({
       <div className="meander" />
 
       {loading && (
-        <div className="card p-8 text-center text-sm text-gray-400">Učitavanje…</div>
+        <div className="card p-8 text-center text-sm text-gray-400">Loading…</div>
       )}
       {error && (
         <div className="card p-5 text-sm" style={{ color: "#ef4444" }}>{error}</div>
@@ -76,13 +77,13 @@ function DetailView({
       {!loading && !error && detail && (
         <div className="card p-5">
           <div className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "rgba(197,160,89,0.9)" }}>
-            {detail.processed_text ? "Obrađeni transkript" : "Sirovi sadržaj"}
+            {detail.processed_text ? "Processed transcript" : "Raw content"}
           </div>
           <div
             className="rounded-lg p-4 text-sm leading-relaxed text-charcoal border whitespace-pre-wrap"
             style={{ minHeight: 200, background: "#f8f5f0", borderColor: "rgba(197,160,89,0.15)" }}
           >
-            {detail.processed_text ?? "(Sadržaj još nije dostupan — obrada u toku)"}
+            {detail.processed_text ?? "(Content not yet available — processing in progress)"}
           </div>
         </div>
       )}
@@ -116,7 +117,7 @@ function EditView({
         setNaziv(d.naziv || "");
         setProcessedText(d.processed_text || "");
       })
-      .catch(() => setError("Greška pri učitavanju transkripta."))
+      .catch(() => setError("Error loading transcript."))
       .finally(() => setLoadingDetail(false));
   }, [summary.id]);
 
@@ -127,7 +128,7 @@ function EditView({
 
   async function handleSave() {
     if (!naziv.trim()) {
-      setError("Naziv ne smije biti prazan.");
+      setError("Name cannot be empty.");
       return;
     }
     if (!isAudio && processedText.trim()) {
@@ -148,7 +149,7 @@ function EditView({
       const updated = await updateTranscript(String(summary.id), payload);
       onSaved(updated);
     } catch {
-      setError("Greška pri čuvanju izmjena. Pokušajte ponovo.");
+      setError("Error saving changes. Please try again.");
       setSaving(false);
     }
   }
@@ -157,19 +158,19 @@ function EditView({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-title">Uredi transkript</h2>
+          <h2 className="section-title">Edit Transcript</h2>
           <div className="text-xs text-gray-400 mt-1">{date} · {summary.format}</div>
         </div>
         <div className="flex gap-2">
           <button className="outline-btn text-xs py-1" onClick={onBack} disabled={saving}>
-            ← Odustani
+            ← Cancel
           </button>
           <button
             className="gold-btn text-xs py-1"
             onClick={handleSave}
             disabled={saving || loadingDetail}
           >
-            {saving ? "Čuvanje..." : "Sačuvaj izmjene"}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>
@@ -190,7 +191,7 @@ function EditView({
       )}
 
       {loadingDetail ? (
-        <div className="card p-8 text-center text-sm text-gray-400">Učitavanje…</div>
+        <div className="card p-8 text-center text-sm text-gray-400">Loading…</div>
       ) : (
         <div className="card p-5 space-y-5">
           <div>
@@ -198,13 +199,13 @@ function EditView({
               className="block text-xs font-semibold tracking-widest uppercase mb-2"
               style={{ color: "rgba(197,160,89,0.9)" }}
             >
-              Naziv
+              Name
             </label>
             <input
               className="input-field"
               value={naziv}
               onChange={(e) => setNaziv(e.target.value)}
-              placeholder="Naziv transkripta"
+              placeholder="Transcript name"
             />
           </div>
 
@@ -217,7 +218,7 @@ function EditView({
                 color: "#8a6d1f",
               }}
             >
-              Audio transkripti — sadržaj se ne može direktno uređivati.
+              Audio transcripts — content cannot be edited directly.
             </div>
           ) : (
             <div>
@@ -225,7 +226,7 @@ function EditView({
                 className="block text-xs font-semibold tracking-widest uppercase mb-2"
                 style={{ color: "rgba(197,160,89,0.9)" }}
               >
-                Sadržaj
+                Content
               </label>
               <textarea
                 className={`input-field ${contentError ? "error" : ""}`}
@@ -241,13 +242,13 @@ function EditView({
                   setProcessedText(e.target.value);
                   if (contentError) setContentError("");
                 }}
-                placeholder="Sadržaj transkripta…"
+                placeholder="Transcript content…"
               />
               {contentError && (
                 <p className="text-xs text-red-600 mt-1">{contentError}</p>
               )}
               <div className="text-xs text-gray-400 mt-1">
-                Format: <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>AGENT: tekst</code> i <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>KORISNIK: tekst</code> · Izmjene ne pokreću ponovnu obradu.
+                Format: <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>AGENT: text</code> and <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>KORISNIK: text</code> · Changes do not trigger reprocessing.
               </div>
             </div>
           )}
@@ -277,6 +278,8 @@ export default function TranscriptList() {
   const [selected, setSelected] = useState<Transcript | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  useSubViewBack(viewMode !== "list", () => setViewMode("list"));
+
   // Debounce keyword search so we don't fire on every keystroke
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
@@ -292,14 +295,14 @@ export default function TranscriptList() {
       date_to: dateTo || undefined,
     })
       .then(setTranscripts)
-      .catch(() => setError("Greška pri učitavanju transkripata."))
+      .catch(() => setError("Error loading transcripts."))
       .finally(() => setLoading(false));
   }, [debouncedSearch, dateFrom, dateTo]);
 
   async function handleDelete(t: Transcript) {
     if (
       !window.confirm(
-        `Obrisati transkript "${t.naziv}"?\nOva akcija se ne može poništiti.`
+        `Delete transcript "${t.naziv}"?\nThis action cannot be undone.`
       )
     )
       return;
@@ -308,7 +311,7 @@ export default function TranscriptList() {
       await deleteTranscript(String(t.id));
       setTranscripts((prev) => prev.filter((x) => String(x.id) !== String(t.id)));
     } catch {
-      setError(`Greška pri brisanju transkripta "${t.naziv}".`);
+      setError(`Error deleting transcript "${t.naziv}".`);
     } finally {
       setDeleting(null);
     }
@@ -339,7 +342,7 @@ export default function TranscriptList() {
 
   return (
     <div className="space-y-5">
-      <h2 className="section-title">Transkripti</h2>
+      <h2 className="section-title">Transcripts</h2>
 
       {error && (
         <div
@@ -352,7 +355,7 @@ export default function TranscriptList() {
         >
           <span>{error}</span>
           <button className="text-xs underline ml-3" onClick={() => setError("")}>
-            Zatvori
+            Close
           </button>
         </div>
       )}

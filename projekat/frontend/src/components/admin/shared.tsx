@@ -123,12 +123,18 @@ const BADGE_MAP: Record<string, string> = {
   approved: "badge-green",
   rejected: "badge-red",
   pending_approval: "badge-yellow",
-  // Bosnian transcript statuses
+  // Bosnian transcript statuses (DB values)
   Sirovi: "badge-yellow",
   Obradjeno: "badge-green",
   Odbacen: "badge-red",
 };
 
+const LABEL_MAP: Record<string, string> = {
+  Sirovi: "Raw",
+  Obradjeno: "Processed",
+  Odbacen: "Rejected",
+};
+
 export const StatusBadge = ({ s }: { s: string }) => (
-  <span className={`badge ${BADGE_MAP[s] ?? "badge-gray"}`}>{s}</span>
+  <span className={`badge ${BADGE_MAP[s] ?? "badge-gray"}`}>{LABEL_MAP[s] ?? s}</span>
 );

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSubViewBack } from "../../../hooks/useSubViewBack";
 import { Ic, Stars, icons } from "../shared";
 
 const LOGS = [
@@ -46,6 +47,8 @@ const LOGS = [
 
 export default function ChatLogs() {
   const [open, setOpen] = useState<number | null>(null);
+
+  useSubViewBack(open !== null, () => setOpen(null));
 
   return (
     <div className="space-y-5">
