@@ -5,13 +5,13 @@
 
 ---
 
-## Što smo naučili
+## Šta smo naučili
 
-Ovaj sprint bio je temeljan, uspostavili smo autentifikaciju, unos i pregled transkripata te log infrastrukturu. Isporuka je bila potpuna i to je vrijedno pohvale. Međutim, retrospektiva nije samo o tome što smo završili, već o tome kako smo radili i što možemo raditi bolje.
+Ovaj sprint bio je temeljan, uspostavili smo autentifikaciju, unos i pregled transkripata te log infrastrukturu. Isporuka je bila potpuna i to je vrijedno pohvale. Međutim, retrospektiva nije samo o tome Šta smo završili, već o tome kako smo radili i Šta možemo raditi bolje.
 
 ---
 
-## Što je išlo dobro
+## Šta je išlo dobro
 
 - Sve planirane stavke su zatvorene unutar sprinta bez prenošenja.
 - UI rješenje za pregled transkripata je kvalitetno i vizualno poliran — to je standard kojeg treba zadržati.
@@ -19,7 +19,7 @@ Ovaj sprint bio je temeljan, uspostavili smo autentifikaciju, unos i pregled tra
 
 ---
 
-## Što trebamo popraviti
+## Šta trebamo popraviti
 
 ### Navigacija — Back dugme ne vraća na Home
 U većini slučajeva Back dugme ne vraća korisnika na početni ekran kako bi se očekivalo. Ovo narušava osnovni tok kretanja kroz aplikaciju i zbunjuje korisnika. Navigacijska logika treba biti dosljedna na svim ekranima — ovo je visoki prioritet za sljedeći sprint.
@@ -28,7 +28,7 @@ U većini slučajeva Back dugme ne vraća korisnika na početni ekran kako bi se
 U tabeli pregleda transkripata trenutno nedostaje kolona s tipom fajla (npr. PDF, MP3, DOCX). Korisnik ne može na prvi pogled raspoznati s kakvim sadržajem radi. Dodavanje ovog podatka je mala izmjena s vidljivim efektom na upotrebljivost.
 
 ### Settings — Account sekcija ne reaguje na klik
-Klik na Account u Settings ekranu ne pokreće nikakvu akciju. Ovo je broken flow koji ostavlja korisnika u slijepoj ulici. Treba provjeriti je li u pitanju nedovršena implementacija ili bag u rutiranju, te zatvoriti tu stavku što prije.
+Klik na Account u Settings ekranu ne pokreće nikakvu akciju. Ovo je broken flow koji ostavlja korisnika u slijepoj ulici. Treba provjeriti je li u pitanju nedovršena implementacija ili bag u rutiranju, te zatvoriti tu stavku Šta prije.
 
 ---
 
@@ -53,4 +53,4 @@ Za sljedeći sprint vrijedi uvesti kratki korak pred zatvaranje svake stavke: pr
 
 ## Zaključak
 
-Temelji su postavljeni, tim funkcioniše, isporuka je bila kompletna. Ono što sad trebamo je podići standard na detalje, jer u call centar kontekstu, korisnici rade s alatom svaki dan i svaki broken flow im troši vrijeme. Sljedeći sprint je prilika da pokažemo da možemo isporučivati i kvantitativno i kvalitativno.
+Temelji su postavljeni, tim funkcioniše, isporuka je bila kompletna. Ono Šta sad trebamo je podići standard na detalje, jer u call centar kontekstu, korisnici rade s alatom svaki dan i svaki broken flow im troši vrijeme. Sljedeći sprint je prilika da pokažemo da možemo isporučivati i kvantitativno i kvalitativno.
