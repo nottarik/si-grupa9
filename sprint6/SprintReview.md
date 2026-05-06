@@ -20,7 +20,7 @@ Sprint je uspješno završen. Svih pet planiranih stavki dostavljeno je u status
 | PB-37 | Sign Out | Technical Task | High | 5 | Done |
 | PB-18 | Upload i unos transkripata | Feature | High | 8 | Done |
 | PB-33 | Pregled unesenih transkripata | Feature | High | 3 | Done |
-| PB-19 | AI Usage Log i Decision Log | Technical Task | Medium | — | Done |
+| PB-19 | AI Usage Log i Decision Log | Technical Task | Medium | 3 | Done |
 
 ---
 
