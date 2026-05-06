@@ -3,8 +3,7 @@
 
 
 > **Promjene**
->- Dodano: Sign In i Sign Out
->- **Sprint 6 — Dodano:** Uređivanje transkripata, Brisanje transkripata, Filtriranje transkripata, Dodjela i upravljanje ulogama korisnika, Pregled i brisanje korisnika, Dashboard s aktuelnim podacima, Validacija formata transkripata
+>- Dodano Uređivanje transkripata, Brisanje transkripata, Filtriranje transkripata, Dodjela i upravljanje ulogama korisnika, Pregled i brisanje korisnika, Dashboard s aktuelnim podacima, Validacija formata transkripata
 ---
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
