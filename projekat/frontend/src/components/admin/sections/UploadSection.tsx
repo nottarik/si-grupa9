@@ -63,13 +63,13 @@ function validateTranscriptFormat(content: string): string | null {
     (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
   if (!hasAgent && !hasKorisnik) {
-    return "Sadržaj mora biti u formatu 'AGENT: tekst' i 'KORISNIK: tekst'";
+    return "Content must be in format 'AGENT: text' and 'KORISNIK: text'";
   }
   if (!hasAgent) {
-    return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'";
+    return "Content must contain at least one line in format 'AGENT: text'";
   }
   if (!hasKorisnik) {
-    return "Sadržaj mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'";
+    return "Content must contain at least one line in format 'KORISNIK: text'";
   }
   return null;
 }
@@ -83,9 +83,9 @@ function validateManual(
   if (!agentName.trim()) errors.agent_name = "Agent name is required";
   if (!date) errors.date = "Date is required";
   if (!content.trim()) {
-    errors.content = "Sadržaj je obavezan";
+    errors.content = "Content is required";
   } else if (content.trim().length < 20) {
-    errors.content = "Sadržaj mora imati najmanje 20 znakova";
+    errors.content = "Content must have at least 20 characters";
   } else {
     const formatError = validateTranscriptFormat(content);
     if (formatError) errors.content = formatError;
@@ -304,7 +304,7 @@ function ManualEntry() {
         <textarea
           className={`input-field ${errors.content ? "error" : ""}`}
           rows={10}
-          placeholder={"AGENT: Dobar dan, kako vam mogu pomoći?\nKORISNIK: Imam problem sa fakturom.\nAGENT: Razumijem, možete li mi reći broj računa?"}
+          placeholder={"AGENT: Good day, how can I help you?\nKORISNIK: I have an issue with my invoice.\nAGENT: I understand, could you provide your account number?"}
           style={{ resize: "vertical", fontFamily: "monospace", fontSize: 13 }}
           value={content}
           onChange={(e) => {
@@ -316,7 +316,7 @@ function ManualEntry() {
           <p className="text-xs text-red-600 mt-1">{errors.content}</p>
         )}
         <p className="text-xs text-gray-400 mt-1">
-          Format: <code className="bg-gray-100 px-1 rounded">AGENT: tekst</code> i <code className="bg-gray-100 px-1 rounded">KORISNIK: tekst</code> · {content.trim().length} znakova (min. 20)
+          Format: <code className="bg-gray-100 px-1 rounded">AGENT: text</code> and <code className="bg-gray-100 px-1 rounded">KORISNIK: text</code> · {content.trim().length} characters (min. 20)
         </p>
       </div>
 

@@ -11,6 +11,12 @@ import { useSubViewBack } from "../../../hooks/useSubViewBack";
 import type { Transcript, TranscriptDetail, TranscriptUpdate } from "../../../types";
 import { Ic, StatusBadge, icons } from "../shared";
 
+function displayFormat(format: string): string {
+  if (format === "tekst") return "Text";
+  if (format === "audio") return "Audio";
+  return format;
+}
+
 function validateTranscriptFormat(content: string): string | null {
   const lines = content.split("\n");
   const hasAgent = lines.some(
@@ -55,7 +61,7 @@ function DetailView({
         <div>
           <h2 className="section-title">{summary.naziv || "Untitled"}</h2>
           <div className="text-xs text-gray-400 mt-1">
-            {date} · {summary.format}
+            {date} · {displayFormat(summary.format)}
           </div>
         </div>
         <div className="flex gap-2 items-center">
@@ -159,7 +165,7 @@ function EditView({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="section-title">Edit Transcript</h2>
-          <div className="text-xs text-gray-400 mt-1">{date} · {summary.format}</div>
+          <div className="text-xs text-gray-400 mt-1">{date} · {displayFormat(summary.format)}</div>
         </div>
         <div className="flex gap-2">
           <button className="outline-btn text-xs py-1" onClick={onBack} disabled={saving}>
@@ -371,7 +377,7 @@ export default function TranscriptList() {
             <div className="relative flex-1 min-w-48">
               <input
                 className="input-field pr-9"
-                placeholder="Pretraži po nazivu, agentu ili ključnim riječima…"
+                placeholder="Search by name, agent or keywords…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -385,17 +391,17 @@ export default function TranscriptList() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="">Sve statuse</option>
-              <option value="Sirovi">Sirovi</option>
-              <option value="Obradjeno">Obradjeno</option>
-              <option value="Odbacen">Odbacen</option>
+              <option value="">All statuses</option>
+              <option value="Sirovi">Raw</option>
+              <option value="Obradjeno">Processed</option>
+              <option value="Odbacen">Rejected</option>
             </select>
           </div>
 
           {/* Date range */}
           <div className="flex gap-3 flex-wrap items-center">
             <span className="text-xs" style={{ color: "rgba(197,160,89,0.8)" }}>
-              Datum od/do:
+              Date from/to:
             </span>
             <input
               type="date"
@@ -417,7 +423,7 @@ export default function TranscriptList() {
                 className="outline-btn text-xs py-1"
                 onClick={() => { setDateFrom(""); setDateTo(""); }}
               >
-                Obriši datume
+                Clear dates
               </button>
             )}
           </div>
@@ -425,14 +431,14 @@ export default function TranscriptList() {
 
         {/* ── Table ── */}
         {loading && (
-          <div className="p-8 text-center text-sm text-gray-400">Učitavanje…</div>
+          <div className="p-8 text-center text-sm text-gray-400">Loading…</div>
         )}
         {!loading && (
           <table className="tbl">
             <thead>
               <tr>
-                <th>Naziv</th>
-                <th>Datum</th>
+                <th>Name</th>
+                <th>Date</th>
                 <th>Format</th>
                 <th>Status</th>
                 <th />
@@ -442,7 +448,7 @@ export default function TranscriptList() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="text-center text-gray-400 py-8 text-sm">
-                    Nema transkripata koji odgovaraju pretrazi.
+                    No transcripts match your search.
                   </td>
                 </tr>
               )}
@@ -454,7 +460,7 @@ export default function TranscriptList() {
                       ? new Date(t.datum_uploada).toLocaleDateString("bs-BA")
                       : "—"}
                   </td>
-                  <td className="text-gray-400">{t.format}</td>
+                  <td className="text-gray-400">{displayFormat(t.format)}</td>
                   <td>
                     <StatusBadge s={t.status} />
                   </td>
@@ -464,12 +470,12 @@ export default function TranscriptList() {
                         className="outline-btn py-1 text-xs"
                         onClick={() => { setSelected(t); setViewMode("detail"); }}
                       >
-                        Pregled
+                        View
                       </button>
                       <button
                         className="outline-btn py-1 px-2"
                         onClick={() => { setSelected(t); setViewMode("edit"); }}
-                        title="Uredi transkript"
+                        title="Edit transcript"
                       >
                         <Ic d={icons.edit} size={13} />
                       </button>
@@ -477,7 +483,7 @@ export default function TranscriptList() {
                         <button
                           onClick={() => handleDelete(t)}
                           disabled={deleting === String(t.id)}
-                          title="Obriši transkript"
+                          title="Delete transcript"
                           className="p-1.5 rounded transition-colors"
                           style={{
                             color: deleting === String(t.id) ? "#d1d5db" : "#ef4444",
