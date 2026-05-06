@@ -34,13 +34,13 @@ export default function UsersSection() {
   }, []);
 
   async function handleDelete(user: User) {
-    if (!window.confirm(`Obrisati korisnika ${user.email}? Ova akcija se ne može poništiti.`)) return;
+    if (!window.confirm(`Delete user ${user.email}? This action cannot be undone.`)) return;
     setDeleting(user.id);
     try {
       await deleteUser(user.id);
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
     } catch {
-      setError(`Greška pri brisanju korisnika ${user.email}.`);
+      setError(`Error deleting user ${user.email}.`);
     } finally {
       setDeleting(null);
     }
@@ -65,15 +65,15 @@ export default function UsersSection() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h2 className="section-title">Upravljanje korisnicima</h2>
-        <div className="card p-8 text-center text-gray-400 text-sm">Učitavanje...</div>
+        <h2 className="section-title">User Management</h2>
+        <div className="card p-8 text-center text-gray-400 text-sm">Loading...</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="section-title">Upravljanje korisnicima</h2>
+      <h2 className="section-title">User Management</h2>
 
       {error && (
         <div
@@ -85,7 +85,7 @@ export default function UsersSection() {
             className="ml-3 underline text-xs"
             onClick={() => setError(null)}
           >
-            Zatvori
+            Close
           </button>
         </div>
       )}
@@ -94,7 +94,7 @@ export default function UsersSection() {
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid rgba(197,160,89,0.15)" }}>
-              {["Ime i prezime", "Email", "Uloga", "Status", ""].map((h) => (
+              {["Full Name", "Email", "Role", "Status", ""].map((h) => (
                 <th
                   key={h}
                   className="text-left px-4 py-3 text-xs font-semibold tracking-widest uppercase"
@@ -121,7 +121,7 @@ export default function UsersSection() {
                 </td>
                 <td className="px-4 py-3">
                   <span className={`badge ${u.is_active ? "badge-green" : "badge-gray"}`}>
-                    {u.is_active ? "Aktivan" : "Neaktivan"}
+                    {u.is_active ? "Active" : "Inactive"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -145,18 +145,18 @@ export default function UsersSection() {
                       ))}
                     </select>
                     {saving === u.id && (
-                      <span className="text-xs text-gray-400">Čuvanje...</span>
+                      <span className="text-xs text-gray-400">Saving...</span>
                     )}
                     {saved === u.id && (
                       <span className="text-xs" style={{ color: "#22c55e" }}>
-                        ✓ Sačuvano
+                        ✓ Saved
                       </span>
                     )}
                     {u.id !== currentUser?.id && (
                       <button
                         onClick={() => handleDelete(u)}
                         disabled={deleting === u.id || saving === u.id}
-                        title="Obriši korisnika"
+                        title="Delete user"
                         className="ml-1 p-1.5 rounded transition-colors"
                         style={{ color: deleting === u.id ? "#d1d5db" : "#ef4444" }}
                         onMouseEnter={(e) => {
@@ -181,7 +181,7 @@ export default function UsersSection() {
             {users.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">
-                  Nema korisnika.
+                  No users found.
                 </td>
               </tr>
             )}

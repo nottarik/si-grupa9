@@ -47,3 +47,6 @@ coverage.xml
 
 # Alembic auto-generated (keep versions tracked, ignore pycache)
 backend/alembic/versions/__pycache__/
+
+# Claude Code
+.claude/

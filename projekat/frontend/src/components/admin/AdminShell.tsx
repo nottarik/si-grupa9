@@ -19,7 +19,7 @@ const NAV = [
   { id: "ratings",     label: "Ratings",           icon: icons.ratings },
   { id: "issues",      label: "Issues",            icon: icons.issues },
   { id: "training",    label: "Training Dataset",  icon: icons.training },
-  { id: "users",       label: "Korisnici",         icon: icons.users },
+  { id: "users",       label: "Users",              icon: icons.users },
 ] as const;
 
 type NavId = (typeof NAV)[number]["id"];

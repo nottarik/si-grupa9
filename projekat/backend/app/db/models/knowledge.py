@@ -174,7 +174,7 @@ class Feedback(Base):
         nullable=False,
         default="KorisnikOcjena",
     )
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column("timestamp_fb", DateTime(timezone=True), server_default=func.now())
     id_odgovora = Column(BigInteger, ForeignKey("odgovor.id"), nullable=False)
     id_korisnika = Column(UUID(as_uuid=True), ForeignKey("korisnik.id"), nullable=True)
 

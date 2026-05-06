@@ -20,12 +20,12 @@ export default function KnowledgePendingList() {
   });
 
   if (isLoading)
-    return <p className="text-sm text-gray-400 animate-pulse">Učitavanje...</p>;
+    return <p className="text-sm text-gray-400 animate-pulse">Loading...</p>;
 
   if (items.length === 0)
     return (
       <p className="text-sm text-gray-500">
-        Nema Q&amp;A parova koji čekaju odobrenje.
+        No Q&amp;A pairs pending approval.
       </p>
     );
 
@@ -37,12 +37,12 @@ export default function KnowledgePendingList() {
           className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
         >
           <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">
-            Pitanje
+            Question
           </p>
           <p className="text-sm text-gray-800 mb-3">{item.question}</p>
 
           <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">
-            Odgovor
+            Answer
           </p>
           <p className="text-sm text-gray-700 mb-4">{item.answer}</p>
 
@@ -58,14 +58,14 @@ export default function KnowledgePendingList() {
               disabled={approve.isPending}
               className="text-sm bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg px-3 py-1.5 transition-colors"
             >
-              ✓ Odobri
+              ✓ Approve
             </button>
             <button
               onClick={() => reject.mutate(item.id)}
               disabled={reject.isPending}
               className="text-sm bg-red-100 hover:bg-red-200 disabled:opacity-50 text-red-700 rounded-lg px-3 py-1.5 transition-colors"
             >
-              ✗ Odbaci
+              ✗ Reject
             </button>
           </div>
         </div>
