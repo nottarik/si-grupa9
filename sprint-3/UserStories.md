@@ -235,6 +235,317 @@ Zavisi od Lista svih unesenih transkripata (33.1).
 - Prikaz mora sadržavati datum, identifikator agenta i sav sadržaj razgovora
 - Sistem ne smije prikazati grešku prilikom učitavanja detalja
 
+### PB-38 — Uređivanje postojećih transkripata
+
+#### User Story 38.1 — Uređivanje sadržaja transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 38.1 |
+| **Naziv** | Uređivanje sadržaja transkripata |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava ispravku grešaka u unesenim transkriptima bez potrebe za ponovnim uploadom |
+
+**Uloga:**
+Kao administrator, želim urediti sadržaj postojećeg transkripata kako bih ispravio greške nastale pri unosu.
+
+**Pretpostavke i otvorena pitanja:**
+Transkript mora postojati u sistemu. Samo administrator i agent imaju pravo uređivanja.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-33.1 Lista svih unesenih transkripata. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator otvori detalje transkripata, tada sistem mora prikazati opciju za uređivanje
+- Kada administrator klikne "Uredi", tada sistem mora otvoriti formu s prethodno unesenim podacima
+- Kada administrator spremi izmjene, tada sistem mora pohraniti ažurirani transkript i prikazati potvrdu
+- Sistem ne smije izgubiti originalni sadržaj ako administrator odustane od uređivanja
+- Sistem ne smije dozvoliti spremanje praznog sadržaja transkripata
+
+---
+
+#### User Story 38.2 — Uređivanje metapodataka transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 38.2 |
+| **Naziv** | Uređivanje metapodataka transkripata |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava tačnost evidencije transkripata bez potrebe za brisanjem i ponovnim unosom |
+
+**Uloga:**
+Kao administrator, želim ažurirati metapodatke transkripata (datum, identifikator agenta) kako bi evidencija bila tačna.
+
+**Pretpostavke i otvorena pitanja:**
+Format datuma mora biti konzistentan s ostatkom sistema.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-33.1. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator uredi metapodatke i spremi, tada sistem mora pohraniti izmjene i odmah ih reflektovati u listi
+- Sistem mora validirati metapodatke pri uređivanju (format datuma, neprazni identifikator agenta)
+- Sistem ne smije prikazati grešku pri ispravnom unosu metapodataka
+
+---
+
+### PB-39 — Brisanje transkripata s potvrdom akcije
+
+#### User Story 39.1 — Brisanje pojedinačnog transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 39.1 |
+| **Naziv** | Brisanje pojedinačnog transkripata |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava uklanjanje netačnih ili zastarjelih transkripata uz zaštitu od slučajnog brisanja |
+
+**Uloga:**
+Kao administrator, želim obrisati transkript iz sistema kako bih uklonio netačne ili zastarjele podatke.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje je trajno i ne može se oporaviti. Otvoreno pitanje: Da li brisanje treba kaskadirati na Q&A parove izvučene iz tog transkripata?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-33.1 Lista svih unesenih transkripata. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator odabere opciju brisanja, tada sistem mora prikazati dijalog za potvrdu akcije
+- Kada administrator potvrdi brisanje, tada sistem mora trajno ukloniti transkript i ažurirati listu
+- Kada administrator odustane od brisanja, tada sistem mora zatvoriti dijalog bez ikakve izmjene
+- Sistem ne smije dozvoliti brisanje bez eksplicitne potvrde korisnika
+- Nakon uspješnog brisanja sistem mora prikazati odgovarajuću poruku potvrde
+
+---
+
+### PB-40 — Filtriranje i pretraga transkripata
+
+#### User Story 40.1 — Pretraga transkripata po ključnoj riječi
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 40.1 |
+| **Naziv** | Pretraga transkripata po ključnoj riječi |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Smanjuje vrijeme pronalaska relevantnih transkripata u sistemu s velikim brojem zapisa |
+
+**Uloga:**
+Kao administrator, želim pretraživati transkripate po ključnoj riječi kako bih pronašao specifične razgovore.
+
+**Pretpostavke i otvorena pitanja:**
+Pretraga se vrši po sadržaju i nazivu transkripata.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-33.1 Lista svih unesenih transkripata.
+
+**Acceptance Criteria:**
+- Kada administrator unese ključnu riječ u polje za pretragu, tada sistem mora prikazati transkripate čiji sadržaj ili naziv odgovara unesenoj riječi
+- Kada nema rezultata, tada sistem mora prikazati poruku "Nema rezultata za uneseni pojam"
+- Kada administrator obriše ključnu riječ, tada sistem mora prikazati kompletnu listu transkripata
+
+---
+
+#### User Story 40.2 — Filtriranje transkripata po datumu i agentu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 40.2 |
+| **Naziv** | Filtriranje transkripata po datumu i agentu |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava brzu navigaciju kroz transkripate prema vremenskom periodu ili konkretnom agentu |
+
+**Uloga:**
+Kao administrator, želim filtrirati transkripate po datumu i identifikatoru agenta kako bih brzo pronašao relevantne zapise.
+
+**Pretpostavke i otvorena pitanja:**
+Filter po datumu podržava odabir raspona (od–do). Filter po agentu podržava parcijalni unos.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-33.1. Zavisi od US-40.1.
+
+**Acceptance Criteria:**
+- Kada administrator primijeni filter po datumu, tada sistem mora prikazati samo transkripate unutar odabranog vremenskog perioda
+- Kada administrator primijeni filter po agentu, tada sistem mora prikazati samo transkripate tog agenta
+- Kada administrator resetuje filtere, tada sistem mora prikazati sve transkripate
+- Sistem ne smije prikazati grešku pri primjeni filtera
+
+---
+
+### PB-41 — Dodjela i upravljanje ulogama korisnika
+
+#### User Story 41.1 — Dodjela uloge korisniku
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 41.1 |
+| **Naziv** | Dodjela uloge korisniku |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava da korisnici imaju pristup isključivo funkcionalnostima koje odgovaraju njihovoj ulozi |
+
+**Uloga:**
+Kao administrator, želim dodijeliti ulogu korisniku kako bi korisnik imao odgovarajući nivo pristupa sistemu.
+
+**Pretpostavke i otvorena pitanja:**
+Dostupne uloge: Administrator, Supervizor, CallCentarAgent, KrajnjiKorisnik.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-42.1 Pregled liste svih korisnika. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator otvori profil korisnika, tada sistem mora prikazati trenutnu ulogu i opciju za izmjenu
+- Kada administrator odabere novu ulogu i potvrdi, tada sistem mora odmah primijeniti promjenu
+- Sistem mora prikazati poruku potvrde nakon uspješne dodjele uloge
+- Sistem ne smije dozvoliti postavljanje nepostojeće uloge
+
+---
+
+#### User Story 41.2 — Izmjena postojeće uloge korisnika
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 41.2 |
+| **Naziv** | Izmjena postojeće uloge korisnika |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava da promjena radnih odgovornosti bude odmah reflektovana u sistemu |
+
+**Uloga:**
+Kao administrator, želim promijeniti ulogu korisnika kada se promijene njegove radne odgovornosti.
+
+**Pretpostavke i otvorena pitanja:**
+Promjena uloge stupa na snagu odmah. Otvoreno pitanje: Da li korisnik treba dobiti obavijest o promjeni uloge?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-41.1. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator promijeni ulogu, tada sistem mora odmah ažurirati pristup tog korisnika u skladu s novom ulogom
+- Ako je korisnik trenutno prijavljen, tada mora biti preusmjeren na prijavu pri narednoj akciji koja zahtijeva staru ulogu
+- Sistem mora evidentirati promjenu uloge s datumom i identifikatorom administratora koji je napravio izmjenu
+
+---
+
+### PB-42 — Pregled i brisanje korisnika
+
+#### User Story 42.1 — Pregled liste svih korisnika
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 42.1 |
+| **Naziv** | Pregled liste svih korisnika |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Daje administratoru centralizovan pregled svih naloga u sistemu |
+
+**Uloga:**
+Kao administrator, želim pregledati listu svih registrovanih korisnika kako bih imao pregled naloga u sistemu.
+
+**Pretpostavke i otvorena pitanja:**
+Administrator mora biti prijavljen.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In. Preduvjet za US-41.1 i US-42.2.
+
+**Acceptance Criteria:**
+- Kada administrator otvori modul za korisnike, tada sistem mora prikazati listu svih registrovanih korisnika
+- Svaki red mora prikazivati ime, prezime, email, ulogu i datum kreiranja naloga
+- Kada nema registrovanih korisnika, tada sistem mora prikazati poruku "Nema registrovanih korisnika"
+- Sistem ne smije prikazati grešku prilikom učitavanja liste
+
+---
+
+#### User Story 42.2 — Brisanje korisničkog naloga
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 42.2 |
+| **Naziv** | Brisanje korisničkog naloga |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava administratoru uklanjanje neaktivnih ili neovlaštenih korisnika |
+
+**Uloga:**
+Kao administrator, želim obrisati korisnički nalog kako bih uklonio neaktivne ili neovlaštene korisnike.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje je trajno. Otvoreno pitanje: Šta se dešava s transkriptima koje je taj korisnik uploadovao?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-42.1 Pregled liste svih korisnika. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator odabere brisanje korisnika, tada sistem mora prikazati dijalog za potvrdu
+- Kada administrator potvrdi brisanje, tada sistem mora ukloniti korisnički nalog i sve s njim povezane sesije
+- Administrator ne smije moći obrisati vlastiti nalog
+- Sistem ne smije dozvoliti brisanje bez eksplicitne potvrde
+- Nakon uspješnog brisanja sistem mora prikazati odgovarajuću poruku potvrde
+
+---
+
+### PB-43 — Dashboard s aktuelnim podacima
+
+#### User Story 43.1 — Prikaz aktuelnih statistika na dashboardu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 43.1 |
+| **Naziv** | Prikaz aktuelnih statistika na dashboardu |
+| **Sprint** | 6 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Pruža administratoru brz pregled trenutnog stanja sistema bez prelaška na zasebne module |
+
+**Uloga:**
+Kao administrator, želim da admin dashboard prikazuje stvarne podatke o sistemu kako bih imao brz pregled trenutnog stanja.
+
+**Pretpostavke i otvorena pitanja:**
+Podaci se učitavaju pri otvaranju dashboarda. Otvoreno pitanje: Da li je potreban auto-refresh podataka?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-33, PB-34, PB-42. Zavisi od Sign In.
+
+**Acceptance Criteria:**
+- Kada administrator otvori dashboard, tada sistem mora prikazati aktuelni broj unesenih transkripata
+- Dashboard mora prikazivati aktuelni broj registrovanih korisnika
+- Dashboard mora prikazivati broj interakcija s chatbotom
+- Svi prikazani podaci moraju odgovarati stvarnom stanju u bazi podataka — ne smiju biti statični/hardkodirani
+- Sistem ne smije prikazati grešku pri učitavanju dashboarda
+
+---
+
+### PB-44 — Validacija formata transkripata
+
+#### User Story 44.1 — Provjera Agent:/Korisnik: strukture pri unosu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 44.1 |
+| **Naziv** | Provjera Agent:/Korisnik: strukture pri unosu |
+| **Sprint** | 6 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Sprečava unos nevalidnih transkripata koji bi narušili rad pipeline obrade i degradirali kvalitet baze znanja |
+
+**Uloga:**
+Kao sistem, želim provjeriti da li uneseni transkript slijedi propisanu strukturu (svaka linija mora počinjati s "Agent:" ili "Korisnik:") kako bih spriječio pohranu nevalidnih podataka.
+
+**Pretpostavke i otvorena pitanja:**
+Provjera se primjenjuje pri ručnom unosu i uploadovanju TXT/PDF fajla. Otvoreno pitanje: Da li linije koje ne počinju nijednim prefiksom trebaju biti upozorenje ili greška?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-18.1 Upload transkripata putem fajla. Zavisi od US-18.2 Ručni unos transkripata. Nadograđuje US-18.3 Validacija unesenih transkripata.
+
+**Acceptance Criteria:**
+- Kada administrator pokuša pohraniti transkript koji ne sadrži nijednu liniju s prefiksom "Agent:" ili "Korisnik:", tada sistem mora odbiti unos i prikazati jasnu poruku greške
+- Poruka greške mora objasniti da transkript mora biti u formatu "Agent: [tekst]" i "Korisnik: [tekst]"
+- Sistem ne smije pohraniti transkript koji ne zadovoljava strukturalni format
+- Kada transkript sadrži barem jednu ispravno formatiranu liniju, tada sistem mora nastaviti s obradom
+- Validacija mora raditi i za upload fajla (TXT/PDF) i za ručni unos teksta
+
 ---
 
 ## Sprint 7
