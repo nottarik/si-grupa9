@@ -322,7 +322,7 @@ Aktivna
 
 **Datum:** 30/04/2026  
 
-**Naziv:** Korištenje stvarnih API podataka umjesto hardkodiranih vrijednosti na dashboardu  
+**Naziv:** Korištenje stvarnih podataka umjesto hardkodiranih vrijednosti na dashboardu  
 
 **Opis:**  
 Dashboard je inicijalno koristio hardkodirane vrijednosti koje nisu odražavale stvarno stanje sistema, pa je bilo potrebno omogućiti prikaz stvarnih podataka iz backend-a.  
@@ -333,7 +333,7 @@ Dashboard je inicijalno koristio hardkodirane vrijednosti koje nisu odražavale 
 - Povlačenje stvarnih podataka putem API-ja  
 
 **Odabrana opcija:**  
-Korištenje stvarnih API podataka gdje je moguće, uz placeholder vrijednosti za metrike koje još nisu implementirane.  
+Korištenje stvarnih podataka gdje je moguće, uz placeholder vrijednosti za metrike koje još nisu implementirane.  
 
 **Razlog izbora:**  
 Prikaz stvarnih podataka omogućava realniji uvid u stanje sistema i bolju pripremu za demonstraciju projekta.  
