@@ -9,6 +9,8 @@ from app.db.session import AsyncSessionLocal
 from app.main import app
 
 
+# ─── Pomoćne funkcije ─────────────────────────────────────────────────────────
+
 async def _admin_token(client: AsyncClient) -> str:
     resp = await client.post(
         "/api/v1/auth/login",
@@ -37,6 +39,10 @@ async def _create_user(email: str, uloga: UlogaTip = UlogaTip.call_centar_agent)
         await db.refresh(user)
         return str(user.id)
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LIST USERS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.asyncio
 async def test_list_users_unauthenticated():
@@ -76,6 +82,10 @@ async def test_list_users_as_admin_returns_list():
     assert "role" in first
     assert "is_active" in first
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UPDATE ROLE
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.asyncio
 async def test_update_role_as_admin():
@@ -138,6 +148,10 @@ async def test_update_role_invalid_role_value():
         )
     assert resp.status_code == 422
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELETE USER
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.asyncio
 async def test_delete_user_as_admin():
