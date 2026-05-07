@@ -1,7 +1,12 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.services.pipeline.pipeline_service import PipelineService
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTH TESTOVI
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.asyncio
 async def test_health():
@@ -26,6 +31,8 @@ async def test_protected_route_requires_token():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/auth/me")
     assert response.status_code == 401
+
+
 @pytest.mark.asyncio
 async def test_login_valid_credentials():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -62,6 +69,70 @@ async def test_register_duplicate_email():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/auth/register",
-            json={"email": "admin@test.com", "password": "admin123", "full_name": "Test User", "role": "agent"},
+            json={
+                "email": "admin@test.com",
+                "password": "admin123",
+                "full_name": "Test User",
+                "role": "agent",
+            },
         )
     assert response.status_code == 400
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PIPELINE TESTOVI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def test_normalize_strips_whitespace():
+    svc = PipelineService()
+    result = svc._normalize("  Hello\r\nWorld  ")
+    assert result == "Hello\nWorld"
+
+
+def test_normalize_empty_string():
+    svc = PipelineService()
+    result = svc._normalize("")
+    assert result == ""
+
+
+def test_mask_pii_jmbg():
+    svc = PipelineService()
+    masked = svc._mask_pii("Moj JMBG je 0101990123456.")
+    assert "0101990123456" not in masked
+    assert "[JMBG]" in masked
+
+
+def test_mask_pii_phone():
+    svc = PipelineService()
+    masked = svc._mask_pii("Moj broj je 061123456.")
+    assert "061123456" not in masked
+
+
+def test_extract_qa_pairs():
+    svc = PipelineService()
+    segments = [
+        {"role": "user", "text": "Kako mogu platiti račun?"},
+        {"role": "agent", "text": "Možete platiti putem internet bankarstva."},
+        {"role": "user", "text": "Koja je radno vrijeme?"},
+        {"role": "agent", "text": "Radimo od 8 do 16 sati."},
+    ]
+    pairs = svc._extract_qa(segments)
+    assert len(pairs) == 2
+    assert pairs[0]["question"] == "Kako mogu platiti račun?"
+    assert "internet bankarstva" in pairs[0]["answer"]
+
+
+def test_extract_qa_empty():
+    svc = PipelineService()
+    pairs = svc._extract_qa([])
+    assert pairs == []
+
+
+def test_extract_qa_only_user():
+    """Pitanje bez agentovog odgovora ne smije generisati Q&A par."""
+    svc = PipelineService()
+    segments = [
+        {"role": "user", "text": "Pitanje bez odgovora?"},
+    ]
+    pairs = svc._extract_qa(segments)
+    assert len(pairs) == 0
