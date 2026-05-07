@@ -471,3 +471,307 @@ Claude Code je korišten za pomoć pri implementaciji validacije formata transkr
 - moguće neslaganje između frontend i backend validacije  
 
 ---
+ ## AI Usage Log – Zapis 12
+
+**Datum:** 30/04/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri doradi funkcionalnosti za upload i unos transkripata.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri provjeri i doradi postojećeg toka za upload i unos transkripata. Fokus nije bio na ponovnoj implementaciji osnovne funkcionalnosti iz prethodnog sprinta, već na njenom poboljšanju, povezivanju sa ostatkom aplikacije i otklanjanju uočenih problema u radu.
+
+**Šta je AI predložio ili generisao:**
+- provjeru toka od unosa transkripta do prikaza u aplikaciji
+- prijedloge za jasnije rukovanje greškama pri uploadu
+- provjeru da li su frontend i backend očekivanja usklađena
+- prijedloge za validaciju unesenog transkripta
+- smjernice za testiranje uspješnog i neuspješnog unosa
+
+**Šta je tim prihvatio:**
+- doradu toka za upload i unos transkripata
+- jasnije razdvajanje uspješnog i neuspješnog scenarija
+- provjeru podataka prije slanja prema backend-u
+- bolje povezivanje postojeće funkcionalnosti sa korisničkim interfejsom
+
+**Šta je tim izmijenio:**
+- nazivi i struktura dijelova koda su prilagođeni postojećem projektu
+- poruke prema korisniku su usklađene sa načinom komunikacije u aplikaciji
+- pojedini prijedlozi su pojednostavljeni kako bi odgovarali trenutnom obimu sprinta
+
+**Šta je tim odbacio:**
+- prijedloge koji bi uvodili novu kompleksnu obradu transkripata izvan Sprinta 6
+- dodatne AI funkcionalnosti koje nisu bile potrebne za stabilizaciju postojećeg toka
+
+**Rizici, problemi ili greške koje su uočene:**
+- upload može pasti ako format transkripta nije očekivan
+- frontend i backend moraju imati usklađena pravila validacije
+- potrebno je dodatno provjeriti ponašanje kod praznog ili nepotpunog transkripta
+
+---
+
+## AI Usage Log – Zapis 13
+
+**Datum:** 01/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri doradi validacije i resetovanja transkripata.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten kao pomoć pri provjeri validacijskih pravila i funkcionalnosti resetovanja transkripata. Cilj je bio osigurati da aplikacija pravilno prepoznaje neispravne ili nepotpune podatke i da korisnik može vratiti transkript u odgovarajuće stanje kada je to potrebno.
+
+**Šta je AI predložio ili generisao:**
+- validacijske scenarije za transkripte sa nedostajućim podacima
+- prijedloge za jasniju obradu grešaka
+- logiku za provjeru stanja transkripta prije resetovanja
+- scenarije u kojima reset treba biti dozvoljen ili blokiran
+- prijedloge za testiranje validacije i reset funkcionalnosti
+
+**Šta je tim prihvatio:**
+- provjeru validacijskih pravila za unos i obradu transkripata
+- ideju da reset funkcionalnost mora imati jasno definisano ponašanje
+- obradu grešaka u slučajevima kada transkript nije moguće resetovati
+- dodatnu provjeru rubnih slučajeva
+
+**Šta je tim izmijenio:**
+- pravila validacije su prilagođena postojećoj poslovnoj logici
+- poruke grešaka su prilagođene korisnicima aplikacije
+- reset logika je usklađena sa postojećim statusima i tokom rada aplikacije
+
+**Šta je tim odbacio:**
+- generičku reset logiku koja ne uzima u obzir stanje transkripta
+- dodatne statuse koji nisu bili dio dogovorenog workflow-a
+
+**Rizici, problemi ili greške koje su uočene:**
+- reset transkripta može dovesti do gubitka prethodno unesenih podataka ako nije jasno kontrolisan
+- potrebno je osigurati da se ne resetuju pogrešni zapisi
+- validacija mora ostati usklađena sa backend pravilima
+
+---
+
+## AI Usage Log – Zapis 14
+
+**Datum:** 02/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri doradi dashboarda, sidebara i navigacije kroz aplikaciju.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri doradi korisničkog interfejsa, posebno dashboarda, sidebara i navigacije. Fokus je bio na tome da korisnik lakše pristupa glavnim dijelovima sistema i da se postojeće stranice bolje povežu u jednu cjelinu.
+
+**Šta je AI predložio ili generisao:**
+- prijedloge za organizaciju navigacijskih linkova
+- doradu sidebara radi jasnijeg kretanja kroz aplikaciju
+- poboljšanje rasporeda elemenata na dashboard stranici
+- prijedloge za prikaz ključnih informacija korisniku
+- provjeru UI problema koji mogu otežati korištenje aplikacije
+
+**Šta je tim prihvatio:**
+- doradu sidebara i navigacije
+- poboljšanje dashboard prikaza
+- jasnije povezivanje stranica unutar aplikacije
+- ispravke UI problema koji su primijećeni tokom pregleda
+
+**Šta je tim izmijenio:**
+- raspored elemenata je prilagođen stvarnom sadržaju aplikacije
+- nazivi linkova i tekstovi su usklađeni sa projektnim jezikom
+- vizuelni stil je prilagođen postojećem dizajnu
+
+**Šta je tim odbacio:**
+- prijedloge za kompleksniji layout koji nije bio potreban
+- dodatne animacije i efekte koji nisu doprinosili funkcionalnosti
+- promjene koje bi značajno mijenjale dogovoreni izgled aplikacije
+
+**Rizici, problemi ili greške koje su uočene:**
+- nekonzistentna navigacija može zbuniti korisnike
+- dashboard mora prikazivati relevantne informacije bez previše opterećenja
+- UI promjene mogu uticati na postojeće komponente ako nisu pažljivo urađene
+
+---
+
+## AI Usage Log – Zapis 15
+
+**Datum:** 03/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri ispravci report issues funkcionalnosti i dodatnih UI problema.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri refaktoringu i ispravci problema vezanih za report issues funkcionalnost, navigaciju, dashboard i druge uočene UI nedostatke. Cilj je bio stabilizovati već implementirane dijelove aplikacije i učiniti ih spremnijim za demonstraciju u Sprint Review-u.
+
+**Šta je AI predložio ili generisao:**
+- analizu mogućih uzroka UI problema
+- prijedloge za refaktoring dijelova interfejsa
+- provjeru navigacije između stranica
+- doradu prikaza grešaka i korisničkih poruka
+- smjernice za provjeru dashboard prikaza nakon izmjena
+
+**Šta je tim prihvatio:**
+- ispravke u navigaciji
+- doradu report issues prikaza i ponašanja
+- poboljšanje dashboard korisničkog iskustva
+- refaktoring dijelova koda radi bolje preglednosti
+
+**Šta je tim izmijenio:**
+- prijedlozi su prilagođeni postojećoj strukturi frontend aplikacije
+- tekstovi i poruke su usklađeni sa bosanskim jezikom
+- izmjene su ograničene na ono što je bilo potrebno za Sprint 6
+
+**Šta je tim odbacio:**
+- veće promjene arhitekture frontend-a
+- dodavanje novih funkcionalnosti koje nisu bile dio Sprinta 6
+- nepotrebno kompleksne obrasce za prikaz grešaka
+
+**Rizici, problemi ili greške koje su uočene:**
+- refaktoring može nenamjerno uticati na već funkcionalne dijelove aplikacije
+- report issues funkcionalnost mora biti jasna korisniku
+- potrebno je ručno provjeriti navigaciju nakon UI izmjena
+
+---
+
+## AI Usage Log – Zapis 16
+
+**Datum:** 04/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri završavanju prijevoda stranica i doradi landing page-a.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri provjeri i doradi tekstova na frontend stranama aplikacije. Fokus je bio na završavanju prijevoda stranica, usklađivanju terminologije i doradi landing page-a kako bi aplikacija djelovala konzistentnije i profesionalnije.
+
+**Šta je AI predložio ili generisao:**
+- prijedloge za prevod i usklađivanje UI tekstova
+- doradu opisa i naslova na landing page-u
+- provjeru konzistentnosti terminologije kroz aplikaciju
+- prijedloge za jasnije formulacije korisničkih poruka
+- provjeru da li su tekstovi razumljivi ciljnoj grupi korisnika
+
+**Šta je tim prihvatio:**
+- završavanje prijevoda stranica
+- doradu landing page sadržaja
+- usklađivanje terminologije kroz aplikaciju
+- jasnije korisničke poruke na frontend-u
+
+**Šta je tim izmijenio:**
+- tekstovi su prilagođeni stvarnom kontekstu projekta
+- pojedine formulacije su skraćene radi boljeg prikaza u UI-u
+- landing page je usklađen sa funkcionalnostima koje aplikacija stvarno nudi
+
+**Šta je tim odbacio:**
+- marketinški preširoke opise koji nisu odgovarali stvarnom obimu projekta
+- generičke tekstove koji nisu dovoljno jasno opisivali sistem
+- dodatne sekcije koje nisu bile potrebne za trenutnu verziju aplikacije
+
+**Rizici, problemi ili greške koje su uočene:**
+- loš ili nedosljedan prevod može smanjiti jasnoću aplikacije
+- landing page ne smije obećavati funkcionalnosti koje nisu implementirane
+- UI tekstovi moraju ostati kratki i razumljivi
+
+---
+
+## AI Usage Log – Zapis 17
+
+**Datum:** 06/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri dodavanju i provjeri unit, integracijskih i CI testova.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri dodavanju i provjeri testova za Sprint 6. Fokus je bio na testovima koji potvrđuju stabilnost postojećih funkcionalnosti, uključujući autentifikaciju, pipeline, transkripte i dijelove aplikacije koji su mijenjani tokom sprinta.
+
+**Šta je AI predložio ili generisao:**
+- prijedloge unit testova za izolovanu backend logiku
+- prijedloge integracijskih testova za tokove povezane sa autentifikacijom, pipeline-om i transkriptima
+- smjernice za organizaciju testova u repozitoriju
+- provjeru pytest konfiguracije
+- smjernice za CI testove i dokaz testiranja
+
+**Šta je tim prihvatio:**
+- dodavanje Sprint 6 testova
+- provjeru autentifikacije, pipeline-a i transkripata kroz testove
+- korištenje postojećeg testnog okruženja
+- dokumentovanje dokaza testiranja nakon lokalnog pokretanja
+
+**Šta je tim izmijenio:**
+- testovi su prilagođeni stvarnoj implementaciji
+- dio testova je pojednostavljen da provjerava najvažnije poslovne scenarije
+- konfiguracija je prilagođena postojećem pytest setup-u
+
+**Šta je tim odbacio:**
+- testove za funkcionalnosti koje nisu bile završene ili nisu bile dio Sprinta 6
+- previše detaljne testove koji bi otežali održavanje
+- prijedloge koji bi zahtijevali dodatne servise samo radi testiranja
+
+**Rizici, problemi ili greške koje su uočene:**
+- testovi moraju provjeravati stvarnu poslovnu logiku, a ne samo tehničko izvršavanje
+- promjene u API rutama mogu zahtijevati ažuriranje integracijskih testova
+- CI testovi mogu padati ako okruženje nije isto kao lokalno
+
+---
+
+## AI Usage Log – Zapis 18
+
+**Datum:** 06/05/2026
+
+**Sprint broj:** Sprint 6
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri završnoj provjeri builda, pokretanja testova i dokumentovanju dokaza testiranja.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten kao podrška pri završnoj provjeri Sprint 6 izmjena. Cilj je bio potvrditi da se aplikacija može buildati i da testovi prolaze prije nego što se promjene dokumentuju i predstave u Sprint Review-u.
+
+**Šta je AI predložio ili generisao:**
+- komande za lokalno pokretanje testova
+- provjeru značenja pytest rezultata
+- objašnjenje razlike između unit testova i testova koji zavise od Docker okruženja
+- prijedlog načina dokumentovanja dokaza testiranja
+- smjernice za završnu provjeru prije pushanja izmjena
+
+**Šta je tim prihvatio:**
+- lokalno pokretanje testova prije završetka sprinta
+- dokumentovanje rezultata testiranja
+- provjeru da unit testovi ne zahtijevaju Docker
+- pripremu dokaza da su testovi uspješno prošli
+
+**Šta je tim izmijenio:**
+- komande su prilagođene stvarnoj strukturi projekta
+- dokumentacija je napisana u skladu sa formatom koji tim već koristi
+- u AI Usage Log su uključene samo aktivnosti vezane za implementaciju, ispravke, deploy i testiranje
+
+**Šta je tim odbacio:**
+- ponavljanje zapisa iz Sprinta 5
+- dokumentovanje aktivnosti koje nisu vezane za implementaciju ili testiranje
+- detalje koji nisu direktno povezani sa Sprint 6 promjenama
+
+**Rizici, problemi ili greške koje su uočene:**
+- uspješno lokalno testiranje ne garantuje automatski uspješan production deploy
+- potrebno je posebno provjeriti produkcijske varijable i hosting konfiguraciju
+- dokumentacija mora jasno razlikovati šta je urađeno u Sprintu 6 u odnosu na prethodni sprint
+---
