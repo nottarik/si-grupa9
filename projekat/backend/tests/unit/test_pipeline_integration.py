@@ -1,9 +1,8 @@
 """
 End-to-end test of run_pipeline() against the SQLite test DB.
-External dependencies (Qdrant, sentence-transformers) are mocked.
+Embedding and Qdrant are no longer part of the pipeline (moved to approval step).
 """
 import pytest
-from unittest.mock import MagicMock, patch
 from sqlalchemy import select
 
 from app.db.models.user import Korisnik
@@ -24,12 +23,7 @@ async def test_run_pipeline_creates_segments_and_qa(setup_test_db):
     from app.db.session import AsyncSessionLocal
     from app.services.preprocessing.pipeline import run_pipeline
 
-    fake_vector = [0.0] * 384
-    mock_embed = MagicMock(return_value=fake_vector)
-    mock_index = MagicMock()
-
     async with AsyncSessionLocal() as db:
-        # Use the admin user created in conftest
         admin = (await db.execute(
             select(Korisnik).where(Korisnik.email == "admin@test.com")
         )).scalar_one()
@@ -46,12 +40,8 @@ async def test_run_pipeline_creates_segments_and_qa(setup_test_db):
         await db.refresh(transkript)
         tid = transkript.id
 
-        with (
-            patch("app.services.preprocessing.pipeline._embedder.embed", mock_embed),
-            patch("app.services.preprocessing.pipeline._vector_store.index_item", mock_index),
-        ):
-            result = await run_pipeline(tid, TRANSCRIPT_TEXT, db)
-            await db.commit()
+        result = await run_pipeline(tid, TRANSCRIPT_TEXT, db)
+        await db.commit()
 
         assert result.transcript_id == tid
         assert result.entity_count >= 2
@@ -70,7 +60,6 @@ async def test_run_pipeline_creates_segments_and_qa(setup_test_db):
         )).scalars().all()
         assert len(qa_rows) == result.qa_pair_count
         for row in qa_rows:
-            assert row.vector_id is not None
             assert "0101990012343" not in row.pitanje
 
         tmr = (await db.execute(
