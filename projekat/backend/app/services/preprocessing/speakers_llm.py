@@ -2,6 +2,8 @@ import asyncio
 import json
 import logging
 
+from groq import Groq
+
 from .models import Turn
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,6 @@ async def label_speakers_llm(masked_text: str) -> list[Turn]:
     Only call this with already-masked text — never raw.
     """
     from app.core.config import settings
-    from groq import Groq
 
     if not settings.GROQ_API_KEY:
         return []

@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 # Postavi testnu bazu PRIJE nego se bilo šta importuje iz app-a
@@ -14,13 +13,6 @@ os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
 os.environ.setdefault("TOKEN_MAP_KEY", "")
 
 import pytest
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session", autouse=True)

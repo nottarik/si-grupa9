@@ -130,8 +130,8 @@ def test_find_structural_pii_ssn():
 
 
 def test_jmbg_13_digits_no_checksum_not_detected():
-    # 13 digit number that fails checksum — should NOT be detected
-    spans = find_structural_pii("0000000000000")
+    # Last digit wrong (should be 0 for all-zeros, we use 1) — checksum fails
+    spans = find_structural_pii("0000000000001")
     assert not any(s.entity_type == "JMBG" for s in spans)
 
 

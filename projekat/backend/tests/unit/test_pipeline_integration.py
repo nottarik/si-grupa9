@@ -12,10 +12,10 @@ from app.db.models.knowledge import UnosBazeZnanja
 
 
 TRANSCRIPT_TEXT = (
-    "Korisnik: Dobro jutro. Moj JMBG je 0101990012343.\n"
-    "Agent: Dobar dan, kako Vam mogu pomoci?\n"
-    "Korisnik: Zanimaju me uslovi kredita. Moj broj je 061 123 456.\n"
-    "Agent: Naravno, mogu Vam pomoci s tim."
+    "Korisnik: Dobro jutro, zanimaju me uslovi za novi mobilni paket. Moj JMBG je 0101990012343.\n"
+    "Agent: Dobar dan, hvala sto ste nas kontaktirali. Za novi mobilni paket mozete odabrati jednu od tri opcije koje nudimo.\n"
+    "Korisnik: Koji dokumenti su potrebni za promjenu paketa? Moj broj je 061 123 456.\n"
+    "Agent: Za promjenu paketa potrebna je samo vasa licna karta i popunjen zahtjev koji mozete preuzeti na nasoj web stranici ili u poslovnici."
 )
 
 

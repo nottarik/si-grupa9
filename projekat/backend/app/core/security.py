@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import bcrypt
@@ -18,7 +18,7 @@ def _to_bcrypt_bytes(password: str) -> bytes:
 
 
 def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
-    expire = datetime.utcnow() + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     payload = {"exp": expire, "sub": str(subject)}
