@@ -1,3 +1,7 @@
+import asyncio
+import uuid
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,6 +12,7 @@ from app.db.models.knowledge import UnosBazeZnanja
 from app.api.v1.deps import require_role
 
 router = APIRouter(prefix="/knowledge", tags=["knowledge"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/pending", response_model=list[dict])
@@ -44,6 +49,27 @@ async def approve_item(
 
     item.status_aprovacije = "Odobren"
     item.aktivan = True
+
+    # Embed and index into Qdrant now that the item is approved.
+    # Done here (one item at a time) rather than during upload to avoid OOM.
+    try:
+        from app.services.ai.embedding_service import EmbeddingService
+        from app.services.ai.vector_store import VectorStoreService
+
+        text = f"{item.pitanje} {item.odgovor}"
+        vector = await asyncio.to_thread(EmbeddingService().embed, text)
+        vector_id = str(uuid.uuid4())
+
+        await asyncio.to_thread(
+            VectorStoreService().index_item,
+            vector_id,
+            vector,
+            {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
+        )
+        item.vector_id = vector_id
+    except Exception:
+        logger.warning("Qdrant indexing failed for item %s; approved without vector.", item_id)
+
     await db.commit()
     return {"message": "Item approved"}
 

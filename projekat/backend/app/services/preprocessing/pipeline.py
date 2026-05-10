@@ -1,13 +1,10 @@
 import asyncio
 import logging
-import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.transcript import Segment, TokenMapRecord
 from app.db.models.knowledge import UnosBazeZnanja
-from app.services.ai.embedding_service import EmbeddingService
-from app.services.ai.vector_store import VectorStoreService
 from .models import PipelineResult
 from .normalize import normalize
 from .speakers import split_turns
@@ -19,19 +16,12 @@ from . import audit
 
 logger = logging.getLogger(__name__)
 
-_embedder = EmbeddingService()
-_vector_store = VectorStoreService()
-
 _MIN_QUESTION_WORDS = 5
 _MIN_ANSWER_WORDS = 10
 _MAX_PLACEHOLDER_RATIO = 0.15
 
 
 def _is_procedural_qa(question: str, answer: str) -> bool:
-    """
-    Returns True only if the Q&A pair looks like generalizable procedural knowledge.
-    Rejects: too short, or answer is mostly placeholders (account-specific interaction).
-    """
     q_words = question.split()
     a_words = answer.split()
     if len(q_words) < _MIN_QUESTION_WORDS or len(a_words) < _MIN_ANSWER_WORDS:
@@ -51,44 +41,25 @@ async def run_pipeline(
 
     normalized = normalize(raw_text)
 
-    # Mask BEFORE anything else. NER runs in a thread to avoid blocking the event loop.
     masked_text, token_map = await asyncio.to_thread(mask, normalized)
     audit.safe_log("masked", transcript_id=transcript_id, entities=len(token_map))
 
     turns = split_turns(masked_text)
     if all(t.role == "unknown" for t in turns):
-        # No speaker prefixes found (e.g. raw audio transcript) — use LLM to label.
-        # Safe: masked_text has already had PII replaced; raw values never reach Groq.
         llm_turns = await label_speakers_llm(masked_text)
         if llm_turns:
             turns = llm_turns
     audit.safe_log("speakers", transcript_id=transcript_id, turns=len(turns))
 
-    # Persist encrypted token map — raw values never leave this scope unencrypted.
     encrypted = encrypt_token_map(token_map)
     db.add(TokenMapRecord(transkript_id=transcript_id, encrypted_blob=encrypted))
 
     chunks = chunk_turns(turns)
 
-    # turn_position → (first_segment_id, first_vector_id) — used to link Q&A pairs
-    turn_repr: dict[int, tuple[int, str]] = {}
+    # Save segments — no embedding here, done at approval time to avoid OOM on free tier
+    turn_first_seg: dict[int, int] = {}  # turn_position → first segment id
 
     for chunk in chunks:
-        vector = await asyncio.to_thread(_embedder.embed, chunk.text)
-        vector_id = str(uuid.uuid4())
-
-        await asyncio.to_thread(
-            _vector_store.index_item,
-            vector_id,
-            vector,
-            {
-                "transcript_id": transcript_id,
-                "tip_segmenta": chunk.tip_segmenta,
-                "position": chunk.position,
-                "text": chunk.text,
-            },
-        )
-
         seg = Segment(
             tekst=chunk.text,
             tip_segmenta=chunk.tip_segmenta,
@@ -98,9 +69,8 @@ async def run_pipeline(
         )
         db.add(seg)
         await db.flush()
-
-        if chunk.turn_position not in turn_repr:
-            turn_repr[chunk.turn_position] = (seg.id, vector_id)
+        if chunk.turn_position not in turn_first_seg:
+            turn_first_seg[chunk.turn_position] = seg.id
 
     qa_count = 0
     dropped_count = 0
@@ -110,12 +80,10 @@ async def run_pipeline(
             if not _is_procedural_qa(turn.text, agent_turn.text):
                 dropped_count += 1
                 continue
-            seg_id, vec_id = turn_repr.get(turn.position, (None, None))
             db.add(UnosBazeZnanja(
                 pitanje=turn.text,
                 odgovor=agent_turn.text,
-                id_segmenta=seg_id,
-                vector_id=vec_id,
+                id_segmenta=turn_first_seg.get(turn.position),
                 status_aprovacije="NaCekanju",
             ))
             qa_count += 1
