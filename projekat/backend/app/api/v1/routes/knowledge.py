@@ -22,9 +22,10 @@ async def list_pending(
     return [
         {
             "id": i.id,
-            "pitanje": i.pitanje,
-            "odgovor": i.odgovor,
-            "id_kategorije": i.id_kategorije,
+            "question": i.pitanje,
+            "answer": i.odgovor,
+            "category": i.id_kategorije,
+            "status": i.status_aprovacije,
         }
         for i in items
     ]

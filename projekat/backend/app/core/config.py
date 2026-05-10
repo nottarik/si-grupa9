@@ -25,12 +25,17 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "llama-3.1-70b-versatile"
     WHISPER_MODEL: str = "whisper-large-v3"
     RAG_TOP_K: int = 5
-    RAG_CONFIDENCE_THRESHOLD: float = 0.6
+    RAG_CONFIDENCE_THRESHOLD: float = 0.7
 
     # Supabase Storage
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
     SUPABASE_BUCKET: str = "transcripts"
+
+    # PII token map encryption (Fernet key, base64url-encoded 32 bytes).
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # If empty, an ephemeral key is generated at startup (dev only — maps won't survive restarts).
+    TOKEN_MAP_KEY: str = ""
 
     # Internal API (used by GitHub Actions cron to hit /internal/* endpoints)
     INTERNAL_API_KEY: str = ""

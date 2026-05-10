@@ -11,6 +11,7 @@ os.environ.setdefault("SUPABASE_SERVICE_KEY", "test-key")
 os.environ.setdefault("INTERNAL_API_KEY", "test-internal-key")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
+os.environ.setdefault("TOKEN_MAP_KEY", "")
 
 import pytest
 
@@ -25,9 +26,9 @@ def event_loop():
 @pytest.fixture(scope="session", autouse=True)
 async def setup_test_db():
     """Kreira sve tabele i seed-a admin korisnika."""
-    import app.db.models.user       # noqa: F401
-    import app.db.models.transcript # noqa: F401
-    import app.db.models.knowledge  # noqa: F401
+    import app.db.models.user        # noqa: F401
+    import app.db.models.transcript  # noqa: F401 — also registers TokenMapRecord
+    import app.db.models.knowledge   # noqa: F401
 
     from app.db.session import engine, AsyncSessionLocal, Base
 

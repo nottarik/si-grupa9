@@ -129,11 +129,7 @@ async def create_manual_transcript(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    from app.services.pipeline.pipeline_service import PipelineService
-    from app.db.models.knowledge import UnosBazeZnanja
-
-    pipeline = PipelineService()
-    result = pipeline.process(body.content)
+    from app.services.preprocessing.pipeline import run_pipeline
 
     transkript = Transkript(
         id_korisnika_upload=current_user.id,
@@ -141,26 +137,22 @@ async def create_manual_transcript(
         file_path=None,
         format=FormatTip.tekst,
         raw_text=body.content,
-        processed_text=result.masked_text,
-        status=TranskStatusTip.obradjeno,
+        status=TranskStatusTip.sirovi,
     )
     db.add(transkript)
     await db.commit()
     await db.refresh(transkript)
 
-    for pair in result.qa_pairs:
-        db.add(UnosBazeZnanja(
-            pitanje=pair["question"],
-            odgovor=pair["answer"],
-            status_aprovacije="NaCekanju",
-        ))
+    pipeline_result = await run_pipeline(transkript.id, body.content, db)
+    transkript.processed_text = pipeline_result.masked_text
+    transkript.status = TranskStatusTip.obradjeno
     await db.commit()
 
     return TranscriptManualResponse(
         transcript_id=transkript.id,
         message=(
             f"Transcript saved successfully. "
-            f"{len(result.qa_pairs)} Q&A pair(s) extracted and queued for review."
+            f"{pipeline_result.qa_pair_count} Q&A pair(s) extracted and queued for review."
         ),
     )
 

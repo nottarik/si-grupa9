@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listPendingItems, approveItem, rejectItem } from "../../api/knowledge";
+import { Ic, icons } from "./shared";
 
 export default function KnowledgePendingList() {
   const qc = useQueryClient();
@@ -20,52 +21,55 @@ export default function KnowledgePendingList() {
   });
 
   if (isLoading)
-    return <p className="text-sm text-gray-400 animate-pulse">Loading...</p>;
+    return <div className="card p-8 text-center text-sm text-gray-400 animate-pulse">Loading…</div>;
 
   if (items.length === 0)
     return (
-      <p className="text-sm text-gray-500">
-        No Q&amp;A pairs pending approval.
-      </p>
+      <div className="card p-8 text-center">
+        <div className="text-2xl mb-2">✓</div>
+        <p className="text-sm text-gray-400">All items reviewed.</p>
+      </div>
     );
 
   return (
     <div className="flex flex-col gap-3">
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
-        >
-          <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">
-            Question
-          </p>
-          <p className="text-sm text-gray-800 mb-3">{item.question}</p>
+      <div className="flex items-center gap-2 mb-1">
+        <span className="badge badge-yellow">{items.length} Pending</span>
+      </div>
 
-          <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">
+      {items.map((item) => (
+        <div key={item.id} className="card p-5 space-y-3">
+          <div className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: "rgba(197,160,89,0.9)" }}>
+            Question
+          </div>
+          <p className="text-sm text-charcoal">{item.question}</p>
+
+          <div className="meander" />
+
+          <div className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: "rgba(197,160,89,0.9)" }}>
             Answer
-          </p>
-          <p className="text-sm text-gray-700 mb-4">{item.answer}</p>
+          </div>
+          <p className="text-sm text-gray-700">{item.answer}</p>
 
           {item.category && (
-            <span className="inline-block text-xs bg-primary-50 text-primary-700 rounded px-2 py-0.5 mb-3">
-              {item.category}
-            </span>
+            <span className="badge badge-yellow">{item.category}</span>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button
               onClick={() => approve.mutate(item.id)}
               disabled={approve.isPending}
-              className="text-sm bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg px-3 py-1.5 transition-colors"
+              className="gold-btn flex items-center gap-2 text-xs py-1.5 disabled:opacity-50"
             >
-              ✓ Approve
+              <Ic d={icons.check} size={13} /> Approve
             </button>
             <button
               onClick={() => reject.mutate(item.id)}
               disabled={reject.isPending}
-              className="text-sm bg-red-100 hover:bg-red-200 disabled:opacity-50 text-red-700 rounded-lg px-3 py-1.5 transition-colors"
+              className="outline-btn flex items-center gap-2 text-xs py-1.5 disabled:opacity-50"
+              style={{ borderColor: "rgba(198,40,40,.3)", color: "#c62828" }}
             >
-              ✗ Reject
+              <Ic d={icons.x} size={13} /> Reject
             </button>
           </div>
         </div>

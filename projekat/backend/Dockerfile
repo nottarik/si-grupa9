@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --default-timeout=100 -r requirements.txt
+RUN pip install --default-timeout=100 -r requirements.txt && \
+    python -m spacy download xx_ent_wiki_sm
 
 COPY . .
 

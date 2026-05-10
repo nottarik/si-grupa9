@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import BigInteger, Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 
 # SQLite only autoincrements INTEGER primary keys, not BIGINT.
 # with_variant keeps BIGINT on PostgreSQL and switches to INTEGER for SQLite tests.
@@ -87,3 +87,14 @@ class Segment(Base):
     id_kategorije = Column(BigInteger, ForeignKey("kategorija.id"), nullable=True)
     pouzdanost_score = Column(Float, nullable=True)
     datum_ekstrakcije = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class TokenMapRecord(Base):
+    """Encrypted mapping of PII placeholders to original values, scoped per transcript."""
+    __tablename__ = "token_map"
+    __table_args__ = (UniqueConstraint("transkript_id", name="uq_token_map_transkript"),)
+
+    id = Column(_BigIntPK, primary_key=True, autoincrement=True)
+    transkript_id = Column(BigInteger, ForeignKey("transkript.id"), nullable=False)
+    encrypted_blob = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
