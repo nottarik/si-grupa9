@@ -638,6 +638,232 @@ Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
 
 ---
 
+### PB 27 — Izgradnja baze znanja
+
+#### User Story 27.1 — Generisanje embeddinga iz transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 27.1 |
+| **Naziv** | Generisanje embeddinga iz transkripata |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava semantičko razumijevanje sadržaja transkripata i predstavlja temelj za RAG pretragu chatbota |
+
+**Uloga:**
+Kao administrator, želim da sistem generiše embeddinge iz obrađenih transkripata kako bi chatbot mogao koristiti semantičku pretragu.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su transkripti prethodno normalizovani i validirani kroz pipeline (PB-23, PB-26). Otvoreno pitanje: Koji embedding model će biti korišten za generisanje vektora?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-23 Priprema za obradu transkripata (US-23.1, US-23.2). Zavisi od PB-26 Maskiranje osjetljivih podataka (US-26.1). Preduvjet za US-27.2 Pohrana embeddinga u vektorsku bazu.
+
+**Acceptance Criteria:**
+- Kada sistem obradi transkript, tada mora generisati embeddinge za tekstualne segmente
+- Sistem mora evidentirati greške tokom generisanja embeddinga
+- Sistem ne smije preskočiti validne tekstualne segmente
+- Generisani embedding mora biti povezan s odgovarajućim segmentom transkripata
+
+---
+
+#### User Story 27.2 — Pohrana embeddinga u vektorsku bazu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 27.2 |
+| **Naziv** | Pohrana embeddinga u vektorsku bazu |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Čini embeddinge dostupnim za RAG pretragu i omogućava chatbotu korištenje baze znanja izgrađene iz transkripata |
+
+**Uloga:**
+Kao administrator, želim da sistem pohrani embeddinge u vektorsku bazu kako bi chatbot mogao koristiti relevantne informacije pri odgovaranju na pitanja.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da je vektorska baza (Qdrant) pokrenuta i dostupna. Otvoreno pitanje: Da li će se koristiti Qdrant, Pinecone ili druga vektorska baza?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-27.1 Generisanje embeddinga iz transkripata. Preduvjet za US-27.3 Retrieval mehanizam za semantičku pretragu.
+
+**Acceptance Criteria:**
+- Kada embedding bude generisan, tada sistem mora pohraniti embedding u vektorsku bazu
+- Embedding mora biti povezan s originalnim transkriptom
+- Sistem mora prikazati grešku ako pohrana nije uspješna
+- Sistem ne smije pohraniti duplirane embeddinge za isti segment
+
+---
+
+#### User Story 27.3 — Retrieval mehanizam za semantičku pretragu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 27.3 |
+| **Naziv** | Retrieval mehanizam za semantičku pretragu |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Poboljšava relevantnost odgovora chatbota pronalaženjem semantički najsličnijeg sadržaja iz baze znanja |
+
+**Uloga:**
+Kao korisnik chatbot sistema, želim da sistem pronađe semantički relevantne informacije kako bih dobio tačne odgovore na svoja pitanja.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da embeddingi postoje u vektorskoj bazi. Otvoreno pitanje: Koliko najrelevantnijih rezultata treba vratiti chatbotu? Koji je prag sličnosti ispod kojeg sistem smatra da nema relevantnog rezultata?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-27.2 Pohrana embeddinga u vektorsku bazu. Zavisi od PB-22 Chat UI (US-22.1).
+
+**Acceptance Criteria:**
+- Kada korisnik pošalje pitanje, tada sistem mora izvršiti semantičku pretragu nad vektorskom bazom
+- Upit se pretvara u embedding prije pretrage
+- Sistem mora vratiti najrelevantnije rezultate rangirane po semantičkoj sličnosti
+- Rezultati moraju biti proslijeđeni chatbotu za generisanje odgovora
+- Sistem ne smije prikazati grešku pri uspješnoj pretrazi
+
+---
+
+### PB 45 — Account Settings
+
+#### User Story 45.1 — Promjena korisničkog imena
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 45.1 |
+| **Naziv** | Promjena korisničkog imena |
+| **Sprint** | 7 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava korisnicima ažuriranje podataka naloga bez potrebe za administratorskom intervencijom |
+
+**Uloga:**
+Kao registrovani korisnik, želim promijeniti svoje korisničko ime kako bih ažurirao podatke svog naloga.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da korisnik ima aktivan nalog i da je prijavljen u sistem. Otvoreno pitanje: Da li korisničko ime mora biti jedinstveno na nivou cijelog sistema?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36).
+
+**Acceptance Criteria:**
+- Kada korisnik otvori Account Settings, tada sistem mora prikazati trenutno korisničko ime
+- Kada korisnik unese novo korisničko ime i potvrdi izmjenu, tada sistem mora sačuvati izmjene
+- Sistem ne smije dozvoliti unos već postojećeg korisničkog imena
+- Nakon uspješne izmjene sistem mora prikazati potvrdu
+
+---
+
+#### User Story 45.2 — Promjena lozinke
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 45.2 |
+| **Naziv** | Promjena lozinke |
+| **Sprint** | 7 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Povećava sigurnost korisničkih naloga omogućavanjem redovne promjene lozinke |
+
+**Uloga:**
+Kao registrovani korisnik, želim promijeniti svoju lozinku kako bih zaštitio svoj nalog.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da je korisnik autentifikovan i da poznaje trenutnu lozinku. Otvoreno pitanje: Da li sistem treba zahtijevati periodičnu promjenu lozinke?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od US-45.1.
+
+**Acceptance Criteria:**
+- Kada korisnik unese trenutnu i novu lozinku, tada sistem mora validirati podatke
+- Nova lozinka mora zadovoljiti sigurnosna pravila (minimum 8 znakova)
+- Kada trenutna lozinka nije ispravna, tada sistem mora prikazati poruku greške
+- Nakon uspješne promjene sistem mora prikazati potvrdu
+- Sistem ne smije prikazati lozinku u čitljivom obliku
+- Sistem ne smije dozvoliti postavljanje iste lozinke kao prethodne
+
+---
+
+#### User Story 45.3 — Ažuriranje profilnih podataka
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 45.3 |
+| **Naziv** | Ažuriranje profilnih podataka |
+| **Sprint** | 7 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Osigurava da informacije na korisničkom nalogu budu uvijek tačne i ažurne |
+
+**Uloga:**
+Kao registrovani korisnik, želim ažurirati svoje profilne podatke kako bi moj nalog sadržavao tačne informacije.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da korisnik ima pristup svom profilu. Otvoreno pitanje: Koji podaci mogu biti izmijenjeni (ime, prezime, email, profilna slika)?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od US-45.1.
+
+**Acceptance Criteria:**
+- Kada korisnik izmijeni profilne podatke, tada sistem mora sačuvati izmjene
+- Sistem mora validirati obavezna polja — polja ne smiju biti prazna
+- Nakon spremanja izmjene moraju odmah biti prikazane u profilu
+- Sistem ne smije dozvoliti unos nevalidnog email formata
+
+---
+
+### PB 46 — Prikaz statusa obrade transkripata
+
+#### User Story 46.1 — Pregled statusa obrade transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 46.1 |
+| **Naziv** | Pregled statusa obrade transkripata |
+| **Sprint** | 7 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Daje administratoru uvid u tok procesiranja podataka i omogućava pravovremenu reakciju na probleme u pipeline obradi |
+
+**Uloga:**
+Kao administrator, želim vidjeti status obrade transkripata kako bih mogao pratiti proces obrade podataka.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da sistem vodi evidenciju statusa obrade svakog transkripata u bazi podataka. Otvoreno pitanje: Da li status treba biti automatski osvježavan u realnom vremenu?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Upload i unos transkripata (PB-18). Zavisi od PB-23 Priprema za obradu transkripata. Zavisi od PB-27 Izgradnja baze znanja.
+
+**Acceptance Criteria:**
+- Sistem mora prikazati status svakog transkripata u administratorskom pregledu
+- Status može biti: `Pending`, `Processing`, `Completed` ili `Failed`
+- Sistem ne smije prikazati grešku pri učitavanju statusa
+- Status mora biti vidljiv u administratorskom pregledu transkripata
+
+---
+
+#### User Story 46.2 — Prikaz grešaka pri obradi transkripata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 46.2 |
+| **Naziv** | Prikaz grešaka pri obradi transkripata |
+| **Sprint** | 7 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava administratoru brzu identifikaciju i rješavanje problema u obradi podataka |
+
+**Uloga:**
+Kao administrator, želim vidjeti greške tokom obrade transkripata kako bih mogao reagovati na probleme.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da sistem evidentira logove i greške tokom obrade. Otvoreno pitanje: Da li administrator može ponovo pokrenuti obradu nakon greške?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-46.1 Pregled statusa obrade transkripata.
+
+**Acceptance Criteria:**
+- Kada obrada ne uspije, tada sistem mora prikazati poruku greške sa statusom `Failed`
+- Administrator mora moći identificirati problematični transkript
+- Sistem mora evidentirati razlog greške
+- Sistem ne smije prikazati tehničke detalje greške krajnjim korisnicima
+
+---
+
+
 ## Sprint 8
 
 ---
