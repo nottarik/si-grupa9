@@ -2,7 +2,7 @@
 
 ## Opis sprinta
 
-Sprint 7 fokusira se na implementaciju pipeline obrade transkripata i izgradnju baze znanja koja je temelj AI funkcionalnosti sistema. Uvodi se normalizacija teksta i razdvajanje po ulogama, maskiranje osjetljivih podataka, generisanje embeddinga i pohrana u vektorsku bazu s retrieval mehanizmom za semantičku pretragu. Pored toga, sprint uključuje upravljanje korisničkim nalogom (Account Settings) i prikaz statusa obrade transkripata u administratorskom UI-u.
+Sprint 7 fokusira se na implementaciju pipeline obrade transkripata i izgradnju baze znanja koja je temelj AI funkcionalnosti sistema. Uvodi se normalizacija teksta i razdvajanje po ulogama, maskiranje osjetljivih podataka, generisanje embeddinga i pohrana u vektorsku bazu. Pored toga, sprint uključuje upravljanje korisničkim nalogom (Account Settings) i prikaz statusa obrade transkripata u administratorskom UI-u.
 
 Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 
@@ -21,8 +21,7 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 |----|--------------|-------------|-----|-----------|-----------------|--------|
 | PB-23 | Priprema za obradu transkripata | Normalizacija teksta i razdvajanje po ulogama | Technical Task | High | 13 | Završeno |
 | PB-26 | Maskiranje osjetljivih podataka | Detekcija i zamjena ličnih podataka prije obrade | Technical Task | High | 5 | Završeno |
-| PB-27 | Izgradnja baze znanja | Generisanje embeddinga, pohrana u vektorsku bazu i retrieval mehanizam (US-27.1, US-27.2, US-27.3) | Feature | High | 13 | Završeno |
-| PB-45 | Account Settings | Upravljanje korisničkim nalogom — promjena korisničkog imena, lozinke i profilnih podataka (US-45.1, US-45.2, US-45.3) | Feature | Medium | 5 | Završeno |
+| PB-27 | Izgradnja baze znanja | Generisanje embeddinga, pohrana u vektorsku bazu (US-27.1, US-27.2) | Feature | High | 13 | Završeno |
 | PB-46 | Prikaz statusa obrade transkripata | Prikaz statusa obrade i grešaka u administratorskom UI-u (US-46.1, US-46.2) | Feature | Medium | 5 | Završeno |
 
 ---
@@ -130,73 +129,6 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 - Embedding mora biti povezan s originalnim transkriptom
 - Sistem mora prikazati grešku ako pohrana nije uspješna
 - Sistem ne smije pohraniti duplirane embeddinge za isti segment
-
----
-
-#### US-27.3 — Retrieval mehanizam za semantičku pretragu
-
-**Uloga:** Kao korisnik chatbot sistema, želim da sistem pronađe semantički relevantne informacije kako bih dobio tačne odgovore na svoja pitanja.
-
-**Acceptance Criteria:**
-
-- Kada korisnik pošalje pitanje, tada sistem mora izvršiti semantičku pretragu nad vektorskom bazom
-- Upit se pretvara u embedding prije pretrage
-- Sistem mora vratiti najrelevantnije rezultate rangirane po semantičkoj sličnosti
-- Rezultati moraju biti proslijeđeni chatbotu za generisanje odgovora
-- Sistem ne smije prikazati grešku pri uspješnoj pretrazi
-
----
-
-### PB-45: Account Settings
-
-**Prioritet:** Medium
-
-**Poslovna vrijednost:** Omogućava korisnicima samostalno upravljanje podacima svog naloga bez potrebe za administratorskom intervencijom, što povećava sigurnost i autonomiju korisnika.
-
-**Pretpostavke:** Korisnik mora biti prijavljen u sistem. Definisani su sigurnosni kriteriji za lozinku (minimum 8 znakova).
-
-**Veze i zavisnosti:** Zavisi od PB-36 Sign In.
-
----
-
-#### US-45.1 — Promjena korisničkog imena
-
-**Uloga:** Kao registrovani korisnik, želim promijeniti svoje korisničko ime kako bih ažurirao podatke svog naloga.
-
-**Acceptance Criteria:**
-
-- Kada korisnik otvori Account Settings, tada sistem mora prikazati trenutno korisničko ime
-- Kada korisnik unese novo korisničko ime i potvrdi izmjenu, tada sistem mora sačuvati izmjene
-- Sistem ne smije dozvoliti unos već postojećeg korisničkog imena
-- Nakon uspješne izmjene sistem mora prikazati potvrdu
-
----
-
-#### US-45.2 — Promjena lozinke
-
-**Uloga:** Kao registrovani korisnik, želim promijeniti svoju lozinku kako bih zaštitio svoj nalog.
-
-**Acceptance Criteria:**
-
-- Kada korisnik unese trenutnu i novu lozinku, tada sistem mora validirati podatke
-- Nova lozinka mora zadovoljiti sigurnosna pravila (minimum 8 znakova)
-- Kada trenutna lozinka nije ispravna, tada sistem mora prikazati poruku greške
-- Nakon uspješne promjene sistem mora prikazati potvrdu
-- Sistem ne smije prikazati lozinku u čitljivom obliku
-- Sistem ne smije dozvoliti postavljanje iste lozinke kao prethodne
-
----
-
-#### US-45.3 — Ažuriranje profilnih podataka
-
-**Uloga:** Kao registrovani korisnik, želim ažurirati svoje profilne podatke kako bi moj nalog sadržavao tačne informacije.
-
-**Acceptance Criteria:**
-
-- Kada korisnik izmijeni profilne podatke, tada sistem mora sačuvati izmjene
-- Sistem mora validirati obavezna polja — polja ne smiju biti prazna
-- Nakon spremanja izmjene moraju odmah biti prikazane u profilu
-- Sistem ne smije dozvoliti unos nevalidnog email formata
 
 ---
 
