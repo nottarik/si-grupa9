@@ -9,8 +9,6 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 - normalizaciju teksta i razdvajanje transkripata po ulogama Agent/Korisnik
 - maskiranje osjetljivih podataka (JMBG, telefon, ime) prije obrade
 - generisanje embeddinga iz obrađenih transkripata i pohranu u vektorsku bazu (Qdrant)
-- retrieval mehanizam za semantičku pretragu kao osnovu RAG sistema
-- upravljanje korisničkim nalogom — promjena korisničkog imena, lozinke i profilnih podataka
 - prikaz statusa obrade transkripata s evidencijom grešaka u administratorskom UI-u
 
 ---
