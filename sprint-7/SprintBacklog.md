@@ -2,7 +2,7 @@
 
 ## Opis sprinta
 
-Sprint 7 fokusira se na implementaciju pipeline obrade transkripata i izgradnju baze znanja koja je temelj AI funkcionalnosti sistema. Uvodi se normalizacija teksta i razdvajanje po ulogama, maskiranje osjetljivih podataka, generisanje embeddinga i pohrana u vektorsku bazu. Pored toga, sprint uključuje upravljanje korisničkim nalogom (Account Settings) i prikaz statusa obrade transkripata u administratorskom UI-u.
+Sprint 7 fokusira se na implementaciju pipeline obrade transkripata i izgradnju baze znanja koja je temelj AI funkcionalnosti sistema. Uvodi se normalizacija teksta i razdvajanje po ulogama, maskiranje osjetljivih podataka, generisanje embeddinga i pohrana u vektorsku bazu. Pored toga, sprint uključuje i prikaz statusa obrade transkripata u administratorskom UI-u.
 
 Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 
