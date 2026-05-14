@@ -1,42 +1,35 @@
-
 # Sprint Goal — Sprint 7
 
 ## Cilj sprinta
 
-Sprint 7 fokusiran je na stabilizaciju i unapređenje preprocessing pipeline-a koji predstavlja osnovu za obradu i zaštitu transkripata unutar sistema. Nakon što je Sprint 6 omogućio administratoru potpunu kontrolu nad podacima i validaciju unosa, ovaj sprint uvodi granularnu obradu transkripata, zaštitu osjetljivih podataka (PII), audit logging i automatizovano testiranje cijelog toka obrade.
+Sprint 7 fokusira se na implementaciju ključnih funkcionalnosti za obradu transkripata i izgradnju baze znanja. Fokusiraćemo se na normalizaciju i razdvajanje transkripata po ulogama, zaštitu osjetljivih podataka kroz maskiranje, te pohranu generiranih embeddinga u vektorsku bazu podataka. Pored ovoga, Sprint 7 uključuje prikaz statusa obrade transkripata u administratorskom UI-u, čime omogućavamo administratoru da prati napredak obrade i uoči moguće greške u procesu.
 
-Cilj sprinta je osigurati da sistem može sigurno i pouzdano obrađivati stvarne korisničke transkripte bez curenja osjetljivih informacija, uz jasnu podjelu preprocessing logike u modularne cjeline koje su lakše za održavanje, proširenje i testiranje.
-
-Na kraju sprinta sistem podržava kompletnu preprocessing obradu: normalizaciju teksta, prepoznavanje govornika, detekciju i maskiranje osjetljivih podataka, segmentaciju sadržaja i kreiranje Q&A zapisa za bazu znanja, uz dokaz da cijeli pipeline funkcioniše kroz unit i integracione testove.
+Na kraju ovog sprinta, sistem će biti sposoban automatski normalizirati transkripte, odvojiti ih po ulogama, maskirati osjetljive podatke, generirati embeddinge i pohraniti ih u vektorsku bazu podataka. Administrator će moći pratiti status obrade transkripata i uočiti greške u procesu, čime će dobiti bolji uvid u funkcionalnost sistema.
 
 ---
 
 ## Šta ovaj sprint isporučuje
 
-**Refaktorisanje preprocessing pipeline-a** predstavlja centralnu tehničku stavku sprinta. Postojeća logika razdvojena je u zasebne module (`normalize`, `speakers`, `chunking`, `pii/recognizers`, `pii/masker`, `token_store`, `audit`, `speakers_llm`) kako bi sistem bio pregledniji, održiviji i spreman za dalje proširenje.
+**Normalizacija transkripata** je u ovom sprintu uvedena kako bi se tekstualni podaci pripremili za dalju obradu i pohranu. Sistem će automatski ukloniti nepotrebne razmake, standardizirati kapitalizaciju i zamijeniti nevalidne znakove bez mijenjanja semantičkog značenja teksta.
 
-**Detekcija i maskiranje PII podataka** uvedeni su kako bi se spriječilo curenje osjetljivih korisničkih informacija. Sistem sada prepoznaje i maskira JMBG, email adrese, telefone, IBAN i druge osjetljive podatke prije nego što tekst bude dalje obrađivan ili poslan eksternim servisima.
+**Razdvajanje transkripata po ulogama (Agent/Korisnik)** omogućava administratoru da jasno vidi ko je govorio u transkriptima. Sistem će automatski razdvojiti tekst po ulogama, a kada oznake nisu jasno definirane, pokušat će inferirati uloge.
 
-**LLM speaker labeling** unaprijeđen je dodatnim sigurnosnim pravilima. Sistem koristi maskiranu verziju teksta prilikom komunikacije s eksternim API servisima, čime se osigurava da originalni PII podaci nikada ne napuštaju sistem.
+**Maskiranje osjetljivih podataka** (JMBG, telefon, ime) će zaštititi privatnost korisnika. Sistem će automatski detektirati i zamijeniti ove podatke prije obrade, čime se osigurava poštovanje propisa o zaštiti podataka.
 
-**Audit logging i token store** omogućavaju sigurnije praćenje rada sistema. Audit logovi više ne sadrže sirove korisničke podatke, dok token store omogućava sigurnu pohranu i rekonstrukciju maskiranih vrijednosti.
+**Generisanje embeddinga i pohrana u vektorsku bazu** omogućava chatbotu da koristi semantičku pretragu za pružanje relevantnih odgovora. Embeddingi će biti povezani s odgovarajućim transkriptima i pohranjeni u vektorsku bazu podataka (Qdrant).
 
-**Automatizovano testiranje pipeline-a** značajno je prošireno. Uvedeni su unit testovi za svaki preprocessing modul pojedinačno, kao i end-to-end integracioni test koji validira kompletan tok od ulaznog transkripta do kreiranja segmenata i Q&A zapisa u bazi znanja.
+**Prikaz statusa obrade transkripata** daje administratoru uvid u tok procesa obrade podataka. Sistem će prikazivati statuse kao što su `Pending`, `Processing`, `Completed` ili `Failed`, te će administrator moći vidjeti greške koje nastanu tokom obrade.
 
 ---
 
 ## Stavke uključene u sprint
 
-| ID | Naziv | Prioritet |
-|----|-------|-----------|
-| PB-45 | Refaktorisanje preprocessing pipeline-a | High |
-| PB-46 | Normalizacija i segmentacija transkripata | High |
-| PB-47 | Detekcija i maskiranje PII podataka | High |
-| PB-48 | Audit logging bez curenja osjetljivih podataka | High |
-| PB-49 | LLM speaker labeling i fallback logika | Medium |
-| PB-50 | Token store i zaštita mapiranja PII vrijednosti | Medium |
-| PB-51 | End-to-end pipeline integracioni test | High |
-| PB-52 | Unit testovi preprocessing modula | High |
+| ID   | Naziv stavke                             | Kratak opis                                                                                         | Tip            | Prioritet | Procjena napora | Status   |
+|------|------------------------------------------|----------------------------------------------------------------------------------------------------|----------------|-----------|-----------------|----------|
+| PB-23 | Priprema za obradu transkripata          | Normalizacija teksta i razdvajanje po ulogama                                                       | Technical Task | High      | 13              | Završeno |
+| PB-26 | Maskiranje osjetljivih podataka          | Detekcija i zamjena ličnih podataka prije obrade                                                   | Technical Task | High      | 5               | Završeno |
+| PB-27 | Izgradnja baze znanja                   | Generisanje embeddinga, pohrana u vektorsku bazu                                                   | Feature        | High      | 13              | Završeno |
+| PB-46 | Prikaz statusa obrade transkripata       | Prikaz statusa obrade i grešaka u administratorskom UI-u                                            | Feature        | Medium    | 5               | Završeno |
 
 ---
 
@@ -44,22 +37,10 @@ Na kraju sprinta sistem podržava kompletnu preprocessing obradu: normalizaciju 
 
 Sprint se smatra uspješnim ako:
 
-- preprocessing pipeline obrađuje transkripte bez greške kroz sve faze obrade
-- sistem uspješno detektuje i maskira osjetljive podatke prije dalje obrade
-- nijedan PII podatak ne curi prema logovima, segmentima ili eksternim API servisima
-- LLM speaker labeling koristi fallback strategiju bez rušenja sistema u slučaju greške
-- svi unit i integracioni testovi prolaze bez greške
-- sistem uspješno kreira segmente i Q&A zapise u bazi znanja iz obrađenih transkripata
-- modularna struktura preprocessing logike omogućava lakše održavanje i buduće proširenje sistema
+- Transkripti budu pravilno normalizirani i razdvojeni po ulogama bez grešaka.
+- Osjetljivi podaci budu uspješno maskirani prije obrade i korisnicima će biti prikazana obavještenja o zamjeni tih podataka.
+- Embeddinzi će biti uspješno generisani i pohranjeni u vektorsku bazu, sa svim povezanim transkriptima.
+- Administratorski UI će prikazivati tačne statuse obrade transkripata, uključujući greške ako se pojave.
 
----
-
-## Rizici i zavisnosti
-
-Glavni rizik ovog sprinta je mogućnost curenja osjetljivih podataka ukoliko maskiranje ili audit logging nisu implementirani dosljedno kroz cijeli pipeline.
-
-Postoji i rizik da refaktorisanje uvede regresije u postojeće funkcionalnosti ukoliko testiranje ne pokrije sve ključne tokove obrade.
-
-Zavisnosti uključuju stabilnost postojećeg sistema za unos i upravljanje transkriptima iz Sprinta 6, kao i ispravnu integraciju preprocessing modula s bazom podataka i AI servisima.
 
 
