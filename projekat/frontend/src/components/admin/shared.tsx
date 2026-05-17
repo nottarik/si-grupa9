@@ -127,6 +127,11 @@ const BADGE_MAP: Record<string, string> = {
   Sirovi: "badge-yellow",
   Obradjeno: "badge-green",
   Odbacen: "badge-red",
+  // Escalation statuses
+  Cekanje: "badge-yellow",
+  UToku: "badge-blue",
+  Rijesena: "badge-green",
+  Napustena: "badge-gray",
 };
 
 const LABEL_MAP: Record<string, string> = {

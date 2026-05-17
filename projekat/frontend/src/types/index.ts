@@ -16,23 +16,35 @@ export interface Token {
 
 // ── Chat ──────────────────────────────────────────────────────────────
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "agent";
   content: string;
   interactionId?: string;
   confidenceScore?: number;
   isLowConfidence?: boolean;
+  agentName?: string;
+}
+
+export interface EscalationInfo {
+  escalation_id: number;
+  status: string;
+  queue_position: number;
+  trigger_tip: string;
 }
 
 export interface ChatResponse {
-  answer: string;
+  answer?: string | null;
   confidence_score: number;
   is_low_confidence: boolean;
   source_id: string | null;
-  interaction_id: string;
+  interaction_id?: number | null;
+  session_id: number;
+  escalation?: EscalationInfo | null;
+  is_agent_chat?: boolean;
+  needs_escalation?: boolean;
 }
 
 export interface FeedbackRequest {
-  interaction_id: string;
+  interaction_id: number;
   is_positive?: boolean;
   rating?: number;
   comment?: string;
