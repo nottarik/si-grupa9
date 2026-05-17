@@ -63,7 +63,8 @@ export default function ChatLogs() {
               <Ic d={icons.search} />
             </span>
             <input
-              className="input-field pl-9"
+              className="input-field"
+              style={{ paddingLeft: "2.25rem" }}
               placeholder="Search questions or answers…"
             />
           </div>

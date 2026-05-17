@@ -85,6 +85,20 @@ export interface TranscriptUpdate {
   processed_text?: string | null;
 }
 
+export interface TranscribePreviewResponse {
+  text: string;
+  quality_warning: string | null;
+  filename: string;
+}
+
+export interface AudioTranscriptConfirm {
+  text: string;
+  agent_name: string;
+  date: string;
+  filename: string;
+  language: string;
+}
+
 // ── Knowledge ─────────────────────────────────────────────────────────
 export type QAStatus = "pending_approval" | "active" | "rejected" | "archived";
 

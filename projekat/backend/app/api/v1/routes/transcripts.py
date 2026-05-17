@@ -1,8 +1,10 @@
 import io
+import os
+import tempfile
 from datetime import date as DateType, datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_, select
 
@@ -11,6 +13,8 @@ from app.db.models.user import Korisnik, UlogaTip
 from app.db.models.transcript import Transkript, FormatTip, TranskStatusTip
 from app.api.v1.deps import require_role
 from app.schemas.transcript import (
+    AudioTranscriptConfirm,
+    TranscribePreviewResponse,
     TranscriptDetail,
     TranscriptManualCreate,
     TranscriptManualResponse,
@@ -54,6 +58,99 @@ def _extract_pdf_text(content: bytes) -> str:
             return "\n".join(page.extract_text() or "" for page in pdf.pages)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Could not extract text from PDF: {exc}")
+
+
+@router.post("/transcribe-preview", response_model=TranscribePreviewResponse)
+async def transcribe_audio_preview(
+    file: UploadFile = File(...),
+    language: str = Form("bs"),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
+):
+    from app.services.transcript.transcription_service import TranscriptionService
+
+    is_audio, _, _ = _classify_file(file.content_type or "", file.filename or "")
+    if not is_audio:
+        raise HTTPException(
+            status_code=400,
+            detail="Only audio files are supported (.mp3, .wav, .m4a, .ogg)",
+        )
+
+    file_bytes = await file.read()
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Audio file appears to be empty or corrupted")
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File exceeds the 10 MB size limit")
+
+    suffix = os.path.splitext(file.filename or ".audio")[1] or ".audio"
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp.write(file_bytes)
+            tmp_path = tmp.name
+
+        try:
+            text = TranscriptionService().transcribe(tmp_path, language=language)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=422,
+                detail="Transcription failed: audio file may be corrupted or in an unsupported format",
+            ) from exc
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+    if not text or not text.strip():
+        raise HTTPException(status_code=422, detail="No speech detected in the audio file")
+
+    quality_warning: str | None = None
+    chars_per_kb = len(text.strip()) / max(len(file_bytes) / 1024, 1)
+    if chars_per_kb < 0.5 and len(file_bytes) > 50 * 1024:
+        quality_warning = (
+            "Audio quality appears to be low. "
+            "The transcription may be incomplete or inaccurate. "
+            "Please review carefully before saving."
+        )
+
+    return TranscribePreviewResponse(
+        text=text.strip(),
+        quality_warning=quality_warning,
+        filename=file.filename or "audio",
+    )
+
+
+@router.post("/confirm-audio", response_model=TranscriptManualResponse)
+async def confirm_audio_transcript(
+    body: AudioTranscriptConfirm,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
+):
+    from app.services.preprocessing.pipeline import run_pipeline
+
+    transkript = Transkript(
+        id_korisnika_upload=current_user.id,
+        naziv=body.filename,
+        file_path=None,
+        format=FormatTip.audio,
+        raw_text=body.text,
+        jezik=body.language,
+        status=TranskStatusTip.sirovi,
+    )
+    db.add(transkript)
+    await db.commit()
+    await db.refresh(transkript)
+
+    pipeline_result = await run_pipeline(transkript.id, body.text, db)
+    transkript.processed_text = pipeline_result.masked_text
+    transkript.status = TranskStatusTip.obradjeno
+    await db.commit()
+
+    return TranscriptManualResponse(
+        transcript_id=transkript.id,
+        message=(
+            f"Audio transcript saved successfully. "
+            f"{pipeline_result.qa_pair_count} Q&A pair(s) extracted and queued for review."
+        ),
+    )
 
 
 @router.post("/upload", response_model=TranscriptUploadResponse)

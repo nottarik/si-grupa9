@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import {
+  confirmAudioTranscript,
   createManualTranscript,
+  transcribeAudioPreview,
   uploadTranscript,
 } from "../../../api/transcripts";
 
@@ -18,7 +20,7 @@ function extractError(e: unknown): string {
 
 type UploadType = "text" | "audio";
 type TextTab = "file" | "manual";
-type AudioStage = "upload" | "preview";
+type AudioStage = "upload" | "transcribing" | "review" | "saving" | "done";
 
 // ── Validation helpers ───────────────────────────────────────────────
 
@@ -354,139 +356,246 @@ function AudioUpload() {
   const [stage, setStage] = useState<AudioStage>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
-  const [message, setMessage] = useState("");
+  const [language, setLanguage] = useState("bs");
+  const [transcriptText, setTranscriptText] = useState("");
+  const [textError, setTextError] = useState("");
+  const [qualityWarning, setQualityWarning] = useState<string | null>(null);
+  const [filename, setFilename] = useState("");
+  const [agentName, setAgentName] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
     setFile(f);
     setFileError(f ? validateAudioFile(f) ?? "" : "");
-    setStatus("idle");
-    setMessage("");
+    setError("");
   }
 
-  async function handleTranscribe() {
+  async function handleStartTranscription() {
     if (!file) return;
     const err = validateAudioFile(file);
     if (err) { setFileError(err); return; }
 
-    setStatus("loading");
+    setStage("transcribing");
+    setError("");
     try {
-      const res = await uploadTranscript(file);
-      setMessage(res.message);
-      setStatus("success");
-      setStage("preview");
+      const res = await transcribeAudioPreview(file, language);
+      setTranscriptText(res.text);
+      setQualityWarning(res.quality_warning);
+      setFilename(res.filename);
+      setStage("review");
     } catch (e: unknown) {
-      setMessage(extractError(e));
-      setStatus("error");
+      setError(extractError(e));
+      setStage("upload");
     }
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-1 bg-gray-100/80 p-1 rounded-lg w-fit">
-        {(["upload", "preview"] as const).map((t) => (
-          <button
-            key={t}
-            className={`tab-btn ${stage === t ? "active" : ""}`}
-            onClick={() => setStage(t)}
-          >
-            {t === "preview" ? "Preview & Edit" : "Upload Audio"}
+  async function handleConfirm() {
+    if (transcriptText.trim().length < 20) {
+      setTextError("Transcript must have at least 20 characters");
+      return;
+    }
+    setStage("saving");
+    setError("");
+    try {
+      const res = await confirmAudioTranscript({
+        text: transcriptText,
+        agent_name: agentName,
+        date,
+        filename,
+        language,
+      });
+      setSuccessMessage(res.message);
+      setStage("done");
+    } catch (e: unknown) {
+      setError(extractError(e));
+      setStage("review");
+    }
+  }
+
+  function handleReset() {
+    setStage("upload");
+    setFile(null);
+    setFileError("");
+    setTranscriptText("");
+    setTextError("");
+    setQualityWarning(null);
+    setFilename("");
+    setAgentName("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setError("");
+    setSuccessMessage("");
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  if (stage === "upload") {
+    return (
+      <div className="card p-6 space-y-4">
+        <div
+          className="upload-zone"
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const f = e.dataTransfer.files[0];
+            if (f) {
+              setFile(f);
+              setFileError(validateAudioFile(f) ?? "");
+              setError("");
+            }
+          }}
+        >
+          <p className="text-sm font-semibold text-charcoal">
+            {file ? file.name : "Drop audio file here"}
+          </p>
+          <p className="text-xs mt-1" style={{ color: "#6b5a3a" }}>
+            Supported: .mp3, .wav, .m4a, .ogg — max 10 MB
+          </p>
+          <button className="gold-btn mt-4" type="button">
+            Browse Audio Files
           </button>
-        ))}
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".mp3,.wav,.m4a,.ogg,audio/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {fileError && <p className="text-xs text-red-600">{fileError}</p>}
+
+        <select
+          className="input-field"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+        >
+          <option value="bs">Language: Bosnian (BS)</option>
+          <option value="en">English (EN)</option>
+          <option value="de">German (DE)</option>
+        </select>
+
+        <button
+          className="gold-btn"
+          onClick={handleStartTranscription}
+          disabled={!file || !!fileError}
+        >
+          Start Transcription
+        </button>
+
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            ✗ {error}
+          </div>
+        )}
       </div>
+    );
+  }
 
-      {stage === "upload" && (
-        <div className="card p-6 space-y-4">
-          <div
-            className="upload-zone"
-            onClick={() => inputRef.current?.click()}
-          >
-            <p className="text-sm font-semibold text-charcoal">
-              {file ? file.name : "Drop audio file here"}
-            </p>
-            <p className="text-xs mt-1" style={{ color: "#6b5a3a" }}>
-              Supported: .mp3, .wav, .m4a, .ogg — max 10 MB
-            </p>
-            <button className="gold-btn mt-4" type="button">
-              Browse Audio Files
-            </button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".mp3,.wav,.m4a,.ogg,audio/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+  if (stage === "transcribing") {
+    return (
+      <div className="card p-6 flex flex-col items-center gap-4 py-12">
+        <div
+          className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
+          style={{ borderColor: "#C5A059", borderTopColor: "transparent" }}
+        />
+        <p className="text-sm font-semibold text-charcoal">Transcribing audio…</p>
+        <p className="text-xs text-gray-400 text-center max-w-xs">
+          This may take up to a minute depending on the length of the recording. Please wait.
+        </p>
+      </div>
+    );
+  }
+
+  if (stage === "review" || stage === "saving") {
+    const isSaving = stage === "saving";
+    return (
+      <div className="card p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-charcoal">{filename}</p>
+          <span className="badge badge-yellow">Review</span>
+        </div>
+
+        {qualityWarning && (
+          <div className="text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2" style={{ color: "#92400e" }}>
+            ⚠ {qualityWarning}
           </div>
+        )}
 
-          {fileError && <p className="text-xs text-red-600">{fileError}</p>}
+        <div>
+          <p className="text-xs text-gray-400 mb-1">
+            Review and correct the transcription before saving. Optionally add{" "}
+            <code className="bg-gray-100 px-1 rounded">AGENT:</code> and{" "}
+            <code className="bg-gray-100 px-1 rounded">KORISNIK:</code> prefixes for speaker labelling.
+          </p>
+          <textarea
+            className={`input-field ${textError ? "error" : ""}`}
+            rows={12}
+            style={{ resize: "vertical", fontFamily: "monospace", fontSize: 13 }}
+            value={transcriptText}
+            disabled={isSaving}
+            onChange={(e) => {
+              setTranscriptText(e.target.value);
+              if (textError) setTextError("");
+            }}
+          />
+          {textError && <p className="text-xs text-red-600 mt-1">{textError}</p>}
+          <p className="text-xs text-gray-400 mt-1">{transcriptText.trim().length} characters (min. 20)</p>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <select className="input-field">
-              <option>Language: Bosnian (BS)</option>
-              <option>English (EN)</option>
-              <option>German (DE)</option>
-            </select>
-            <select className="input-field">
-              <option>Model: Standard</option>
-              <option>Model: Enhanced</option>
-            </select>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            className="input-field"
+            placeholder="Agent name (optional)"
+            value={agentName}
+            disabled={isSaving}
+            onChange={(e) => setAgentName(e.target.value)}
+          />
+          <input
+            className="input-field"
+            type="date"
+            value={date}
+            disabled={isSaving}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
 
+        <div className="flex gap-2">
           <button
             className="gold-btn"
-            onClick={handleTranscribe}
-            disabled={!file || !!fileError || status === "loading"}
+            onClick={handleConfirm}
+            disabled={isSaving}
           >
-            {status === "loading" ? "Uploading…" : "Start Transcription"}
+            {isSaving ? "Saving…" : "Confirm & Save"}
           </button>
-
-          {status === "error" && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              ✗ {message}
-            </div>
-          )}
-        </div>
-      )}
-
-      {stage === "preview" && (
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-charcoal">
-              {file?.name ?? "audio file"}
-            </div>
-            {status === "success" && (
-              <span className="badge badge-yellow">Processing</span>
-            )}
-          </div>
-
-          {status === "success" && (
-            <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              ✓ {message} Transcription is running in the background.
-            </div>
-          )}
-
-          <div className="meander" />
-          <p className="text-xs text-gray-400">
-            The audio is being transcribed asynchronously. Check the Transcripts
-            section for the result once processing is complete.
-          </p>
           <button
-            className="outline-btn text-xs"
-            onClick={() => {
-              setStage("upload");
-              setFile(null);
-              setStatus("idle");
-              setMessage("");
-            }}
+            className="outline-btn"
+            onClick={() => setStage("upload")}
+            disabled={isSaving}
           >
-            ← Upload Another
+            ← Back
           </button>
         </div>
-      )}
+
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            ✗ {error}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="card p-6 space-y-4">
+      <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+        ✓ {successMessage}
+      </div>
+      <button className="outline-btn text-xs" onClick={handleReset}>
+        ← Upload Another
+      </button>
     </div>
   );
 }
