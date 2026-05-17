@@ -1,4 +1,10 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from pydantic import BaseModel
+
+from app.schemas.escalation import EscalationInfo
 
 
 class HistoryMessage(BaseModel):
@@ -9,14 +15,19 @@ class HistoryMessage(BaseModel):
 class ChatRequest(BaseModel):
     question: str
     history: list[HistoryMessage] = []
+    session_id: Optional[int] = None
 
 
 class ChatResponse(BaseModel):
-    answer: str
-    confidence_score: float
-    is_low_confidence: bool
+    answer: str | None = None
+    confidence_score: float = 0.0
+    is_low_confidence: bool = False
     source_id: int | None = None
-    interaction_id: int
+    interaction_id: int | None = None
+    session_id: int
+    escalation: Optional[EscalationInfo] = None
+    is_agent_chat: bool = False
+    needs_escalation: bool = False
 
 
 class FeedbackRequest(BaseModel):

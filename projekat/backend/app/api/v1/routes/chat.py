@@ -9,7 +9,10 @@ from app.db.session import get_db
 from app.db.models.user import Korisnik
 from app.api.v1.deps import get_current_user
 from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest
+from app.schemas.escalation import EscalationInfo
 from app.services.ai.rag_service import RagService
+from app.services.escalation import service as eskal_svc
+from app.services.ws.connection_manager import manager
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -20,9 +23,77 @@ async def ask(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(get_current_user),
 ):
+    # If this user has an active agent session, bypass RAG entirely
+    active = await eskal_svc.get_active_for_user(db, current_user.id)
+    if active and active.status == "UToku":
+        await manager.broadcast_to_agents({
+            "type": "user_message",
+            "session_id": active.sesija_id,
+            "content": payload.question,
+            "escalation_id": active.id,
+        })
+        return ChatResponse(
+            session_id=payload.session_id or active.sesija_id,
+            escalation=EscalationInfo(
+                escalation_id=active.id,
+                status=active.status,
+                queue_position=0,
+                trigger_tip=active.trigger_tip or "NiskaPouz",
+            ),
+            is_agent_chat=True,
+        )
+
     rag = RagService(db)
     history = [{"role": m.role, "content": m.content} for m in payload.history]
-    result = await rag.answer(question=payload.question, user_id=current_user.id, history=history)
+    result = await rag.answer(
+        question=payload.question,
+        user_id=current_user.id,
+        history=history,
+        session_id=payload.session_id,
+    )
+
+    trigger = "NiskaPouz" if result.needs_escalation else None
+    if trigger:
+        conversation_snapshot = history + [
+            {"role": "user", "content": payload.question},
+            {"role": "assistant", "content": result.answer},
+        ]
+        eskal = await eskal_svc.create_escalation(
+            db,
+            sesija_id=result.session_id,
+            korisnik_id=current_user.id,
+            trigger=trigger,
+            razgovor=conversation_snapshot,
+        )
+        pos = await eskal_svc.queue_position(db, eskal.id)
+        await db.commit()
+
+        queue = await eskal_svc.get_queue(db)
+        await manager.broadcast_to_agents({
+            "type": "queue_update",
+            "data": [
+                {
+                    "id": e.id,
+                    "sesija_id": e.sesija_id,
+                    "korisnik_id": str(e.korisnik_id),
+                    "prioritet": e.prioritet,
+                    "status": e.status,
+                    "trigger_tip": e.trigger_tip,
+                    "datum_kreiranja": e.datum_kreiranja.isoformat() if e.datum_kreiranja else None,
+                    "razgovor": e.razgovor or [],
+                    "queue_position": i + 1,
+                }
+                for i, e in enumerate(queue)
+            ],
+        })
+
+        result.escalation = EscalationInfo(
+            escalation_id=eskal.id,
+            status=eskal.status,
+            queue_position=pos,
+            trigger_tip=trigger,
+        )
+
     return result
 
 
@@ -77,7 +148,6 @@ async def ratings_stats(
     five_star_pct = round(five_star / total * 100, 1) if total else 0.0
     below_three_pct = round(below_three / total * 100, 1) if total else 0.0
 
-    # Distribution: fetch all ocjena values and bucket in Python
     all_ocjena = (await db.execute(select(Feedback.ocjena).where(rated))).scalars().all()
     dist_counts: dict[int, int] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     for val in all_ocjena:
@@ -88,7 +158,6 @@ async def ratings_stats(
         for star, count in dist_counts.items()
     }
 
-    # Trend: fetch raw rows and group by date in Python (avoids cast/Date dialect issues)
     since = datetime.now(timezone.utc) - timedelta(days=14)
     recent_rows = (
         await db.execute(
@@ -106,7 +175,6 @@ async def ratings_stats(
         for day, scores in sorted(day_scores.items())
     ]
 
-    # Top rated — join to user question Poruka
     top_rows = (
         await db.execute(
             select(Poruka.tekst, Feedback.ocjena, Feedback.timestamp)
