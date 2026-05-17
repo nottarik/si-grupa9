@@ -56,14 +56,38 @@ const TypingBubble = () => (
 const MessageBubble = ({
   msg,
   onFeedback,
+  onEscalate,
+  isEscalated,
 }: {
   msg: ChatMessage;
   onFeedback?: (id: string, positive: boolean) => void;
+  onEscalate?: () => void;
+  isEscalated?: boolean;
 }) => {
   if (msg.role === "user") {
     return (
       <div className="msg-in flex justify-end">
         <div className="user-bubble px-4 py-3 max-w-[70%]">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#1C1C2E" }}>
+            {msg.content}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (msg.role === "agent") {
+    return (
+      <div className="msg-in flex items-end gap-3">
+        <div
+          className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs"
+          style={{ background: "radial-gradient(circle at 40% 35%,#4ade80,#16a34a,#166534)" }}
+        >
+          {(msg.agentName ?? "A").charAt(0).toUpperCase()}
+        </div>
+        <div className="ai-bubble px-4 py-3 max-w-[70%]" style={{ borderLeft: "2px solid #22c55e" }}>
+          <p className="text-xs font-semibold tracking-widest mb-2 font-cinzel uppercase" style={{ color: "#16a34a" }}>
+            {msg.agentName ?? "Agent"}
+          </p>
           <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#1C1C2E" }}>
             {msg.content}
           </p>
@@ -79,29 +103,46 @@ const MessageBubble = ({
         <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#1C1C2E" }}>
           {msg.content}
         </p>
-        {msg.isLowConfidence && (
-          <p className="mt-1.5 text-xs font-medium" style={{ color: "#b45309" }}>
-            ⚠ I'm not confident in this answer. I recommend contacting an agent.
-          </p>
-        )}
-        {msg.interactionId && onFeedback && (
-          <div className="flex gap-2 mt-2">
+        <div className="flex items-center gap-3 mt-2">
+          {msg.interactionId && onFeedback && (
+            <>
+              <button
+                onClick={() => onFeedback(msg.interactionId!, true)}
+                style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+                title="Helpful"
+              >
+                👍
+              </button>
+              <button
+                onClick={() => onFeedback(msg.interactionId!, false)}
+                style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+                title="Not helpful"
+              >
+                👎
+              </button>
+            </>
+          )}
+          {onEscalate && (
             <button
-              onClick={() => onFeedback(msg.interactionId!, true)}
-              style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-              title="Helpful"
+              onClick={onEscalate}
+              disabled={isEscalated}
+              style={{
+                fontSize: 11,
+                color: isEscalated ? "#c0b090" : "#C5A059",
+                background: "none",
+                border: `1px solid ${isEscalated ? "rgba(197,160,89,0.2)" : "rgba(197,160,89,0.5)"}`,
+                borderRadius: 10,
+                cursor: isEscalated ? "default" : "pointer",
+                padding: "2px 8px",
+                fontFamily: "Inter, sans-serif",
+                opacity: isEscalated ? 0.6 : 1,
+              }}
+              title={isEscalated ? "Already in queue" : "Talk to a human agent"}
             >
-              👍
+              {isEscalated ? "In queue" : "Talk to agent"}
             </button>
-            <button
-              onClick={() => onFeedback(msg.interactionId!, false)}
-              style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-              title="Not helpful"
-            >
-              👎
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -128,7 +169,7 @@ const getSpeechRecognition = (): SR | null => {
 
 /* ── ChatWindow ── */
 export default function ChatWindow() {
-  const { messages, isLoading, error, ask, sendFeedback } = useChat();
+  const { messages, isLoading, error, ask, sendFeedback, requestEscalation, clearMessages, escalation, agentName } = useChat();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [input, setInput] = useState("");
@@ -208,7 +249,8 @@ export default function ChatWindow() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await clearMessages();
     logout();
     navigate("/login");
   }
@@ -232,7 +274,7 @@ export default function ChatWindow() {
   }
 
   async function handleFeedback(interactionId: string, isPositive: boolean) {
-    await sendFeedback({ interaction_id: interactionId, is_positive: isPositive });
+    await sendFeedback({ interaction_id: Number(interactionId), is_positive: isPositive });
   }
 
   return (
@@ -283,6 +325,24 @@ export default function ChatWindow() {
           </div>
         </header>
 
+        {/* ── ESCALATION BANNER ── */}
+        {escalation && (
+          <div
+            className="flex-shrink-0 px-6 py-2 text-sm text-center"
+            style={{
+              background: escalation.status === "UToku"
+                ? "rgba(34,197,94,0.1)"
+                : "rgba(245,158,11,0.1)",
+              borderBottom: "1px solid rgba(197,160,89,0.2)",
+              color: escalation.status === "UToku" ? "#16a34a" : "#b45309",
+            }}
+          >
+            {escalation.status === "UToku"
+              ? `Connected with ${agentName ?? "an agent"}`
+              : `You're #${escalation.queue_position} in queue — an agent will be with you shortly`}
+          </div>
+        )}
+
         {/* ── MESSAGES ── */}
         <div className="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 xl:px-48 py-7 flex flex-col gap-5">
           {messages.length === 0 && !isLoading ? (
@@ -309,7 +369,13 @@ export default function ChatWindow() {
           ) : (
             <>
               {messages.map((m, i) => (
-                <MessageBubble key={i} msg={m} onFeedback={handleFeedback} />
+                <MessageBubble
+                  key={i}
+                  msg={m}
+                  onFeedback={m.role === "assistant" ? handleFeedback : undefined}
+                  onEscalate={m.role === "assistant" ? requestEscalation : undefined}
+                  isEscalated={!!escalation}
+                />
               ))}
               {isLoading && <TypingBubble />}
             </>

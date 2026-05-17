@@ -10,16 +10,26 @@ import Ratings from "./sections/Ratings";
 import Issues from "./sections/Issues";
 import Training from "./sections/Training";
 import UsersSection from "./sections/UsersSection";
+import EscalationQueue from "./sections/EscalationQueue";
+
+const ESCALATION_ICON = (
+  <>
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.13 6.13l.91-.91a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+    <line x1="18" y1="2" x2="22" y2="6" />
+    <polyline points="15 2 18 2 18 5" />
+  </>
+);
 
 const NAV = [
   { id: "dashboard",   label: "Dashboard",        icon: icons.dashboard },
   { id: "upload",      label: "Upload",            icon: icons.upload },
   { id: "transcripts", label: "Transcripts",       icon: icons.transcripts },
   { id: "chat",        label: "Chat Logs",         icon: icons.chat },
+  { id: "escalation",  label: "Escalation Queue",  icon: ESCALATION_ICON },
   { id: "ratings",     label: "Ratings",           icon: icons.ratings },
   { id: "issues",      label: "Issues",            icon: icons.issues },
   { id: "training",    label: "Training Dataset",  icon: icons.training },
-  { id: "users",       label: "Users",              icon: icons.users },
+  { id: "users",       label: "Users",             icon: icons.users },
 ] as const;
 
 type NavId = (typeof NAV)[number]["id"];
@@ -52,6 +62,7 @@ export default function AdminShell() {
     upload:      <UploadSection />,
     transcripts: <TranscriptList key={transcriptKey} />,
     chat:        <ChatLogs />,
+    escalation:  <EscalationQueue />,
     ratings:     <Ratings />,
     issues:      <Issues />,
     training:    <Training />,

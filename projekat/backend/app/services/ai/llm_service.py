@@ -27,6 +27,14 @@ do NOT guess. Instead tell the user you don't have that information and recommen
 Keep answers short, clear, and helpful.
 """
 
+_SYSTEM_CLASSIFY = (
+    "Classify the user's message with exactly one word. "
+    "Reply \"conversational\" if it is a greeting, small talk, or a general-knowledge question "
+    "unrelated to company services (e.g. \"hello\", \"how are you\", \"what is AI\"). "
+    "Reply \"domain\" if it asks about company products, services, accounts, policies, "
+    "procedures, pricing, or any support topic that requires company knowledge."
+)
+
 
 class LLMService:
     """Wraps Groq API for LLM completions."""
@@ -75,3 +83,17 @@ class LLMService:
             temperature=0.1,
         )
         return response.choices[0].message.content
+
+    def classify_intent(self, question: str) -> str:
+        """Returns 'conversational' or 'domain'."""
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": _SYSTEM_CLASSIFY},
+                {"role": "user", "content": question},
+            ],
+            max_tokens=5,
+            temperature=0.0,
+        )
+        raw = response.choices[0].message.content.strip().lower()
+        return "conversational" if "convers" in raw else "domain"

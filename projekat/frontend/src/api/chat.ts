@@ -14,10 +14,12 @@ export interface RatingsStats {
 export async function sendMessage(
   question: string,
   history: Array<{ role: string; content: string }> = [],
+  session_id?: number | null,
 ): Promise<ChatResponse> {
   const { data } = await apiClient.post<ChatResponse>("/api/v1/chat/ask", {
     question,
     history,
+    session_id: session_id ?? null,
   });
   return data;
 }
