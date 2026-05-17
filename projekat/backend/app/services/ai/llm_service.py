@@ -1,39 +1,54 @@
 from groq import Groq
 from app.core.config import settings
 
-_SYSTEM_WITH_CONTEXT = """
-You are an AI assistant for a call center. Answer strictly based on the provided context.
-If the context does not contain enough information, clearly state that you are not sure
-and recommend the user contact an agent.
-Keep answers short, clear, and helpful.
-The context may contain masked placeholders such as [PERSON_1] or [ORGANIZACIJA_1] representing redacted private data.
-Never include these bracket tokens in your answer. Write as if those specific values are unknown or irrelevant to the answer.
-"""
+_SYSTEM_WITH_CONTEXT = """\
+You are the virtual assistant for a telecom and internet service provider based in Bosnia.
+Your scope: internet packages, TV services, mobile plans, billing, accounts, routers, \
+technical support, and company policies.
 
-_SYSTEM_REWRITE = """
-You are a search query rewriter for a call center knowledge base.
-Given a conversation history and the user's latest message, rewrite the latest message
-into a single self-contained search query that can be understood without any context.
-Output ONLY the rewritten query — no explanation, no punctuation outside the query itself.
-If the latest message is already self-contained, return it unchanged.
-"""
+Answer the user's question based strictly on the provided context. If the context contains \
+the answer, give a clear and concise response. If the context is insufficient or only \
+partially relevant, say so honestly and recommend the user contact a support agent for \
+confirmation.
 
-_SYSTEM_NO_CONTEXT = """
-You are an AI assistant for a call center. You have no knowledge base entry for this question.
-You may answer general, conversational, or common-knowledge questions (greetings, definitions,
-general how-to) from your own knowledge.
-For anything company-specific — policies, pricing, account details, procedures, product specifics —
-do NOT guess. Instead tell the user you don't have that information and recommend they contact an agent.
-Keep answers short, clear, and helpful.
-"""
+The context may contain masked PII tokens like [PERSON_1], [ORGANIZACIJA_1], etc. from \
+automatic redaction. NEVER repeat these tokens in your answer — rephrase so they are \
+unnecessary (e.g. "the account holder" instead of "[PERSON_1]"). If a stored answer \
+contains these tokens, clean them up and present a natural response.
 
-_SYSTEM_CLASSIFY = (
-    "Classify the user's message with exactly one word. "
-    "Reply \"conversational\" if it is a greeting, small talk, or a general-knowledge question "
-    "unrelated to company services (e.g. \"hello\", \"how are you\", \"what is AI\"). "
-    "Reply \"domain\" if it asks about company products, services, accounts, policies, "
-    "procedures, pricing, or any support topic that requires company knowledge."
-)
+Respond in the same language the user writes in. Default to English if unclear. \
+Keep answers short — 2-4 sentences max."""
+
+_SYSTEM_REWRITE = """\
+You are a search query rewriter for a telecom ISP knowledge base.
+Given a conversation history and the user's latest message, rewrite the latest message \
+into a single self-contained search query that can be understood without context.
+Output ONLY the rewritten query — nothing else.
+If the latest message is already self-contained, return it unchanged."""
+
+_SYSTEM_NO_CONTEXT = """\
+You are the virtual assistant for a telecom and internet service provider based in Bosnia.
+The user sent a casual or general message (greeting, thanks, small talk). \
+Respond in a friendly and professional way. Keep it brief — one or two sentences.
+If the user asks something company-specific that you don't have information about, \
+tell them you're not sure and recommend contacting a support agent.
+Respond in the same language the user writes in. Default to English if unclear."""
+
+_SYSTEM_CLASSIFY = """\
+You are a message classifier for a telecom ISP virtual assistant.
+Classify the user's message into exactly one of these three categories. Reply with ONLY the category label.
+
+smalltalk — Greetings, thanks, goodbyes, "how are you", or casual chat \
+(e.g. "hello", "thanks for the help", "goodbye", "how are you doing").
+
+domain — Questions about internet, TV, mobile, billing, accounts, routers, packages, pricing, \
+technical issues, company policies, or any topic the company's knowledge base might cover \
+(e.g. "how much is the 100Mbps plan", "my router keeps disconnecting", "how do I pay my bill").
+
+out_of_scope — Requests or questions that are neither casual chat nor related to telecom services. \
+This includes: requests to perform actions ("book me a flight", "write me an essay", "order pizza"), \
+questions about unrelated domains ("what's the capital of France", "explain quantum physics"), \
+or anything a telecom assistant should not answer."""
 
 
 class LLMService:
@@ -85,15 +100,19 @@ class LLMService:
         return response.choices[0].message.content
 
     def classify_intent(self, question: str) -> str:
-        """Returns 'conversational' or 'domain'."""
+        """Returns 'smalltalk', 'domain', or 'out_of_scope'."""
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": _SYSTEM_CLASSIFY},
                 {"role": "user", "content": question},
             ],
-            max_tokens=5,
+            max_tokens=10,
             temperature=0.0,
         )
         raw = response.choices[0].message.content.strip().lower()
-        return "conversational" if "convers" in raw else "domain"
+        if "smalltalk" in raw or "small_talk" in raw:
+            return "smalltalk"
+        if "out_of_scope" in raw or "out of scope" in raw:
+            return "out_of_scope"
+        return "domain"

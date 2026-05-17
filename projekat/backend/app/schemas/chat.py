@@ -23,6 +23,7 @@ class ChatResponse(BaseModel):
     confidence_score: float = 0.0
     is_low_confidence: bool = False
     source_id: int | None = None
+    source_topic: str | None = None
     interaction_id: int | None = None
     session_id: int
     escalation: Optional[EscalationInfo] = None

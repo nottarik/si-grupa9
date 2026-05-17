@@ -27,6 +27,9 @@ export function useEscalation() {
   const [queue, setQueue] = useState<EscalationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const shouldReconnectRef = useRef(false);
   // Callback registered by the active ChatPanel to receive live user messages
   const userMsgHandlerRef = useRef<((msg: UserMsg) => void) | null>(null);
 
@@ -47,9 +50,12 @@ export function useEscalation() {
     if (!token) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
+    shouldReconnectRef.current = true;
     const url = buildWsUrl(`/api/v1/escalation/ws/escalation?token=${token}`);
     const ws = new WebSocket(url);
     wsRef.current = ws;
+
+    ws.onopen = () => { reconnectAttemptsRef.current = 0; };
 
     ws.onmessage = (event) => {
       try {
@@ -86,11 +92,20 @@ export function useEscalation() {
       }
     };
 
-    ws.onclose = () => { wsRef.current = null; };
-    ws.onerror = () => { wsRef.current = null; };
+    ws.onclose = () => {
+      wsRef.current = null;
+      if (shouldReconnectRef.current && reconnectAttemptsRef.current < 5) {
+        const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 16000);
+        reconnectAttemptsRef.current += 1;
+        reconnectTimerRef.current = setTimeout(() => connectAgentWs(), delay);
+      }
+    };
+    ws.onerror = () => { /* onclose will fire */ };
   }, []);
 
   const disconnectWs = useCallback(() => {
+    shouldReconnectRef.current = false;
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     wsRef.current?.close();
     wsRef.current = null;
   }, []);
@@ -98,6 +113,11 @@ export function useEscalation() {
   const sendAgentMessage = useCallback((session_id: number, content: string) => {
     if (wsRef.current?.readyState !== WebSocket.OPEN) return;
     wsRef.current.send(JSON.stringify({ type: "agent_message", session_id, content }));
+  }, []);
+
+  const sendTypingSignal = useCallback((session_id: number, is_typing: boolean) => {
+    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
+    wsRef.current.send(JSON.stringify({ type: "typing", session_id, is_typing }));
   }, []);
 
   const acceptEscalation = useCallback(async (id: number) => {
@@ -119,7 +139,11 @@ export function useEscalation() {
   );
 
   useEffect(() => {
-    return () => { wsRef.current?.close(); };
+    return () => {
+      shouldReconnectRef.current = false;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      wsRef.current?.close();
+    };
   }, []);
 
   return {
@@ -129,6 +153,7 @@ export function useEscalation() {
     connectAgentWs,
     disconnectWs,
     sendAgentMessage,
+    sendTypingSignal,
     acceptEscalation,
     resolveEscalation,
     registerUserMsgHandler,

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getRatingsStats, type RatingsStats } from "../../../api/chat";
 import { listTranscripts } from "../../../api/transcripts";
 import { listUsers } from "../../../api/users";
+import apiClient from "../../../api/client";
 import type { Transcript } from "../../../types";
 
 function relativeTime(dateStr: string): string {
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [userCount, setUserCount] = useState<number | null>(null);
   const [ratings, setRatings] = useState<RatingsStats | null>(null);
+  const [openIssueCount, setOpenIssueCount] = useState<number | null>(null);
 
   useEffect(() => {
     listTranscripts()
@@ -32,6 +34,10 @@ export default function Dashboard() {
 
     getRatingsStats()
       .then(setRatings)
+      .catch(() => {});
+
+    apiClient.get("/api/v1/chat/issues", { params: { status_filter: "Open" } })
+      .then((res) => setOpenIssueCount(res.data.length))
       .catch(() => {});
   }, []);
 
@@ -60,7 +66,7 @@ export default function Dashboard() {
     },
     {
       label: "Open Issues",
-      val: "6",
+      val: fmt(openIssueCount),
       sub: "Requires attention",
       icon: "⚠",
     },

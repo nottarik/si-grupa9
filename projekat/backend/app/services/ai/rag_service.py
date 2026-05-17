@@ -14,7 +14,15 @@ from app.services.ai.embedding_service import EmbeddingService
 from app.services.ai.llm_service import LLMService
 from app.services.ai.vector_store import VectorStoreService
 
-_CONNECT_AGENT_MSG = "I don't have that in my knowledge base. Connecting you with an agent now."
+_CONNECT_AGENT_MSG = "I don't have enough information in my knowledge base to answer that. Let me connect you with a support agent who can help."
+
+_OUT_OF_SCOPE_MSG = (
+    "I'm a virtual assistant for a telecom provider — I help with questions about internet, TV, "
+    "mobile services, billing, and technical support. I'm not able to help with that "
+    "particular request, but feel free to ask me anything about our services!"
+)
+
+_UNCERTAIN_SUFFIX = "\n\nNote: I'm not fully confident in this answer. If you need a definitive response, I'd recommend contacting a support agent."
 
 _PII_RE = re.compile(r'\[[A-Z]+_\d+\]')
 
@@ -44,20 +52,27 @@ class RagService:
         llm = LLMService()
         trimmed_history = (history or [])[-6:]
 
-        # --- Classify intent: conversational vs domain query ---
+        # --- Classify intent: smalltalk / domain / out_of_scope ---
         try:
             intent = await asyncio.to_thread(llm.classify_intent, question)
         except Exception as exc:
             logger.warning("Intent classification failed, assuming domain: %s", exc)
             intent = "domain"
 
+        logger.info("Intent classification: %r → %s", question[:80], intent)
+
         confidence = 0.0
         source_id = None
         needs_escalation = False
         hits: list = []
 
-        if intent == "conversational":
-            # Greetings and general questions — answer directly, never escalate
+        if intent == "out_of_scope":
+            answer_text = _OUT_OF_SCOPE_MSG
+            latencija_ms = None
+            metoda = "Fallback"
+            logger.info("Out-of-scope message rejected: %r", question[:100])
+
+        elif intent == "smalltalk":
             try:
                 t0 = time.perf_counter()
                 answer_text = await asyncio.to_thread(
@@ -67,15 +82,16 @@ class RagService:
                 metoda = "Generativno"
             except Exception as exc:
                 logger.error("LLM conversational call failed: %s", exc)
-                answer_text = "Hello! How can I assist you today?"
+                answer_text = "Hello! I'm your ISP virtual assistant. How can I help you today?"
                 latencija_ms = None
                 metoda = "Fallback"
+
         else:
             # Domain question — attempt RAG retrieval
 
-            # Query rewriting
+            # Query rewriting (only useful with enough context)
             search_query = question
-            if trimmed_history:
+            if len(trimmed_history) >= 2:
                 try:
                     search_query = await asyncio.to_thread(
                         llm.rewrite_query, question, trimmed_history
@@ -96,19 +112,22 @@ class RagService:
 
             confidence = hits[0].score if hits else 0.0
             logger.info(
-                "RAG search: %d hits, scores=%s, threshold=%.2f",
+                "RAG search: %d hits, scores=%s, thresholds=(high=%.2f, low=%.2f)",
                 len(hits),
                 [round(h.score, 3) for h in hits],
                 settings.RAG_CONFIDENCE_THRESHOLD,
+                settings.RAG_CONFIDENCE_THRESHOLD_LOW,
             )
 
-            if confidence < settings.RAG_CONFIDENCE_THRESHOLD or not hits:
-                # Company-specific question not in knowledge base — connect to agent
+            if not hits or confidence < settings.RAG_CONFIDENCE_THRESHOLD_LOW:
+                # Very low confidence or no results — escalate to agent
                 answer_text = _CONNECT_AGENT_MSG
                 latencija_ms = None
                 metoda = "Fallback"
                 needs_escalation = True
+
             else:
+                # Build context from top hits
                 context_parts = []
                 for h in hits:
                     p = h.payload
@@ -121,17 +140,23 @@ class RagService:
                 source_id = hits[0].payload.get("item_id")
                 best_answer = _strip_pii(hits[0].payload.get("answer", ""))
 
+                is_uncertain = confidence < settings.RAG_CONFIDENCE_THRESHOLD
+
                 try:
                     t0 = time.perf_counter()
                     answer_text = await asyncio.to_thread(
                         llm.generate, question, context, trimmed_history
                     )
                     answer_text = _strip_pii(answer_text)
+                    if is_uncertain:
+                        answer_text += _UNCERTAIN_SUFFIX
                     latencija_ms = int((time.perf_counter() - t0) * 1000)
                     metoda = "Retrieval"
                 except Exception as exc:
                     logger.error("LLM call failed: %s — returning stored answer", exc)
                     answer_text = best_answer if best_answer else _CONNECT_AGENT_MSG
+                    if is_uncertain and best_answer:
+                        answer_text += _UNCERTAIN_SUFFIX
                     needs_escalation = not bool(best_answer)
                     latencija_ms = None
                     metoda = "Retrieval"
@@ -196,11 +221,16 @@ class RagService:
         await self.db.refresh(odgovor)
         await self.db.refresh(sesija)
 
+        source_topic: str | None = None
+        if hits and confidence >= settings.RAG_CONFIDENCE_THRESHOLD_LOW:
+            source_topic = hits[0].payload.get("question")
+
         return ChatResponse(
             answer=answer_text,
             confidence_score=confidence,
             is_low_confidence=needs_escalation,
             source_id=source_id,
+            source_topic=source_topic,
             interaction_id=odgovor.id,
             session_id=sesija.id,
             needs_escalation=needs_escalation,

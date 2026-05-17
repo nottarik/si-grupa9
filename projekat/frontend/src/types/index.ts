@@ -21,6 +21,7 @@ export interface ChatMessage {
   interactionId?: string;
   confidenceScore?: number;
   isLowConfidence?: boolean;
+  sourceTopic?: string;
   agentName?: string;
 }
 
@@ -36,6 +37,7 @@ export interface ChatResponse {
   confidence_score: number;
   is_low_confidence: boolean;
   source_id: string | null;
+  source_topic?: string | null;
   interaction_id?: number | null;
   session_id: number;
   escalation?: EscalationInfo | null;

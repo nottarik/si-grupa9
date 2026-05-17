@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "llama-3.3-70b-versatile"
     WHISPER_MODEL: str = "whisper-large-v3"
     RAG_TOP_K: int = 5
-    RAG_CONFIDENCE_THRESHOLD: float = 0.5
+    RAG_CONFIDENCE_THRESHOLD: float = 0.55
+    RAG_CONFIDENCE_THRESHOLD_LOW: float = 0.35
 
     # Supabase Storage
     SUPABASE_URL: str = ""

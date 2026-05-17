@@ -33,14 +33,14 @@ export default function MessageBubble({ message, onFeedback }: Props) {
           <div className="flex gap-2 mt-2">
             <button
               onClick={() => onFeedback(message.interactionId!, true)}
-              className="text-xs text-gray-400 hover:text-green-600 transition-colors"
+              className="text-xs text-gray-400 hover:text-amber-700 transition-colors"
               title="Korisno"
             >
               👍
             </button>
             <button
               onClick={() => onFeedback(message.interactionId!, false)}
-              className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              className="text-xs text-gray-400 hover:text-stone-500 transition-colors"
               title="Nije korisno"
             >
               👎

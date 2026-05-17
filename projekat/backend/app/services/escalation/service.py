@@ -85,7 +85,9 @@ async def get_queue(db: AsyncSession) -> List[Eskalacija]:
 async def accept_escalation(
     db: AsyncSession, escalation_id: int, agent_id: UUID
 ) -> Optional[Eskalacija]:
-    result = await db.execute(select(Eskalacija).where(Eskalacija.id == escalation_id))
+    result = await db.execute(
+        select(Eskalacija).where(Eskalacija.id == escalation_id).with_for_update()
+    )
     eskal = result.scalar_one_or_none()
     if not eskal or eskal.status != "Cekanje":
         return None

@@ -45,6 +45,23 @@ async def _broadcast_queue(db: AsyncSession) -> None:
     })
 
 
+async def _persist_chat_message(db: AsyncSession, session_id: int, role: str, content: str) -> None:
+    """Append a message to the razgovor JSON of the active escalation for this session."""
+    result = await db.execute(
+        select(Eskalacija).where(
+            Eskalacija.sesija_id == session_id,
+            Eskalacija.status == "UToku",
+        )
+    )
+    eskal = result.scalar_one_or_none()
+    if not eskal:
+        return
+    history = list(eskal.razgovor or [])
+    history.append({"role": role, "content": content})
+    eskal.razgovor = history
+    await db.commit()
+
+
 # ── HTTP endpoints ─────────────────────────────────────────────────────────
 
 
@@ -285,6 +302,15 @@ async def ws_agent_queue(
                         "type": "agent_message",
                         "content": content,
                         "agent_name": agent_name,
+                    })
+                    await _persist_chat_message(db, int(sid), "agent", content)
+
+            if msg.get("type") == "typing":
+                sid = msg.get("session_id")
+                if sid:
+                    await manager.send_to_user(int(sid), {
+                        "type": "agent_typing",
+                        "is_typing": msg.get("is_typing", False),
                     })
     except WebSocketDisconnect:
         manager.disconnect_agent(websocket)

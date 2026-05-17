@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { escalationApi, EscalationItem } from "../../../api/escalation";
 import { useEscalation, UserMsg } from "../../../hooks/useEscalation";
 import { StatusBadge, Ic, icons } from "../shared";
@@ -30,14 +30,17 @@ interface ChatPanelProps {
   item: EscalationItem;
   onResolve: () => void;
   sendAgentMessage: (session_id: number, content: string) => void;
+  sendTypingSignal: (session_id: number, is_typing: boolean) => void;
   resolveEscalation: (id: number, payload: { napomena: string; submit_to_kb: boolean; odgovor_agenta?: string; pitanje_korisnika?: string }) => Promise<void>;
   registerUserMsgHandler: (handler: ((msg: UserMsg) => void) | null) => void;
 }
 
-function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, registerUserMsgHandler }: ChatPanelProps) {
+function ChatPanel({ item, onResolve, sendAgentMessage, sendTypingSignal, resolveEscalation, registerUserMsgHandler }: ChatPanelProps) {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>(
     item.razgovor ?? []
   );
+  const [userIsTyping, setUserIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     registerUserMsgHandler((msg) => {
@@ -46,6 +49,7 @@ function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, regis
           ...prev,
           { role: msg.is_system ? "system" : "user", content: msg.content },
         ]);
+        setUserIsTyping(false);
       }
     });
     return () => registerUserMsgHandler(null);
@@ -154,7 +158,7 @@ function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, regis
               <div key={i} className="flex justify-center">
                 <span
                   className="text-xs px-3 py-1 rounded-full"
-                  style={{ background: "rgba(239,68,68,0.08)", color: "#dc2626", border: "1px solid rgba(239,68,68,0.2)" }}
+                  style={{ background: "rgba(197,160,89,0.08)", color: "#6b5a3a", border: "1px solid rgba(197,160,89,0.25)" }}
                 >
                   {m.content}
                 </span>
@@ -169,14 +173,14 @@ function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, regis
                   background: isUser
                     ? "rgba(197,160,89,0.15)"
                     : isAgent
-                    ? "rgba(34,197,94,0.12)"
+                    ? "rgba(197,160,89,0.08)"
                     : "rgba(255,255,255,0.8)",
                   border: "1px solid rgba(197,160,89,0.2)",
                   color: "#1C1C2E",
                 }}
               >
                 {!isUser && (
-                  <p className="text-[10px] font-semibold tracking-widest mb-1" style={{ color: isAgent ? "#16a34a" : "#C5A059" }}>
+                  <p className="text-[10px] font-semibold tracking-widest mb-1" style={{ color: isAgent ? "#8a6d1f" : "#C5A059" }}>
                     {isAgent ? "YOU (AGENT)" : "BOT"}
                   </p>
                 )}
@@ -188,6 +192,13 @@ function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, regis
         <div ref={bottomRef} />
       </div>
 
+      {/* Typing indicator */}
+      {userIsTyping && (
+        <div className="px-5 pb-1">
+          <span className="text-xs italic" style={{ color: "#8a6d1f" }}>User is typing…</span>
+        </div>
+      )}
+
       {/* Input */}
       <div
         className="px-5 py-3 flex gap-2 flex-shrink-0"
@@ -197,7 +208,12 @@ function ChatPanel({ item, onResolve, sendAgentMessage, resolveEscalation, regis
           className="input-field flex-1"
           placeholder="Type your message…"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            sendTypingSignal(item.sesija_id, true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => sendTypingSignal(item.sesija_id, false), 2000);
+          }}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
         />
         <button
@@ -331,15 +347,32 @@ function EscalationCard({ item, onAccepted }: EscalationCardProps) {
 
 // ── Main EscalationQueue section ─────────────────────────────────────────
 
+function playNotificationTone() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch { /* audio not available */ }
+}
+
 export default function EscalationQueue() {
   const {
     queue, loading, fetchQueue,
     connectAgentWs, disconnectWs,
-    sendAgentMessage, resolveEscalation,
+    sendAgentMessage, sendTypingSignal, resolveEscalation,
     registerUserMsgHandler,
   } = useEscalation();
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
   const [agentOnline, setAgentOnline] = useState(false);
+  const prevPendingCountRef = useRef(0);
 
   // Initial load + polling fallback every 10 s so missed WebSocket broadcasts still appear
   useEffect(() => {
@@ -347,6 +380,15 @@ export default function EscalationQueue() {
     const id = setInterval(fetchQueue, 10_000);
     return () => clearInterval(id);
   }, [fetchQueue]);
+
+  // Play notification sound when new escalation arrives
+  useEffect(() => {
+    const pendingCount = queue.filter((e) => e.status === "Cekanje").length;
+    if (pendingCount > prevPendingCountRef.current && prevPendingCountRef.current >= 0) {
+      playNotificationTone();
+    }
+    prevPendingCountRef.current = pendingCount;
+  }, [queue]);
 
   // Ensure agent WS is connected whenever a chat is open — needed to send messages
   useEffect(() => {
@@ -402,7 +444,7 @@ export default function EscalationQueue() {
           >
             <span
               className="inline-block w-2 h-2 rounded-full mr-1.5"
-              style={{ background: agentOnline ? "#22c55e" : "#9ca3af" }}
+              style={{ background: agentOnline ? "#C5A059" : "#9ca3af" }}
             />
             {agentOnline ? "Online" : "Go Online"}
           </button>
@@ -418,6 +460,7 @@ export default function EscalationQueue() {
           <ChatPanel
             item={activeEskal}
             sendAgentMessage={sendAgentMessage}
+            sendTypingSignal={sendTypingSignal}
             resolveEscalation={resolveEscalation}
             registerUserMsgHandler={registerUserMsgHandler}
             onResolve={() => {
