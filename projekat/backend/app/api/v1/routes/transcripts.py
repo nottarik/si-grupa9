@@ -91,9 +91,11 @@ async def transcribe_audio_preview(
         try:
             text = TranscriptionService().transcribe(tmp_path, language=language)
         except Exception as exc:
+            import logging
+            logging.getLogger(__name__).error(f"Transcription failed: {type(exc).__name__}: {exc}")
             raise HTTPException(
                 status_code=422,
-                detail="Transcription failed: audio file may be corrupted or in an unsupported format",
+                detail=f"Transcription failed: {type(exc).__name__}: {exc}",
             ) from exc
     finally:
         if tmp_path and os.path.exists(tmp_path):

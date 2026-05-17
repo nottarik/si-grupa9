@@ -22,7 +22,7 @@ export default function TranscriptUpload() {
       setStatus("success");
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : "Greška pri uploadu fajla.";
+        err instanceof Error ? err.message : "Error uploading file.";
       setErrorMsg(msg);
       setStatus("error");
     } finally {
@@ -33,15 +33,15 @@ export default function TranscriptUpload() {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
       <h2 className="font-semibold text-gray-800 mb-3">
-        Upload transkripta ili audio zapisa
+        Upload transcript or audio recording
       </h2>
       <p className="text-xs text-gray-500 mb-4">
-        Podržani formati: <code>.txt</code> (transkript) ili{" "}
+        Supported formats: <code>.txt</code> (transcript) or{" "}
         <code>.mp3 / .wav / .m4a</code> (audio).
       </p>
 
       <label className="block">
-        <span className="sr-only">Odaberi fajl</span>
+        <span className="sr-only">Choose file</span>
         <input
           ref={inputRef}
           type="file"

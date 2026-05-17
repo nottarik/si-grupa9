@@ -22,12 +22,12 @@ function validateTranscriptFormat(content: string): string | null {
   const hasAgent = lines.some(
     (line) => /^\s*AGENT\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
-  const hasKorisnik = lines.some(
-    (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  const hasUser = lines.some(
+    (line) => /^\s*(USER|KORISNIK)\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
-  if (!hasAgent && !hasKorisnik) return "Content must be in format 'AGENT: text' and 'KORISNIK: text'";
+  if (!hasAgent && !hasUser) return "Content must be in format 'AGENT: text' and 'USER: text'";
   if (!hasAgent) return "Content must contain at least one line in format 'AGENT: text'";
-  if (!hasKorisnik) return "Content must contain at least one line in format 'KORISNIK: text'";
+  if (!hasUser) return "Content must contain at least one line in format 'USER: text'";
   return null;
 }
 
@@ -254,7 +254,7 @@ function EditView({
                 <p className="text-xs text-red-600 mt-1">{contentError}</p>
               )}
               <div className="text-xs text-gray-400 mt-1">
-                Format: <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>AGENT: text</code> and <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>KORISNIK: text</code> · Changes do not trigger reprocessing.
+                Format: <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>AGENT: text</code> and <code style={{ background: "#f3f4f6", padding: "0 3px", borderRadius: 3 }}>USER: text</code> · Changes do not trigger reprocessing.
               </div>
             </div>
           )}

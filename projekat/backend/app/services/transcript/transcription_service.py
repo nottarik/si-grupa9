@@ -27,6 +27,5 @@ class TranscriptionService:
                 file=(filename, audio_file.read()),
                 model=settings.WHISPER_MODEL,
                 language=language,
-                response_format="text",
             )
-        return transcription if isinstance(transcription, str) else str(transcription)
+        return transcription.text if hasattr(transcription, "text") else str(transcription)

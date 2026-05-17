@@ -81,7 +81,7 @@ const MessageBubble = ({
         </p>
         {msg.isLowConfidence && (
           <p className="mt-1.5 text-xs font-medium" style={{ color: "#b45309" }}>
-            ⚠ Nisam siguran u ovaj odgovor. Preporučujem kontakt s agentom.
+            ⚠ I'm not confident in this answer. I recommend contacting an agent.
           </p>
         )}
         {msg.interactionId && onFeedback && (
@@ -89,14 +89,14 @@ const MessageBubble = ({
             <button
               onClick={() => onFeedback(msg.interactionId!, true)}
               style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-              title="Korisno"
+              title="Helpful"
             >
               👍
             </button>
             <button
               onClick={() => onFeedback(msg.interactionId!, false)}
               style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-              title="Nije korisno"
+              title="Not helpful"
             >
               👎
             </button>
@@ -166,7 +166,7 @@ export default function ChatWindow() {
 
     const SpeechRecognitionApi = getSpeechRecognition();
     if (!SpeechRecognitionApi) {
-      setMicError("Prepoznavanje govora nije podržano u ovom pregledaču.");
+      setMicError("Speech recognition is not supported in this browser.");
       return;
     }
 
@@ -191,9 +191,9 @@ export default function ChatWindow() {
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        setMicError("Pristup mikrofonu je odbijen. Provjerite dozvole u pregledaču.");
+        setMicError("Microphone access denied. Check your browser permissions.");
       } else if (event.error !== "no-speech" && event.error !== "aborted") {
-        setMicError("Greška pri prepoznavanju govora. Pokušajte ponovo.");
+        setMicError("Speech recognition error. Please try again.");
       }
     };
 
@@ -237,7 +237,7 @@ export default function ChatWindow() {
 
   return (
     <div className="chat-bg flex flex-col" style={{ height: "100vh" }}>
-      <div className="flex flex-col h-full max-w-3xl mx-auto w-full">
+      <div className="flex flex-col h-full w-full">
 
         {/* ── HEADER ── */}
         <header className="glass-header flex-shrink-0 px-6 py-4">
@@ -284,7 +284,7 @@ export default function ChatWindow() {
         </header>
 
         {/* ── MESSAGES ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-7 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-6 sm:px-12 md:px-20 lg:px-32 xl:px-48 py-7 flex flex-col gap-5">
           {messages.length === 0 && !isLoading ? (
             <div className="flex flex-col items-center justify-center flex-1 gap-5 text-center py-12">
               <CoinAvatar size={68} />
@@ -328,13 +328,13 @@ export default function ChatWindow() {
         <div className="meander-top flex-shrink-0" />
 
         {/* ── INPUT AREA ── */}
-        <div className="flex-shrink-0 px-5 pb-5 pt-3" style={{ background: "rgba(255,255,255,0.6)" }}>
+        <div className="flex-shrink-0 px-5 sm:px-12 md:px-20 lg:px-32 xl:px-48 pb-5 pt-3" style={{ background: "rgba(255,255,255,0.6)" }}>
           <div className="input-wrap flex items-end gap-3 px-4 py-3">
             <textarea
               ref={taRef}
               className="chat-textarea flex-1"
               style={{ minHeight: 24, maxHeight: 130 }}
-              placeholder={isListening ? "Slušam…" : "Please type your inquiry…"}
+              placeholder={isListening ? "Listening…" : "Please type your inquiry…"}
               value={input}
               rows={1}
               disabled={isLoading}

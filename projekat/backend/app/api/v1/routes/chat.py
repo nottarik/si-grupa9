@@ -21,7 +21,8 @@ async def ask(
     current_user: Korisnik = Depends(get_current_user),
 ):
     rag = RagService(db)
-    result = await rag.answer(question=payload.question, user_id=current_user.id)
+    history = [{"role": m.role, "content": m.content} for m in payload.history]
+    result = await rag.answer(question=payload.question, user_id=current_user.id, history=history)
     return result
 
 

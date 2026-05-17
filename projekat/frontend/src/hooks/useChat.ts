@@ -9,12 +9,17 @@ export function useChat() {
 
   const ask = useCallback(async (question: string) => {
     setError(null);
+    // Snapshot history before appending the new user message
+    const history = messages
+      .slice(-6)
+      .map(({ role, content }) => ({ role, content }));
+
     const userMessage: ChatMessage = { role: "user", content: question };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(question);
+      const response = await sendMessage(question, history);
       const assistantMessage: ChatMessage = {
         role: "assistant",
         content: response.answer,
@@ -24,11 +29,11 @@ export function useChat() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch {
-      setError("Greška pri komunikaciji sa serverom. Pokušajte ponovo.");
+      setError("Error communicating with the server. Please try again.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [messages]);
 
   const sendFeedback = useCallback(async (payload: FeedbackRequest) => {
     await submitFeedback(payload);

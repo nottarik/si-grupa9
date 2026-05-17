@@ -17,8 +17,7 @@ export async function uploadTranscript(
   form.append("file", file);
   const { data } = await apiClient.post<TranscriptUploadResponse>(
     "/api/v1/transcripts/upload",
-    form,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    form
   );
   return data;
 }
@@ -73,8 +72,7 @@ export async function transcribeAudioPreview(
   form.append("language", language);
   const { data } = await apiClient.post<TranscribePreviewResponse>(
     "/api/v1/transcripts/transcribe-preview",
-    form,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    form
   );
   return data;
 }

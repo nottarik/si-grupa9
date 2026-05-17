@@ -24,7 +24,7 @@ export default function MessageBubble({ message, onFeedback }: Props) {
         {/* Low-confidence warning */}
         {!isUser && message.isLowConfidence && (
           <p className="mt-1 text-xs text-amber-600 font-medium">
-            ⚠ Nisam siguran u ovaj odgovor. Preporučujem kontakt s agentom.
+            ⚠ I'm not confident in this answer. I recommend contacting an agent.
           </p>
         )}
 

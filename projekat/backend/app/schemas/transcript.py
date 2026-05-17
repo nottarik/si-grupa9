@@ -12,14 +12,14 @@ def _check_transcript_format(text: str) -> None:
         re.match(r"^\s*AGENT\s*:", line, re.IGNORECASE) and line.split(":", 1)[-1].strip()
         for line in lines
     )
-    has_korisnik = any(
-        re.match(r"^\s*KORISNIK\s*:", line, re.IGNORECASE) and line.split(":", 1)[-1].strip()
+    has_user = any(
+        re.match(r"^\s*(USER|KORISNIK)\s*:", line, re.IGNORECASE) and line.split(":", 1)[-1].strip()
         for line in lines
     )
     if not has_agent:
-        raise ValueError("Transkript mora sadržavati najmanje jednu liniju u formatu 'AGENT: tekst'")
-    if not has_korisnik:
-        raise ValueError("Transkript mora sadržavati najmanje jednu liniju u formatu 'KORISNIK: tekst'")
+        raise ValueError("Transcript must contain at least one line in format 'AGENT: text'")
+    if not has_user:
+        raise ValueError("Transcript must contain at least one line in format 'USER: text'")
 
 
 class TranscriptRead(BaseModel):
@@ -61,7 +61,7 @@ class TranscriptManualCreate(BaseModel):
     def content_valid(cls, v: str) -> str:
         stripped = v.strip()
         if len(stripped) < 20:
-            raise ValueError("Sadržaj transkripta mora imati najmanje 20 znakova")
+            raise ValueError("Transcript content must have at least 20 characters")
         _check_transcript_format(stripped)
         return stripped
 

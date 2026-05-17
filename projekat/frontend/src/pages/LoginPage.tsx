@@ -26,7 +26,7 @@ function SignIn({ onSwitch, onSuccess }: FormProps) {
       const user = await login(email, password);
       onSuccess(user);
     } catch {
-      setError("Pogrešan email ili lozinka.");
+      setError("Incorrect email or password.");
     } finally {
       setLoading(false);
     }

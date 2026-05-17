@@ -11,9 +11,13 @@ export interface RatingsStats {
   top_rated: Array<{ question: string; rating: number; date: string }>;
 }
 
-export async function sendMessage(question: string): Promise<ChatResponse> {
-  const { data } = await apiClient.post<ChatResponse>("/api/v1/chat/", {
+export async function sendMessage(
+  question: string,
+  history: Array<{ role: string; content: string }> = [],
+): Promise<ChatResponse> {
+  const { data } = await apiClient.post<ChatResponse>("/api/v1/chat/ask", {
     question,
+    history,
   });
   return data;
 }

@@ -187,6 +187,15 @@ export default function AdminShell() {
           {/* Right side */}
           <div className="ml-auto flex items-center gap-3">
             <div className="text-xs text-gray-400">{TODAY}</div>
+            <a
+              href="/"
+              className="text-xs transition-colors"
+              style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}
+              onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(197,160,89,0.7)")}
+            >
+              Chat
+            </a>
             <button
               onClick={handleLogout}
               className="text-xs text-gray-400 hover:text-gold transition-colors"

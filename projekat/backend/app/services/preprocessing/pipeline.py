@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,15 +11,41 @@ from .normalize import normalize
 from .speakers import split_turns
 from .speakers_llm import label_speakers_llm
 from .chunking import chunk_turns
+from .qa_extractor import extract_qa_pairs_llm
 from .pii.masker import mask
 from .pii.token_store import encrypt_token_map
 from . import audit
 
 logger = logging.getLogger(__name__)
 
-_MIN_QUESTION_WORDS = 5
-_MIN_ANSWER_WORDS = 10
-_MAX_PLACEHOLDER_RATIO = 0.15
+_SPEAKER_PREFIX_RE = re.compile(
+    r'^(\s*(?:USER|KORISNIK|AGENT|AGENTICA|OPERATOR|OPERATER|CUSTOMER|KLIJENT|CALLER)\s*:)',
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def _protect_prefixes(text: str) -> tuple[str, list[tuple[str, str]]]:
+    replacements: list[tuple[str, str]] = []
+    counter = [0]
+
+    def _replace(m: re.Match) -> str:
+        token = f"SPKR{counter[0]:03d}X"
+        replacements.append((token, m.group(1)))
+        counter[0] += 1
+        return token
+
+    protected = _SPEAKER_PREFIX_RE.sub(_replace, text)
+    return protected, replacements
+
+
+def _restore_prefixes(text: str, replacements: list[tuple[str, str]]) -> str:
+    for token, original in replacements:
+        text = text.replace(token, original)
+    return text
+
+_MIN_QUESTION_WORDS = 3
+_MIN_ANSWER_WORDS = 5
+_MAX_PLACEHOLDER_RATIO = 0.30
 
 
 def _is_procedural_qa(question: str, answer: str) -> bool:
@@ -32,6 +59,17 @@ def _is_procedural_qa(question: str, answer: str) -> bool:
     return True
 
 
+def _extract_qa_pattern(turns: list, turn_first_seg: dict[int, int]) -> list[tuple[str, str, int | None]]:
+    pairs: list[tuple[str, str, int | None]] = []
+    for i, turn in enumerate(turns):
+        if turn.role == "user" and i + 1 < len(turns) and turns[i + 1].role == "agent":
+            agent_turn = turns[i + 1]
+            if not _is_procedural_qa(turn.text, agent_turn.text):
+                continue
+            pairs.append((turn.text, agent_turn.text, turn_first_seg.get(turn.position)))
+    return pairs
+
+
 async def run_pipeline(
     transcript_id: int,
     raw_text: str,
@@ -41,7 +79,9 @@ async def run_pipeline(
 
     normalized = normalize(raw_text)
 
-    masked_text, token_map = await asyncio.to_thread(mask, normalized)
+    protected, prefix_map = _protect_prefixes(normalized)
+    masked_text, token_map = await asyncio.to_thread(mask, protected)
+    masked_text = _restore_prefixes(masked_text, prefix_map)
     audit.safe_log("masked", transcript_id=transcript_id, entities=len(token_map))
 
     turns = split_turns(masked_text)
@@ -56,8 +96,7 @@ async def run_pipeline(
 
     chunks = chunk_turns(turns)
 
-    # Save segments — no embedding here, done at approval time to avoid OOM on free tier
-    turn_first_seg: dict[int, int] = {}  # turn_position → first segment id
+    turn_first_seg: dict[int, int] = {}
 
     for chunk in chunks:
         seg = Segment(
@@ -72,29 +111,43 @@ async def run_pipeline(
         if chunk.turn_position not in turn_first_seg:
             turn_first_seg[chunk.turn_position] = seg.id
 
-    qa_count = 0
-    dropped_count = 0
-    for i, turn in enumerate(turns):
-        if turn.role == "user" and i + 1 < len(turns) and turns[i + 1].role == "agent":
-            agent_turn = turns[i + 1]
-            if not _is_procedural_qa(turn.text, agent_turn.text):
-                dropped_count += 1
-                continue
+    llm_pairs = await extract_qa_pairs_llm(turns)
+
+    if llm_pairs:
+        qa_count = 0
+        for question, answer in llm_pairs:
             db.add(UnosBazeZnanja(
-                pitanje=turn.text,
-                odgovor=agent_turn.text,
-                id_segmenta=turn_first_seg.get(turn.position),
+                pitanje=question,
+                odgovor=answer,
+                id_segmenta=None,
                 status_aprovacije="NaCekanju",
             ))
             qa_count += 1
-
-    audit.safe_log(
-        "done",
-        transcript_id=transcript_id,
-        chunks=len(chunks),
-        qa_pairs=qa_count,
-        qa_dropped=dropped_count,
-    )
+        audit.safe_log(
+            "done",
+            transcript_id=transcript_id,
+            chunks=len(chunks),
+            qa_pairs=qa_count,
+            qa_method="llm",
+        )
+    else:
+        pattern_pairs = _extract_qa_pattern(turns, turn_first_seg)
+        qa_count = 0
+        for question, answer, seg_id in pattern_pairs:
+            db.add(UnosBazeZnanja(
+                pitanje=question,
+                odgovor=answer,
+                id_segmenta=seg_id,
+                status_aprovacije="NaCekanju",
+            ))
+            qa_count += 1
+        audit.safe_log(
+            "done",
+            transcript_id=transcript_id,
+            chunks=len(chunks),
+            qa_pairs=qa_count,
+            qa_method="pattern",
+        )
 
     return PipelineResult(
         transcript_id=transcript_id,

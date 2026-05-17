@@ -4,7 +4,10 @@
       "Bash(xargs wc *)",
       "Bash(grep -E '\\\\.\\(json|yml|env|py|js|ts|tsx|jsx\\)$')",
       "Bash(xargs head *)",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\SI\\\\projekat\\\\backend\\\\app\\\\services\\\\preprocessing\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\Administrator\\\\Desktop\\\\SI\\\\projekat\\\\backend\\\\\", \"\"\\) })"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\SI\\\\projekat\\\\backend\\\\app\\\\services\\\\preprocessing\" -Recurse | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\Administrator\\\\Desktop\\\\SI\\\\projekat\\\\backend\\\\\", \"\"\\) })",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\SI\\\\projekat\\\\backend\\\\app\\\\services\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"chat\\\\|rag\\\\|embedding\")"
     ]
   }
 }

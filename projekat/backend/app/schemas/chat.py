@@ -1,8 +1,14 @@
 from pydantic import BaseModel
 
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     question: str
+    history: list[HistoryMessage] = []
 
 
 class ChatResponse(BaseModel):

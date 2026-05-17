@@ -61,17 +61,17 @@ function validateTranscriptFormat(content: string): string | null {
   const hasAgent = lines.some(
     (line) => /^\s*AGENT\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
-  const hasKorisnik = lines.some(
-    (line) => /^\s*KORISNIK\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
+  const hasUser = lines.some(
+    (line) => /^\s*(USER|KORISNIK)\s*:/i.test(line) && line.split(":").slice(1).join(":").trim() !== ""
   );
-  if (!hasAgent && !hasKorisnik) {
-    return "Content must be in format 'AGENT: text' and 'KORISNIK: text'";
+  if (!hasAgent && !hasUser) {
+    return "Content must be in format 'AGENT: text' and 'USER: text'";
   }
   if (!hasAgent) {
     return "Content must contain at least one line in format 'AGENT: text'";
   }
-  if (!hasKorisnik) {
-    return "Content must contain at least one line in format 'KORISNIK: text'";
+  if (!hasUser) {
+    return "Content must contain at least one line in format 'USER: text'";
   }
   return null;
 }
@@ -306,7 +306,7 @@ function ManualEntry() {
         <textarea
           className={`input-field ${errors.content ? "error" : ""}`}
           rows={10}
-          placeholder={"AGENT: Good day, how can I help you?\nKORISNIK: I have an issue with my invoice.\nAGENT: I understand, could you provide your account number?"}
+          placeholder={"AGENT: Good day, how can I help you?\nUSER: I have an issue with my invoice.\nAGENT: I understand, could you provide your account number?"}
           style={{ resize: "vertical", fontFamily: "monospace", fontSize: 13 }}
           value={content}
           onChange={(e) => {
@@ -318,7 +318,7 @@ function ManualEntry() {
           <p className="text-xs text-red-600 mt-1">{errors.content}</p>
         )}
         <p className="text-xs text-gray-400 mt-1">
-          Format: <code className="bg-gray-100 px-1 rounded">AGENT: text</code> and <code className="bg-gray-100 px-1 rounded">KORISNIK: text</code> · {content.trim().length} characters (min. 20)
+          Format: <code className="bg-gray-100 px-1 rounded">AGENT: text</code> and <code className="bg-gray-100 px-1 rounded">USER: text</code> · {content.trim().length} characters (min. 20)
         </p>
       </div>
 
@@ -528,7 +528,7 @@ function AudioUpload() {
           <p className="text-xs text-gray-400 mb-1">
             Review and correct the transcription before saving. Optionally add{" "}
             <code className="bg-gray-100 px-1 rounded">AGENT:</code> and{" "}
-            <code className="bg-gray-100 px-1 rounded">KORISNIK:</code> prefixes for speaker labelling.
+            <code className="bg-gray-100 px-1 rounded">USER:</code> prefixes for speaker labelling.
           </p>
           <textarea
             className={`input-field ${textError ? "error" : ""}`}
