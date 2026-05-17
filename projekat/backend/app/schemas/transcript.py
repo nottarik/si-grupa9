@@ -82,3 +82,25 @@ class TranscriptManualResponse(BaseModel):
 class TranscriptUpdate(BaseModel):
     naziv: str | None = None
     processed_text: str | None = None
+
+
+class TranscribePreviewResponse(BaseModel):
+    text: str
+    quality_warning: str | None
+    filename: str
+
+
+class AudioTranscriptConfirm(BaseModel):
+    text: str
+    agent_name: str
+    date: date
+    filename: str
+    language: str = "bs"
+
+    @field_validator("text")
+    @classmethod
+    def text_required(cls, v: str) -> str:
+        stripped = v.strip()
+        if len(stripped) < 20:
+            raise ValueError("Transcript content must have at least 20 characters")
+        return stripped

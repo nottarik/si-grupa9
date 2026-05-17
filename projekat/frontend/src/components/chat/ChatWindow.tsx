@@ -115,14 +115,30 @@ const STARTERS = [
   "Check service tier benefits",
 ];
 
+/* ── SpeechRecognition shim ── */
+type SR = typeof SpeechRecognition;
+const getSpeechRecognition = (): SR | null => {
+  if (typeof window === "undefined") return null;
+  return (
+    (window as unknown as Record<string, unknown>).SpeechRecognition as SR ||
+    (window as unknown as Record<string, unknown>).webkitSpeechRecognition as SR ||
+    null
+  );
+};
+
 /* ── ChatWindow ── */
 export default function ChatWindow() {
   const { messages, isLoading, error, ask, sendFeedback } = useChat();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [input, setInput] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [micError, setMicError] = useState<string | null>(null);
+  const [speechLang, setSpeechLang] = useState("bs-BA");
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const inputBeforeRef = useRef("");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -133,6 +149,63 @@ export default function ChatWindow() {
     if (!el) return;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 130) + "px";
+  }
+
+  function applyTextareaResize() {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 130) + "px";
+  }
+
+  function toggleListening() {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const SpeechRecognitionApi = getSpeechRecognition();
+    if (!SpeechRecognitionApi) {
+      setMicError("Prepoznavanje govora nije podržano u ovom pregledaču.");
+      return;
+    }
+
+    setMicError(null);
+    inputBeforeRef.current = input;
+
+    const recognition = new SpeechRecognitionApi();
+    recognition.lang = speechLang;
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = Array.from(event.results)
+        .map((r) => r[0].transcript)
+        .join("");
+      const base = inputBeforeRef.current;
+      setInput((base ? base + " " : "") + transcript);
+      setTimeout(applyTextareaResize, 0);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        setMicError("Pristup mikrofonu je odbijen. Provjerite dozvole u pregledaču.");
+      } else if (event.error !== "no-speech" && event.error !== "aborted") {
+        setMicError("Greška pri prepoznavanju govora. Pokušajte ponovo.");
+      }
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      setMicError("Mikrofon nije dostupan. Provjerite da li je spojen i dozvoljen.");
+      setIsListening(false);
+    }
   }
 
   function handleLogout() {
@@ -261,7 +334,7 @@ export default function ChatWindow() {
               ref={taRef}
               className="chat-textarea flex-1"
               style={{ minHeight: 24, maxHeight: 130 }}
-              placeholder="Please type your inquiry…"
+              placeholder={isListening ? "Slušam…" : "Please type your inquiry…"}
               value={input}
               rows={1}
               disabled={isLoading}
@@ -271,6 +344,59 @@ export default function ChatWindow() {
               }}
               onKeyDown={onKey}
             />
+
+            {/* Speech language selector */}
+            <select
+              value={speechLang}
+              onChange={(e) => setSpeechLang(e.target.value)}
+              disabled={isListening || isLoading}
+              title="Jezik glasovnog unosa"
+              style={{
+                fontSize: 11,
+                color: "#9a8a6a",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+                flexShrink: 0,
+                outline: "none",
+                opacity: isListening ? 0.4 : 1,
+              }}
+            >
+              <option value="bs-BA">BS</option>
+              <option value="hr-HR">HR</option>
+              <option value="sr-RS">SR</option>
+              <option value="en-US">EN</option>
+            </select>
+
+            {/* Mic button */}
+            <button
+              className={`flex-shrink-0 rounded-full flex items-center justify-center transition-all${isListening ? " animate-pulse" : ""}`}
+              style={{
+                width: 40,
+                height: 40,
+                background: isListening
+                  ? "radial-gradient(circle at 38% 35%, #f87171, #dc2626, #b91c1c)"
+                  : "rgba(197,160,89,0.12)",
+                border: isListening ? "none" : "1px solid rgba(197,160,89,0.35)",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.38 : 1,
+                boxShadow: isListening ? "0 2px 8px rgba(220,38,38,0.4)" : "none",
+              }}
+              disabled={isLoading}
+              onClick={toggleListening}
+              aria-label={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
+              title={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"
+                stroke={isListening ? "#fff" : "#C5A059"} strokeWidth="2">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10a7 7 0 0 0 14 0" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="8" y1="22" x2="16" y2="22" />
+              </svg>
+            </button>
+
             <button
               className="send-btn flex-shrink-0 rounded-full flex items-center justify-center"
               style={{ width: 40, height: 40 }}
@@ -284,6 +410,13 @@ export default function ChatWindow() {
               </svg>
             </button>
           </div>
+
+          {micError && (
+            <p className="text-center text-[12px] mt-1 font-sans" style={{ color: "#dc2626" }}>
+              {micError}
+            </p>
+          )}
+
           <p className="text-center text-[11px] mt-2 font-sans" style={{ color: "#c0b090" }}>
             Ambassador may occasionally produce errors. Verify critical information independently.
           </p>

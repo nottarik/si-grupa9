@@ -1,6 +1,8 @@
 import apiClient from "./client";
 import type {
+  AudioTranscriptConfirm,
   Transcript,
+  TranscribePreviewResponse,
   TranscriptDetail,
   TranscriptManualCreate,
   TranscriptManualResponse,
@@ -60,4 +62,29 @@ export async function updateTranscript(
 
 export async function deleteTranscript(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/transcripts/${id}`);
+}
+
+export async function transcribeAudioPreview(
+  file: File,
+  language: string
+): Promise<TranscribePreviewResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("language", language);
+  const { data } = await apiClient.post<TranscribePreviewResponse>(
+    "/api/v1/transcripts/transcribe-preview",
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
+}
+
+export async function confirmAudioTranscript(
+  body: AudioTranscriptConfirm
+): Promise<TranscriptManualResponse> {
+  const { data } = await apiClient.post<TranscriptManualResponse>(
+    "/api/v1/transcripts/confirm-audio",
+    body
+  );
+  return data;
 }
