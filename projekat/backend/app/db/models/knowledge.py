@@ -45,6 +45,7 @@ class AnomalijaTip(str, enum.Enum):
     bez_odgovora = "BezOdgovora"
     kontradiktorni_odgovor = "KontradiktoranOdgovor"
     nevalidan_podatak = "NevalidanPodatak"
+    eksplicitan_zahtjev = "EksplicitanZahtjev"
 
 
 class OzbiljnostTip(str, enum.Enum):
@@ -185,7 +186,7 @@ class Anomalija(Base):
     id = Column(_BigIntPK, primary_key=True, autoincrement=True)
     opis = Column(Text, nullable=True)
     tip = Column(
-        Enum("NiskaPouzdanost", "BezOdgovora", "KontradiktoranOdgovor", "NevalidanPodatak",
+        Enum("NiskaPouzdanost", "BezOdgovora", "KontradiktoranOdgovor", "NevalidanPodatak", "EksplicitanZahtjev",
              name="anomalija_tip", create_type=False),
         nullable=True,
     )

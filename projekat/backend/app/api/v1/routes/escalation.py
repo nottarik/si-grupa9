@@ -1,9 +1,10 @@
 import json
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user, require_admin_or_agent
@@ -43,6 +44,23 @@ async def _broadcast_queue(db: AsyncSession) -> None:
         "type": "queue_update",
         "data": [_eskal_dict(e, i + 1) for i, e in enumerate(queue)],
     })
+
+
+async def _persist_chat_message(db: AsyncSession, session_id: int, role: str, content: str) -> None:
+    """Append a message to the razgovor JSON of the active escalation for this session."""
+    result = await db.execute(
+        select(Eskalacija).where(
+            Eskalacija.sesija_id == session_id,
+            Eskalacija.status == "UToku",
+        )
+    )
+    eskal = result.scalar_one_or_none()
+    if not eskal:
+        return
+    history = list(eskal.razgovor or [])
+    history.append({"role": role, "content": content})
+    eskal.razgovor = history
+    await db.commit()
 
 
 # ── HTTP endpoints ─────────────────────────────────────────────────────────
@@ -141,6 +159,80 @@ async def cancel_my_escalation(
         })
         await _broadcast_queue(db)
     return {"ok": True}
+
+
+@router.get("/my-stats")
+async def get_my_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_admin_or_agent),
+):
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - timedelta(days=6)
+    month_start = today_start - timedelta(days=29)
+
+    result = await db.execute(
+        select(func.count()).select_from(Eskalacija).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= today_start,
+        )
+    )
+    handled_today = result.scalar() or 0
+
+    result = await db.execute(
+        select(func.count()).select_from(Eskalacija).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= week_start,
+        )
+    )
+    handled_week = result.scalar() or 0
+
+    result = await db.execute(
+        select(Eskalacija.datum_kreiranja, Eskalacija.datum_azuriranja).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= month_start,
+        )
+    )
+    rows = result.all()
+    if rows:
+        diffs = [
+            (r.datum_azuriranja - r.datum_kreiranja).total_seconds()
+            for r in rows
+            if r.datum_azuriranja and r.datum_kreiranja
+        ]
+        avg_response_seconds = sum(diffs) / len(diffs) if diffs else None
+    else:
+        avg_response_seconds = None
+
+    return {
+        "handled_today": handled_today,
+        "handled_week": handled_week,
+        "avg_response_seconds": avg_response_seconds,
+    }
+
+
+@router.get("/my-history")
+async def get_my_history(
+    limit: int = Query(default=20, le=50),
+    offset: int = Query(default=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_admin_or_agent),
+):
+    result = await db.execute(
+        select(Eskalacija)
+        .where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status.in_(["Rijesena", "Napustena"]),
+        )
+        .order_by(Eskalacija.datum_kreiranja.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    items = result.scalars().all()
+    return [_eskal_dict(e) for e in items]
 
 
 @router.get("/{escalation_id}")
@@ -285,6 +377,15 @@ async def ws_agent_queue(
                         "type": "agent_message",
                         "content": content,
                         "agent_name": agent_name,
+                    })
+                    await _persist_chat_message(db, int(sid), "agent", content)
+
+            if msg.get("type") == "typing":
+                sid = msg.get("session_id")
+                if sid:
+                    await manager.send_to_user(int(sid), {
+                        "type": "agent_typing",
+                        "is_typing": msg.get("is_typing", False),
                     })
     except WebSocketDisconnect:
         manager.disconnect_agent(websocket)

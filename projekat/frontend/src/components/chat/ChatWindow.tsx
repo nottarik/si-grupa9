@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useChat } from "../../hooks/useChat";
 import { useAuth } from "../../hooks/useAuth";
+import ChatHistory from "./ChatHistory";
 import type { ChatMessage } from "../../types";
 
 /* ── Laurel Wreath ── */
@@ -52,17 +53,41 @@ const TypingBubble = () => (
   </div>
 );
 
+/* ── Agent Typing Bubble ── */
+const AgentTypingBubble = ({ name }: { name: string | null }) => (
+  <div className="msg-in flex items-end gap-3">
+    <div
+      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs"
+      style={{ background: "radial-gradient(circle at 40% 35%,#6b5a3a,#4a3f2a,#2a2218)" }}
+    >
+      {(name ?? "A").charAt(0).toUpperCase()}
+    </div>
+    <div className="ai-bubble px-4 py-3" style={{ borderLeft: "2px solid #C5A059" }}>
+      <p className="text-xs font-semibold tracking-widest mb-2 font-cinzel uppercase" style={{ color: "#8a6d1f" }}>
+        {name ?? "Agent"}
+      </p>
+      <div className="flex gap-1.5 items-center">
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+      </div>
+    </div>
+  </div>
+);
+
 /* ── Message Bubble ── */
 const MessageBubble = ({
   msg,
   onFeedback,
   onEscalate,
   isEscalated,
+  rated,
 }: {
   msg: ChatMessage;
   onFeedback?: (id: string, positive: boolean) => void;
   onEscalate?: () => void;
   isEscalated?: boolean;
+  rated?: "up" | "down";
 }) => {
   if (msg.role === "user") {
     return (
@@ -80,12 +105,12 @@ const MessageBubble = ({
       <div className="msg-in flex items-end gap-3">
         <div
           className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs"
-          style={{ background: "radial-gradient(circle at 40% 35%,#4ade80,#16a34a,#166534)" }}
+          style={{ background: "radial-gradient(circle at 40% 35%,#6b5a3a,#4a3f2a,#2a2218)" }}
         >
           {(msg.agentName ?? "A").charAt(0).toUpperCase()}
         </div>
-        <div className="ai-bubble px-4 py-3 max-w-[70%]" style={{ borderLeft: "2px solid #22c55e" }}>
-          <p className="text-xs font-semibold tracking-widest mb-2 font-cinzel uppercase" style={{ color: "#16a34a" }}>
+        <div className="ai-bubble px-4 py-3 max-w-[70%]" style={{ borderLeft: "2px solid #C5A059" }}>
+          <p className="text-xs font-semibold tracking-widest mb-2 font-cinzel uppercase" style={{ color: "#8a6d1f" }}>
             {msg.agentName ?? "Agent"}
           </p>
           <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#1C1C2E" }}>
@@ -103,24 +128,40 @@ const MessageBubble = ({
         <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "#1C1C2E" }}>
           {msg.content}
         </p>
+        {msg.isLowConfidence && (
+          <p className="mt-1.5 text-xs font-medium" style={{ color: "#8a6d1f" }}>
+            ⚠ I'm not fully confident in this answer. Consider verifying with an agent.
+          </p>
+        )}
+        {msg.sourceTopic && !msg.isLowConfidence && (
+          <p className="mt-1.5 text-[11px] italic" style={{ color: "#9a8a6a" }}>
+            Source: {msg.sourceTopic}
+          </p>
+        )}
         <div className="flex items-center gap-3 mt-2">
           {msg.interactionId && onFeedback && (
-            <>
-              <button
-                onClick={() => onFeedback(msg.interactionId!, true)}
-                style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-                title="Helpful"
-              >
-                👍
-              </button>
-              <button
-                onClick={() => onFeedback(msg.interactionId!, false)}
-                style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-                title="Not helpful"
-              >
-                👎
-              </button>
-            </>
+            rated ? (
+              <span className="text-xs" style={{ color: "#8a6d1f" }}>
+                {rated === "up" ? "👍" : "👎"} Thanks for your feedback
+              </span>
+            ) : (
+              <>
+                <button
+                  onClick={() => onFeedback(msg.interactionId!, true)}
+                  style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+                  title="Helpful"
+                >
+                  👍
+                </button>
+                <button
+                  onClick={() => onFeedback(msg.interactionId!, false)}
+                  style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
+                  title="Not helpful"
+                >
+                  👎
+                </button>
+              </>
+            )
           )}
           {onEscalate && (
             <button
@@ -157,33 +198,58 @@ const STARTERS = [
 ];
 
 /* ── SpeechRecognition shim ── */
-type SR = typeof SpeechRecognition;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SR = any;
 const getSpeechRecognition = (): SR | null => {
   if (typeof window === "undefined") return null;
-  return (
-    (window as unknown as Record<string, unknown>).SpeechRecognition as SR ||
-    (window as unknown as Record<string, unknown>).webkitSpeechRecognition as SR ||
-    null
-  );
+  const w = window as unknown as Record<string, unknown>;
+  return (w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null) as SR | null;
 };
 
 /* ── ChatWindow ── */
 export default function ChatWindow() {
-  const { messages, isLoading, error, ask, sendFeedback, requestEscalation, clearMessages, escalation, agentName } = useChat();
+  const { messages, isLoading, error, sessionId, ask, sendFeedback, requestEscalation, cancelEscalation, clearMessages, loadSession, escalation, agentName, agentTyping } = useChat();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
   const [speechLang, setSpeechLang] = useState("bs-BA");
+  const [ratedMessages, setRatedMessages] = useState<Record<string, "up" | "down">>({});
+  const [historyOpen, setHistoryOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SR | null>(null);
   const inputBeforeRef = useRef("");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Handle navigation state from Home page: resume a session or start fresh
+  const stateHandledRef = useRef(false);
+  useEffect(() => {
+    if (stateHandledRef.current) return;
+    stateHandledRef.current = true;
+    const state = location.state as {
+      sessionId?: number;
+      messages?: ChatMessage[];
+      fresh?: boolean;
+      autoMic?: boolean;
+    } | null;
+    if (!state) return;
+    if (state.fresh) {
+      clearMessages();
+    } else if (state.sessionId && state.messages) {
+      loadSession(state.messages, state.sessionId);
+    }
+    if (state.autoMic) {
+      // Trigger mic after a short delay so the component is fully mounted
+      setTimeout(() => toggleListening(), 300);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function autoResize() {
     const el = taRef.current;
@@ -221,16 +287,16 @@ export default function ChatWindow() {
 
     recognition.onstart = () => setIsListening(true);
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: { results: Iterable<{ 0: { transcript: string } }> }) => {
       const transcript = Array.from(event.results)
-        .map((r) => r[0].transcript)
+        .map((r: { 0: { transcript: string } }) => r[0].transcript)
         .join("");
       const base = inputBeforeRef.current;
       setInput((base ? base + " " : "") + transcript);
       setTimeout(applyTextareaResize, 0);
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: { error: string }) => {
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         setMicError("Microphone access denied. Check your browser permissions.");
       } else if (event.error !== "no-speech" && event.error !== "aborted") {
@@ -274,11 +340,18 @@ export default function ChatWindow() {
   }
 
   async function handleFeedback(interactionId: string, isPositive: boolean) {
+    setRatedMessages((prev) => ({ ...prev, [interactionId]: isPositive ? "up" : "down" }));
     await sendFeedback({ interaction_id: Number(interactionId), is_positive: isPositive });
   }
 
   return (
     <div className="chat-bg flex flex-col" style={{ height: "100vh" }}>
+      <ChatHistory
+        isOpen={historyOpen}
+        onToggle={() => setHistoryOpen((v) => !v)}
+        onLoadSession={loadSession}
+        currentSessionId={sessionId}
+      />
       <div className="flex flex-col h-full w-full">
 
         {/* ── HEADER ── */}
@@ -297,15 +370,42 @@ export default function ChatWindow() {
               <Laurel size={52} flip />
             </div>
 
-            {/* Right actions */}
+            {/* Right actions — role-aware nav links */}
             <div className="flex-shrink-0 flex items-center gap-3 ml-4">
               {user?.role === "admin" && (
+                <>
+                  <a
+                    href="/admin"
+                    className="text-xs transition-colors"
+                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                  >
+                    Admin
+                  </a>
+                  <a
+                    href="/agent"
+                    className="text-xs transition-colors"
+                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                  >
+                    Agent
+                  </a>
+                </>
+              )}
+              {user?.role === "agent" && (
                 <a
-                  href="/admin"
+                  href="/agent"
                   className="text-xs transition-colors"
                   style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
                 >
-                  Admin
+                  Agent Console
+                </a>
+              )}
+              {(user?.role === "user" || user?.role === "manager") && (
+                <a
+                  href="/home"
+                  className="text-xs transition-colors"
+                  style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                >
+                  ← Home
                 </a>
               )}
               <button
@@ -328,18 +428,34 @@ export default function ChatWindow() {
         {/* ── ESCALATION BANNER ── */}
         {escalation && (
           <div
-            className="flex-shrink-0 px-6 py-2 text-sm text-center"
+            className="flex-shrink-0 px-6 py-2 text-sm text-center flex items-center justify-center gap-3"
             style={{
               background: escalation.status === "UToku"
-                ? "rgba(34,197,94,0.1)"
-                : "rgba(245,158,11,0.1)",
+                ? "rgba(197,160,89,0.12)"
+                : "rgba(197,160,89,0.08)",
               borderBottom: "1px solid rgba(197,160,89,0.2)",
-              color: escalation.status === "UToku" ? "#16a34a" : "#b45309",
+              color: escalation.status === "UToku" ? "#6b5a3a" : "#8a6d1f",
             }}
           >
-            {escalation.status === "UToku"
-              ? `Connected with ${agentName ?? "an agent"}`
-              : `You're #${escalation.queue_position} in queue — an agent will be with you shortly`}
+            <span>
+              {escalation.status === "UToku"
+                ? `Connected with ${agentName ?? "an agent"}`
+                : `You're #${escalation.queue_position} in queue — an agent will be with you shortly`}
+            </span>
+            {escalation.status !== "UToku" && (
+              <button
+                onClick={cancelEscalation}
+                className="text-xs px-2 py-0.5 rounded"
+                style={{
+                  border: "1px solid rgba(197,160,89,0.4)",
+                  color: "#8a6d1f",
+                  background: "rgba(255,255,255,0.6)",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            )}
           </div>
         )}
 
@@ -375,9 +491,11 @@ export default function ChatWindow() {
                   onFeedback={m.role === "assistant" ? handleFeedback : undefined}
                   onEscalate={m.role === "assistant" ? requestEscalation : undefined}
                   isEscalated={!!escalation}
+                  rated={m.interactionId ? ratedMessages[m.interactionId] : undefined}
                 />
               ))}
-              {isLoading && <TypingBubble />}
+              {agentTyping && !isLoading && <AgentTypingBubble name={agentName} />}
+              {isLoading && !escalation && <TypingBubble />}
             </>
           )}
 

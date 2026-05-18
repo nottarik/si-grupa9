@@ -1,5 +1,5 @@
 import apiClient from "./client";
-import type { KnowledgeItem } from "../types";
+import type { KnowledgeItem, KbSearchItem } from "../types";
 
 export async function listPendingItems(): Promise<KnowledgeItem[]> {
   const { data } = await apiClient.get<KnowledgeItem[]>(
@@ -14,4 +14,11 @@ export async function approveItem(id: string): Promise<void> {
 
 export async function rejectItem(id: string): Promise<void> {
   await apiClient.post(`/api/v1/knowledge/${id}/reject`);
+}
+
+export async function searchKnowledge(q: string, limit = 20): Promise<KbSearchItem[]> {
+  const { data } = await apiClient.get<KbSearchItem[]>("/api/v1/knowledge/search", {
+    params: { q, limit },
+  });
+  return data;
 }

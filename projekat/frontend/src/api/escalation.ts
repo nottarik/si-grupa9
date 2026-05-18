@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import type { AgentStats } from "../types";
 
 export interface EscalationItem {
   id: number;
@@ -46,4 +47,11 @@ export const escalationApi = {
     }),
 
   cancel: () => apiClient.post<{ ok: boolean }>("/api/v1/escalation/cancel"),
+
+  myStats: () => apiClient.get<AgentStats>("/api/v1/escalation/my-stats"),
+
+  myHistory: (limit = 20, offset = 0) =>
+    apiClient.get<EscalationItem[]>("/api/v1/escalation/my-history", {
+      params: { limit, offset },
+    }),
 };

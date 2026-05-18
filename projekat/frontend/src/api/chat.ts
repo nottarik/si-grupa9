@@ -11,6 +11,24 @@ export interface RatingsStats {
   top_rated: Array<{ question: string; rating: number; date: string }>;
 }
 
+export interface SessionSummary {
+  id: number;
+  started_at: string | null;
+  status: string;
+  message_count: number;
+  preview: string | null;
+}
+
+export interface SessionMessages {
+  session_id: number;
+  messages: Array<{
+    role: string;
+    content: string;
+    timestamp: string | null;
+    confidence_score?: number;
+  }>;
+}
+
 export async function sendMessage(
   question: string,
   history: Array<{ role: string; content: string }> = [],
@@ -30,5 +48,15 @@ export async function submitFeedback(payload: FeedbackRequest): Promise<void> {
 
 export async function getRatingsStats(): Promise<RatingsStats> {
   const { data } = await apiClient.get<RatingsStats>("/api/v1/chat/ratings");
+  return data;
+}
+
+export async function listSessions(): Promise<SessionSummary[]> {
+  const { data } = await apiClient.get<SessionSummary[]>("/api/v1/chat/sessions");
+  return data;
+}
+
+export async function getSessionMessages(sessionId: number): Promise<SessionMessages> {
+  const { data } = await apiClient.get<SessionMessages>(`/api/v1/chat/sessions/${sessionId}/messages`);
   return data;
 }

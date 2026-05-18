@@ -39,7 +39,9 @@ export function useChat() {
   });
   const [escalation, setEscalation] = useState<EscalationInfo | null>(null);
   const [agentName, setAgentName] = useState<string | null>(null);
+  const [agentTyping, setAgentTyping] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages));
@@ -51,14 +53,21 @@ export function useChat() {
     }
   }, [sessionId]);
 
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const shouldReconnectRef = useRef(false);
+
   const connectUserWs = useCallback((sid: number) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
+    shouldReconnectRef.current = true;
     const url = buildWsUrl(`/api/v1/escalation/ws/chat/${sid}?token=${token}`);
     const ws = new WebSocket(url);
     wsRef.current = ws;
+
+    ws.onopen = () => { reconnectAttemptsRef.current = 0; };
 
     ws.onmessage = (event) => {
       try {
@@ -79,13 +88,21 @@ export function useChat() {
         }
 
         if (frame.type === "agent_message" && frame.content) {
+          setAgentTyping(false);
           setMessages((prev) => [
             ...prev,
             { role: "agent", content: frame.content!, agentName: frame.agent_name },
           ]);
         }
 
+        if (frame.type === "agent_typing") {
+          setAgentTyping(true);
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setAgentTyping(false), 3000);
+        }
+
         if (frame.type === "session_ended") {
+          shouldReconnectRef.current = false;
           setEscalation(null);
           setAgentName(null);
           wsRef.current?.close();
@@ -94,7 +111,7 @@ export function useChat() {
             ...prev,
             {
               role: "assistant",
-              content: frame.message ?? "Your session has ended. Thank you.",
+              content: "Your session with the agent has ended. Thank you for using our service.",
             },
           ]);
         }
@@ -103,12 +120,23 @@ export function useChat() {
       }
     };
 
-    ws.onclose = () => { wsRef.current = null; };
-    ws.onerror = () => { wsRef.current = null; };
+    ws.onclose = () => {
+      wsRef.current = null;
+      if (shouldReconnectRef.current && reconnectAttemptsRef.current < 5) {
+        const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 16000);
+        reconnectAttemptsRef.current += 1;
+        reconnectTimerRef.current = setTimeout(() => connectUserWs(sid), delay);
+      }
+    };
+    ws.onerror = () => { /* onclose will fire */ };
   }, []);
 
   useEffect(() => {
-    return () => { wsRef.current?.close(); };
+    return () => {
+      wsRef.current?.close();
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
   }, []);
 
   const ask = useCallback(
@@ -142,6 +170,7 @@ export function useChat() {
             interactionId: response.interaction_id ? String(response.interaction_id) : undefined,
             confidenceScore: response.confidence_score,
             isLowConfidence: response.is_low_confidence,
+            sourceTopic: response.source_topic ?? undefined,
           };
           setMessages((prev) => [...prev, assistantMessage]);
         }
@@ -190,6 +219,8 @@ export function useChat() {
         // ignore
       }
     }
+    shouldReconnectRef.current = false;
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     setMessages([]);
     setSessionId(null);
     setEscalation(null);
@@ -200,15 +231,50 @@ export function useChat() {
     localStorage.removeItem(CHAT_SESSION_KEY);
   }, [escalation]);
 
+  const cancelEscalation = useCallback(async () => {
+    if (!escalation) return;
+    try {
+      await escalationApi.cancel();
+      shouldReconnectRef.current = false;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      setEscalation(null);
+      wsRef.current?.close();
+      wsRef.current = null;
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "You've left the queue. Feel free to continue chatting with me!" },
+      ]);
+    } catch {
+      // ignore
+    }
+  }, [escalation]);
+
+  const loadSession = useCallback((msgs: ChatMessage[], sid: number) => {
+    if (escalation && escalation.status === "UToku") return;
+    shouldReconnectRef.current = false;
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    wsRef.current?.close();
+    wsRef.current = null;
+    setMessages(msgs);
+    setSessionId(sid);
+    setEscalation(null);
+    setAgentName(null);
+    setAgentTyping(false);
+  }, [escalation]);
+
   return {
     messages,
     isLoading,
     error,
+    sessionId,
     ask,
     sendFeedback,
     requestEscalation,
+    cancelEscalation,
     clearMessages,
+    loadSession,
     escalation,
     agentName,
+    agentTyping,
   };
 }
