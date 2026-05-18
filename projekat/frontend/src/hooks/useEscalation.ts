@@ -9,6 +9,7 @@ interface WsMessage {
   escalation_id?: number;
   session_id?: number;
   message?: string;
+  role?: string;
 }
 
 export interface UserMsg {
@@ -16,6 +17,8 @@ export interface UserMsg {
   content: string;
   escalation_id: number;
   is_system?: boolean;
+  role?: string;
+  agent_name?: string;
 }
 
 function buildWsUrl(path: string): string {
@@ -30,7 +33,7 @@ export function useEscalation() {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const shouldReconnectRef = useRef(false);
-  // Callback registered by the active ChatPanel to receive live user messages
+  // Callback registered by the active ChatPanel to receive live messages
   const userMsgHandlerRef = useRef<((msg: UserMsg) => void) | null>(null);
 
   const fetchQueue = useCallback(async () => {
@@ -76,6 +79,21 @@ export function useEscalation() {
             escalation_id: msg.escalation_id,
           });
         }
+        // Live chat updates from other agents or user messages relayed as chat_message
+        if (
+          msg.type === "chat_message" &&
+          msg.session_id !== undefined &&
+          msg.content &&
+          msg.escalation_id !== undefined
+        ) {
+          userMsgHandlerRef.current?.({
+            session_id: msg.session_id,
+            content: msg.content,
+            escalation_id: msg.escalation_id,
+            role: msg.role,
+            agent_name: msg.agent_name,
+          });
+        }
         if (
           msg.type === "user_disconnected" &&
           msg.session_id !== undefined &&
@@ -118,7 +136,6 @@ export function useEscalation() {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(payload);
     } else if (ws.readyState === WebSocket.CONNECTING) {
-      // WS is still handshaking — send as soon as it opens
       const handler = () => {
         ws.send(payload);
         ws.removeEventListener("open", handler);
@@ -134,6 +151,10 @@ export function useEscalation() {
 
   const acceptEscalation = useCallback(async (id: number) => {
     await escalationApi.accept(id);
+  }, []);
+
+  const releaseEscalation = useCallback(async (id: number) => {
+    await escalationApi.release(id);
   }, []);
 
   const resolveEscalation = useCallback(
@@ -167,6 +188,7 @@ export function useEscalation() {
     sendAgentMessage,
     sendTypingSignal,
     acceptEscalation,
+    releaseEscalation,
     resolveEscalation,
     registerUserMsgHandler,
   };

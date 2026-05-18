@@ -6,6 +6,7 @@ export interface EscalationItem {
   sesija_id: number;
   korisnik_id: string;
   dodjeljeni_agent_id?: string | null;
+  agent_name?: string | null;
   prioritet: string;
   status: string;
   trigger_tip?: string | null;
@@ -36,6 +37,9 @@ export const escalationApi = {
 
   resolve: (id: number, payload: EscalationResolvePayload) =>
     apiClient.post<{ ok: boolean }>(`/api/v1/escalation/${id}/resolve`, payload),
+
+  release: (id: number) =>
+    apiClient.post<{ ok: boolean }>(`/api/v1/escalation/${id}/release`),
 
   updateAgentStatus: (status: "Online" | "Zauzet" | "Offline") =>
     apiClient.patch("/api/v1/escalation/agent-status", { status }),

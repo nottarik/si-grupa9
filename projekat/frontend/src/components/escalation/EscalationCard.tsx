@@ -32,12 +32,21 @@ export function timeAgo(iso: string): string {
 
 interface Props {
   item: EscalationItem;
+  currentAgentId: string;
   onAccepted: (item: EscalationItem) => void;
 }
 
-export default function EscalationCard({ item, onAccepted }: Props) {
+export default function EscalationCard({ item, currentAgentId, onAccepted }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [accepting, setAccepting] = useState(false);
+
+  const isAssignedToOther =
+    item.status === "UToku" &&
+    item.dodjeljeni_agent_id != null &&
+    item.dodjeljeni_agent_id !== currentAgentId;
+
+  const isAssignedToMe =
+    item.status === "UToku" && item.dodjeljeni_agent_id === currentAgentId;
 
   async function handleAccept() {
     setAccepting(true);
@@ -73,6 +82,43 @@ export default function EscalationCard({ item, onAccepted }: Props) {
               {TRIGGER_LABELS[item.trigger_tip ?? ""] ?? item.trigger_tip}
             </span>
             <StatusBadge s={item.status === "Cekanje" ? "Pending" : "In Progress"} />
+            {isAssignedToOther && (
+              <span
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(107,90,58,0.08)",
+                  color: "#6b5a3a",
+                  border: "1px solid rgba(107,90,58,0.2)",
+                }}
+              >
+                <svg
+                  width={10}
+                  height={10}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                {item.agent_name || "Agent"}
+              </span>
+            )}
+            {isAssignedToMe && (
+              <span
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(197,160,89,0.15)",
+                  color: "#8a6d1f",
+                  border: "1px solid rgba(197,160,89,0.3)",
+                }}
+              >
+                You
+              </span>
+            )}
           </div>
           <p
             className="text-sm text-charcoal mt-1.5 leading-snug"
@@ -127,9 +173,9 @@ export default function EscalationCard({ item, onAccepted }: Props) {
               >
                 <span
                   className="font-semibold"
-                  style={{ color: m.role === "user" ? "#C5A059" : "#6b7280" }}
+                  style={{ color: m.role === "user" ? "#C5A059" : m.role === "agent" ? "#8a6d1f" : "#6b7280" }}
                 >
-                  {m.role === "user" ? "User" : "Bot"}:{" "}
+                  {m.role === "user" ? "User" : m.role === "agent" ? "Agent" : "Bot"}:{" "}
                 </span>
                 {m.content}
               </div>

@@ -155,6 +155,34 @@ async def resolve_escalation(
     return eskal
 
 
+async def release_escalation(
+    db: AsyncSession, escalation_id: int, agent_id: UUID
+) -> Optional[Eskalacija]:
+    """Owner agent releases the escalation back to the waiting queue."""
+    result = await db.execute(
+        select(Eskalacija).where(Eskalacija.id == escalation_id).with_for_update()
+    )
+    eskal = result.scalar_one_or_none()
+    if not eskal or eskal.dodjeljeni_agent_id != agent_id or eskal.status != "UToku":
+        return None
+
+    eskal.status = "Cekanje"
+    eskal.dodjeljeni_agent_id = None
+    eskal.datum_azuriranja = datetime.now(timezone.utc)
+
+    agent_row = (await db.execute(
+        select(StatusAgenta).where(StatusAgenta.agent_id == agent_id)
+    )).scalar_one_or_none()
+    if agent_row:
+        agent_row.status = "Online"
+        agent_row.trenutna_eskalacija_id = None
+        agent_row.zadnje_aktivno = datetime.now(timezone.utc)
+
+    await db.flush()
+    await db.refresh(eskal)
+    return eskal
+
+
 async def cancel_escalation(db: AsyncSession, korisnik_id: UUID) -> Optional[Eskalacija]:
     """Mark the user's active escalation as Napustena (user left)."""
     existing = await get_active_for_user(db, korisnik_id)

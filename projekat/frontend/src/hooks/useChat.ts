@@ -101,6 +101,20 @@ export function useChat() {
           typingTimeoutRef.current = setTimeout(() => setAgentTyping(false), 3000);
         }
 
+        if (frame.type === "agent_released") {
+          setAgentName(null);
+          setEscalation((prev) =>
+            prev ? { ...prev, status: "Cekanje" } : prev
+          );
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: frame.message || "The agent has left the chat. You have been placed back in the queue.",
+            },
+          ]);
+        }
+
         if (frame.type === "session_ended") {
           shouldReconnectRef.current = false;
           setEscalation(null);

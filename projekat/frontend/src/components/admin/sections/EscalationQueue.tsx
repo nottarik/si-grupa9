@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { escalationApi, EscalationItem } from "../../../api/escalation";
 import { useEscalation } from "../../../hooks/useEscalation";
+import { useAuth } from "../../../hooks/useAuth";
 import { Ic, icons } from "../shared";
 import EscalationCard from "../../escalation/EscalationCard";
 import ChatPanel from "../../escalation/ChatPanel";
@@ -25,6 +26,8 @@ function playNotificationTone() {
 }
 
 export default function EscalationQueue() {
+  const { user } = useAuth();
+  const currentAgentId = user?.id ?? "";
   const {
     queue,
     loading,
@@ -34,6 +37,7 @@ export default function EscalationQueue() {
     sendAgentMessage,
     sendTypingSignal,
     resolveEscalation,
+    releaseEscalation,
     registerUserMsgHandler,
   } = useEscalation();
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
@@ -72,6 +76,23 @@ export default function EscalationQueue() {
     }
   }, [activeEskal, agentOnline, connectAgentWs]);
 
+  // Keep activeEskal in sync with queue updates
+  useEffect(() => {
+    setActiveEskal((prev) => {
+      if (!prev) return prev;
+      const fresh = queue.find((e) => e.id === prev.id);
+      if (!fresh) return prev;
+      const wasNotOwner = prev.dodjeljeni_agent_id !== currentAgentId;
+      if (wasNotOwner && fresh.status !== "UToku") return null;
+      return {
+        ...prev,
+        status: fresh.status,
+        dodjeljeni_agent_id: fresh.dodjeljeni_agent_id,
+        agent_name: fresh.agent_name,
+      };
+    });
+  }, [queue, currentAgentId]);
+
   function toggleOnline() {
     if (agentOnline) {
       disconnectWs();
@@ -85,9 +106,16 @@ export default function EscalationQueue() {
   }
 
   function handleAccepted(item: EscalationItem) {
-    setActiveEskal({ ...item, status: "UToku" });
+    setActiveEskal({ ...item, status: "UToku", dodjeljeni_agent_id: currentAgentId });
     fetchQueue();
   }
+
+  function handleClosed() {
+    setActiveEskal(null);
+    fetchQueue();
+  }
+
+  const isOwner = activeEskal?.dodjeljeni_agent_id === currentAgentId;
 
   const pending = queue.filter((e) => e.status === "Cekanje");
   const inProgress = queue.filter((e) => e.status === "UToku");
@@ -126,18 +154,18 @@ export default function EscalationQueue() {
       {activeEskal && (
         <div>
           <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">
-            Active Chat
+            {isOwner ? "Active Chat" : "Viewing Chat"}
           </div>
           <ChatPanel
             item={activeEskal}
+            isOwner={isOwner}
             sendAgentMessage={sendAgentMessage}
             sendTypingSignal={sendTypingSignal}
             resolveEscalation={resolveEscalation}
+            releaseEscalation={releaseEscalation}
             registerUserMsgHandler={registerUserMsgHandler}
-            onResolve={() => {
-              setActiveEskal(null);
-              fetchQueue();
-            }}
+            onResolve={handleClosed}
+            onRelease={handleClosed}
           />
         </div>
       )}
@@ -151,7 +179,11 @@ export default function EscalationQueue() {
             <div className="space-y-3">
               {inProgress.map((e) => (
                 <div key={e.id} onClick={() => setActiveEskal(e)} className="cursor-pointer">
-                  <EscalationCard item={e} onAccepted={handleAccepted} />
+                  <EscalationCard
+                    item={e}
+                    currentAgentId={currentAgentId}
+                    onAccepted={handleAccepted}
+                  />
                 </div>
               ))}
             </div>
@@ -174,7 +206,12 @@ export default function EscalationQueue() {
 
         <div className="space-y-3">
           {pending.map((e) => (
-            <EscalationCard key={e.id} item={e} onAccepted={handleAccepted} />
+            <EscalationCard
+              key={e.id}
+              item={e}
+              currentAgentId={currentAgentId}
+              onAccepted={handleAccepted}
+            />
           ))}
         </div>
       </div>
