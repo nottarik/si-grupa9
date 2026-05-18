@@ -3,7 +3,13 @@ import { useAuth } from "../../hooks/useAuth";
 import type { UserRole } from "../../types";
 
 interface Props {
-  requiredRole?: UserRole;
+  requiredRole?: UserRole | UserRole[];
+}
+
+function roleHome(role?: UserRole): string {
+  if (role === "admin") return "/admin";
+  if (role === "agent") return "/agent";
+  return "/home";
 }
 
 export default function ProtectedRoute({ requiredRole }: Props) {
@@ -19,8 +25,11 @@ export default function ProtectedRoute({ requiredRole }: Props) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/chat" replace />;
+  if (requiredRole) {
+    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!user?.role || !allowed.includes(user.role)) {
+      return <Navigate to={roleHome(user?.role)} replace />;
+    }
   }
 
   return <Outlet />;

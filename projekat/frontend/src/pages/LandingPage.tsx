@@ -3,10 +3,14 @@ import { useAuth } from '../hooks/useAuth';
 import './LandingPage.css';
 
 export default function LandingPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) return null;
-  if (isAuthenticated) return <Navigate to="/chat" replace />;
+  if (isAuthenticated) {
+    if (user?.role === "admin") return <Navigate to="/admin" replace />;
+    if (user?.role === "agent") return <Navigate to="/agent" replace />;
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <div className="lp">

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useChat } from "../../hooks/useChat";
 import { useAuth } from "../../hooks/useAuth";
 import ChatHistory from "./ChatHistory";
@@ -211,6 +211,7 @@ export default function ChatWindow() {
   const { messages, isLoading, error, sessionId, ask, sendFeedback, requestEscalation, cancelEscalation, clearMessages, loadSession, escalation, agentName, agentTyping } = useChat();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
@@ -225,6 +226,30 @@ export default function ChatWindow() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Handle navigation state from Home page: resume a session or start fresh
+  const stateHandledRef = useRef(false);
+  useEffect(() => {
+    if (stateHandledRef.current) return;
+    stateHandledRef.current = true;
+    const state = location.state as {
+      sessionId?: number;
+      messages?: ChatMessage[];
+      fresh?: boolean;
+      autoMic?: boolean;
+    } | null;
+    if (!state) return;
+    if (state.fresh) {
+      clearMessages();
+    } else if (state.sessionId && state.messages) {
+      loadSession(state.messages, state.sessionId);
+    }
+    if (state.autoMic) {
+      // Trigger mic after a short delay so the component is fully mounted
+      setTimeout(() => toggleListening(), 300);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function autoResize() {
     const el = taRef.current;
@@ -345,15 +370,42 @@ export default function ChatWindow() {
               <Laurel size={52} flip />
             </div>
 
-            {/* Right actions */}
+            {/* Right actions — role-aware nav links */}
             <div className="flex-shrink-0 flex items-center gap-3 ml-4">
               {user?.role === "admin" && (
+                <>
+                  <a
+                    href="/admin"
+                    className="text-xs transition-colors"
+                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                  >
+                    Admin
+                  </a>
+                  <a
+                    href="/agent"
+                    className="text-xs transition-colors"
+                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                  >
+                    Agent
+                  </a>
+                </>
+              )}
+              {user?.role === "agent" && (
                 <a
-                  href="/admin"
+                  href="/agent"
                   className="text-xs transition-colors"
                   style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
                 >
-                  Admin
+                  Agent Console
+                </a>
+              )}
+              {(user?.role === "user" || user?.role === "manager") && (
+                <a
+                  href="/home"
+                  className="text-xs transition-colors"
+                  style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                >
+                  ← Home
                 </a>
               )}
               <button

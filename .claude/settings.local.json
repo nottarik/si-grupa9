@@ -9,7 +9,8 @@
       "Bash(Select-Object FullName)",
       "Bash(xargs grep -l \"chat\\\\|rag\\\\|embedding\")",
       "Bash(npx tsc *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(python -m pytest --tb=short -q)"
     ]
   }
 }

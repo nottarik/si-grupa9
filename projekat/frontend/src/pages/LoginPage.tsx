@@ -273,7 +273,9 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   function handleSuccess(user: User) {
-    navigate(user.role === "admin" ? "/admin" : "/chat", { replace: true });
+    if (user.role === "admin") navigate("/admin", { replace: true });
+    else if (user.role === "agent") navigate("/agent", { replace: true });
+    else navigate("/home", { replace: true });
   }
 
   return (

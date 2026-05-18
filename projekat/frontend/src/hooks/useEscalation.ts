@@ -48,7 +48,8 @@ export function useEscalation() {
   const connectAgentWs = useCallback(() => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    const existing = wsRef.current;
+    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) return;
 
     shouldReconnectRef.current = true;
     const url = buildWsUrl(`/api/v1/escalation/ws/escalation?token=${token}`);
@@ -111,8 +112,19 @@ export function useEscalation() {
   }, []);
 
   const sendAgentMessage = useCallback((session_id: number, content: string) => {
-    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
-    wsRef.current.send(JSON.stringify({ type: "agent_message", session_id, content }));
+    const ws = wsRef.current;
+    if (!ws) return;
+    const payload = JSON.stringify({ type: "agent_message", session_id, content });
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(payload);
+    } else if (ws.readyState === WebSocket.CONNECTING) {
+      // WS is still handshaking — send as soon as it opens
+      const handler = () => {
+        ws.send(payload);
+        ws.removeEventListener("open", handler);
+      };
+      ws.addEventListener("open", handler);
+    }
   }, []);
 
   const sendTypingSignal = useCallback((session_id: number, is_typing: boolean) => {

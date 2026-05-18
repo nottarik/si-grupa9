@@ -2,14 +2,16 @@ import asyncio
 import uuid
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
 from app.db.models.user import Korisnik, UlogaTip
 from app.db.models.knowledge import UnosBazeZnanja
-from app.api.v1.deps import require_role
+from sqlalchemy import or_
+
+from app.api.v1.deps import require_role, require_admin_or_agent
 
 router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 logger = logging.getLogger(__name__)
@@ -71,6 +73,39 @@ async def approve_item(
 
     await db.commit()
     return {"message": "Item approved"}
+
+
+@router.get("/search")
+async def search_knowledge(
+    q: str = Query(..., min_length=2),
+    limit: int = Query(default=20, le=50),
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_admin_or_agent),
+):
+    pattern = f"%{q}%"
+    result = await db.execute(
+        select(UnosBazeZnanja)
+        .where(
+            UnosBazeZnanja.status_aprovacije == "Odobren",
+            or_(
+                UnosBazeZnanja.pitanje.ilike(pattern),
+                UnosBazeZnanja.odgovor.ilike(pattern),
+            ),
+        )
+        .order_by(UnosBazeZnanja.datum_azuriranja.desc())
+        .limit(limit)
+    )
+    items = result.scalars().all()
+    return [
+        {
+            "id": i.id,
+            "pitanje": i.pitanje,
+            "odgovor": i.odgovor,
+            "id_kategorije": i.id_kategorije,
+            "datum_azuriranja": i.datum_azuriranja.isoformat() if i.datum_azuriranja else None,
+        }
+        for i in items
+    ]
 
 
 @router.post("/reindex", summary="Re-embed all approved items with question-only vectors")

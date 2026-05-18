@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { escalationApi, EscalationItem } from "../../../api/escalation";
-import { useEscalation } from "../../../hooks/useEscalation";
-import { Ic, icons } from "../shared";
+import { EscalationItem, EscalationResolvePayload } from "../../../api/escalation";
+import { UserMsg } from "../../../hooks/useEscalation";
+import { Ic, icons } from "../../admin/shared";
 import EscalationCard from "../../escalation/EscalationCard";
 import ChatPanel from "../../escalation/ChatPanel";
 import { getNotifPrefs } from "../../escalation/notifPrefs";
@@ -24,34 +24,31 @@ function playNotificationTone() {
   }
 }
 
-export default function EscalationQueue() {
-  const {
-    queue,
-    loading,
-    fetchQueue,
-    connectAgentWs,
-    disconnectWs,
-    sendAgentMessage,
-    sendTypingSignal,
-    resolveEscalation,
-    registerUserMsgHandler,
-  } = useEscalation();
+interface Props {
+  agentOnline: boolean;
+  onToggleOnline: () => void;
+  queue: EscalationItem[];
+  loading: boolean;
+  fetchQueue: () => void;
+  sendAgentMessage: (session_id: number, content: string) => void;
+  sendTypingSignal: (session_id: number, is_typing: boolean) => void;
+  resolveEscalation: (id: number, payload: EscalationResolvePayload) => Promise<void>;
+  registerUserMsgHandler: (handler: ((msg: UserMsg) => void) | null) => void;
+}
+
+export default function AgentQueue({
+  agentOnline,
+  onToggleOnline,
+  queue,
+  loading,
+  fetchQueue,
+  sendAgentMessage,
+  sendTypingSignal,
+  resolveEscalation,
+  registerUserMsgHandler,
+}: Props) {
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
-  const [agentOnline, setAgentOnline] = useState(false);
   const prevPendingCountRef = useRef(0);
-
-  // Connect agent WS on mount so it's open before any chat is accepted
-  useEffect(() => {
-    connectAgentWs();
-    return () => disconnectWs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    fetchQueue();
-    const id = setInterval(fetchQueue, 10_000);
-    return () => clearInterval(id);
-  }, [fetchQueue]);
 
   useEffect(() => {
     const pendingCount = queue.filter((e) => e.status === "Cekanje").length;
@@ -63,26 +60,6 @@ export default function EscalationQueue() {
     }
     prevPendingCountRef.current = pendingCount;
   }, [queue]);
-
-  useEffect(() => {
-    if (activeEskal && !agentOnline) {
-      connectAgentWs();
-      escalationApi.updateAgentStatus("Online");
-      setAgentOnline(true);
-    }
-  }, [activeEskal, agentOnline, connectAgentWs]);
-
-  function toggleOnline() {
-    if (agentOnline) {
-      disconnectWs();
-      escalationApi.updateAgentStatus("Offline");
-      setAgentOnline(false);
-    } else {
-      connectAgentWs();
-      escalationApi.updateAgentStatus("Online");
-      setAgentOnline(true);
-    }
-  }
 
   function handleAccepted(item: EscalationItem) {
     setActiveEskal({ ...item, status: "UToku" });
@@ -96,7 +73,7 @@ export default function EscalationQueue() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="section-title">Escalation Queue</h2>
+          <h2 className="section-title">Live Queue</h2>
           <p className="text-xs text-gray-400 mt-0.5">
             {pending.length} waiting · {inProgress.length} in progress
           </p>
@@ -112,7 +89,7 @@ export default function EscalationQueue() {
           </button>
           <button
             className={agentOnline ? "gold-btn text-xs" : "outline-btn text-xs"}
-            onClick={toggleOnline}
+            onClick={onToggleOnline}
           >
             <span
               className="inline-block w-2 h-2 rounded-full mr-1.5"
@@ -168,7 +145,7 @@ export default function EscalationQueue() {
 
         {!loading && pending.length === 0 && (
           <div className="card p-8 text-center text-gray-400 text-sm">
-            No pending escalations
+            No pending escalations. Go online to receive new chats.
           </div>
         )}
 

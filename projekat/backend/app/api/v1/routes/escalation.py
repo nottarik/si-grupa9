@@ -1,9 +1,10 @@
 import json
 import uuid
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user, require_admin_or_agent
@@ -158,6 +159,80 @@ async def cancel_my_escalation(
         })
         await _broadcast_queue(db)
     return {"ok": True}
+
+
+@router.get("/my-stats")
+async def get_my_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_admin_or_agent),
+):
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - timedelta(days=6)
+    month_start = today_start - timedelta(days=29)
+
+    result = await db.execute(
+        select(func.count()).select_from(Eskalacija).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= today_start,
+        )
+    )
+    handled_today = result.scalar() or 0
+
+    result = await db.execute(
+        select(func.count()).select_from(Eskalacija).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= week_start,
+        )
+    )
+    handled_week = result.scalar() or 0
+
+    result = await db.execute(
+        select(Eskalacija.datum_kreiranja, Eskalacija.datum_azuriranja).where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status == "Rijesena",
+            Eskalacija.datum_rjesavanja >= month_start,
+        )
+    )
+    rows = result.all()
+    if rows:
+        diffs = [
+            (r.datum_azuriranja - r.datum_kreiranja).total_seconds()
+            for r in rows
+            if r.datum_azuriranja and r.datum_kreiranja
+        ]
+        avg_response_seconds = sum(diffs) / len(diffs) if diffs else None
+    else:
+        avg_response_seconds = None
+
+    return {
+        "handled_today": handled_today,
+        "handled_week": handled_week,
+        "avg_response_seconds": avg_response_seconds,
+    }
+
+
+@router.get("/my-history")
+async def get_my_history(
+    limit: int = Query(default=20, le=50),
+    offset: int = Query(default=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_admin_or_agent),
+):
+    result = await db.execute(
+        select(Eskalacija)
+        .where(
+            Eskalacija.dodjeljeni_agent_id == current_user.id,
+            Eskalacija.status.in_(["Rijesena", "Napustena"]),
+        )
+        .order_by(Eskalacija.datum_kreiranja.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    items = result.scalars().all()
+    return [_eskal_dict(e) for e in items]
 
 
 @router.get("/{escalation_id}")

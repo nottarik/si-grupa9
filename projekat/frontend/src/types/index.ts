@@ -113,6 +113,21 @@ export interface AudioTranscriptConfirm {
   language: string;
 }
 
+// ── Agent ─────────────────────────────────────────────────────────────
+export interface AgentStats {
+  handled_today: number;
+  handled_week: number;
+  avg_response_seconds: number | null;
+}
+
+export interface KbSearchItem {
+  id: number;
+  pitanje: string;
+  odgovor: string;
+  id_kategorije: number | null;
+  datum_azuriranja: string | null;
+}
+
 // ── Knowledge ─────────────────────────────────────────────────────────
 export type QAStatus = "pending_approval" | "active" | "rejected" | "archived";
 
