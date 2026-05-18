@@ -59,7 +59,7 @@ async def ask(
         session_id=payload.session_id,
     )
 
-    trigger = "NiskaPouz" if result.needs_escalation else None
+    trigger = (result.escalation_trigger or "NiskaPouz") if result.needs_escalation else None
     if trigger:
         conversation_snapshot = history + [
             {"role": "user", "content": payload.question},

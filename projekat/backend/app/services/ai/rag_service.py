@@ -1,6 +1,25 @@
 import asyncio
 import re
 import time
+
+_INJECTION_RE = re.compile(
+    r'\b(ignore|forget|disregard|override|bypass|reset|clear)\b.{0,40}'
+    r'\b(instructions?|rules?|guidelines?|system|prompt|constraints?|directions?|context)\b'
+    r'|\bact as\b|\bpretend (you are|to be)\b|\byou are now\b'
+    r'|\broleplay\b|\bjailbreak\b|\bdeveloper mode\b|\bdan mode\b'
+    r'|\bno restrictions?\b|\bunlock(ed)?\b.{0,20}\bmode\b',
+    re.IGNORECASE,
+)
+
+_ESCALATION_REQUEST_RE = re.compile(
+    r'\b(talk|speak|chat|connect|transfer|get|put me through)\b.{0,30}\b(agent|human|person|operator|representative|staff|support|someone)\b'
+    r'|\b(want|need|prefer)\b.{0,20}\b(human|person|agent|operator|real person|live support|live agent)\b'
+    r'|\bhuman (agent|support|help)\b|\blive (agent|support|chat)\b'
+    r'|\breal (person|human|agent)\b|\bspeak to (someone|a person|a human)\b',
+    re.IGNORECASE,
+)
+
+_EXPLICIT_ESCALATION_MSG = "Of course! Let me connect you with a support agent right away. Please hold on while we find someone available for you."
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -52,12 +71,19 @@ class RagService:
         llm = LLMService()
         trimmed_history = (history or [])[-6:]
 
-        # --- Classify intent: smalltalk / domain / out_of_scope ---
-        try:
-            intent = await asyncio.to_thread(llm.classify_intent, question)
-        except Exception as exc:
-            logger.warning("Intent classification failed, assuming domain: %s", exc)
-            intent = "domain"
+        # --- Classify intent: smalltalk / domain / out_of_scope / escalation_request ---
+        if _INJECTION_RE.search(question):
+            intent = "out_of_scope"
+            logger.info("Prompt injection detected, short-circuiting: %r", question[:100])
+        elif _ESCALATION_REQUEST_RE.search(question):
+            intent = "escalation_request"
+            logger.info("Explicit escalation request detected: %r", question[:100])
+        else:
+            try:
+                intent = await asyncio.to_thread(llm.classify_intent, question)
+            except Exception as exc:
+                logger.warning("Intent classification failed, assuming domain: %s", exc)
+                intent = "domain"
 
         logger.info("Intent classification: %r → %s", question[:80], intent)
 
@@ -66,7 +92,14 @@ class RagService:
         needs_escalation = False
         hits: list = []
 
-        if intent == "out_of_scope":
+        if intent == "escalation_request":
+            answer_text = _EXPLICIT_ESCALATION_MSG
+            latencija_ms = None
+            metoda = "Fallback"
+            needs_escalation = True
+            logger.info("Explicit escalation: routing to agent queue")
+
+        elif intent == "out_of_scope":
             answer_text = _OUT_OF_SCOPE_MSG
             latencija_ms = None
             metoda = "Fallback"
@@ -207,7 +240,7 @@ class RagService:
         poruka.id_odgovora = odgovor.id
 
         if needs_escalation:
-            anomalija_tip = "BezOdgovora" if not hits else "NiskaPouzdanost"
+            anomalija_tip = "EksplicitanZahtjev" if intent == "escalation_request" else ("BezOdgovora" if not hits else "NiskaPouzdanost")
             self.db.add(Anomalija(
                 tip=anomalija_tip,
                 nivo_ozbiljnosti="Visoka",
@@ -228,10 +261,11 @@ class RagService:
         return ChatResponse(
             answer=answer_text,
             confidence_score=confidence,
-            is_low_confidence=needs_escalation,
+            is_low_confidence=needs_escalation and intent != "escalation_request",
             source_id=source_id,
             source_topic=source_topic,
             interaction_id=odgovor.id,
             session_id=sesija.id,
             needs_escalation=needs_escalation,
+            escalation_trigger="EksplicitanZahtjev" if intent == "escalation_request" else None,
         )

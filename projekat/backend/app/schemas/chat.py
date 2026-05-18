@@ -29,6 +29,7 @@ class ChatResponse(BaseModel):
     escalation: Optional[EscalationInfo] = None
     is_agent_chat: bool = False
     needs_escalation: bool = False
+    escalation_trigger: str | None = None
 
 
 class FeedbackRequest(BaseModel):

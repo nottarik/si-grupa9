@@ -53,6 +53,28 @@ const TypingBubble = () => (
   </div>
 );
 
+/* ── Agent Typing Bubble ── */
+const AgentTypingBubble = ({ name }: { name: string | null }) => (
+  <div className="msg-in flex items-end gap-3">
+    <div
+      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-white text-xs"
+      style={{ background: "radial-gradient(circle at 40% 35%,#6b5a3a,#4a3f2a,#2a2218)" }}
+    >
+      {(name ?? "A").charAt(0).toUpperCase()}
+    </div>
+    <div className="ai-bubble px-4 py-3" style={{ borderLeft: "2px solid #C5A059" }}>
+      <p className="text-xs font-semibold tracking-widest mb-2 font-cinzel uppercase" style={{ color: "#8a6d1f" }}>
+        {name ?? "Agent"}
+      </p>
+      <div className="flex gap-1.5 items-center">
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+        <div className="typing-dot" />
+      </div>
+    </div>
+  </div>
+);
+
 /* ── Message Bubble ── */
 const MessageBubble = ({
   msg,
@@ -420,14 +442,8 @@ export default function ChatWindow() {
                   rated={m.interactionId ? ratedMessages[m.interactionId] : undefined}
                 />
               ))}
-              {agentTyping && !isLoading && (
-                <div className="msg-in flex items-center gap-2 pl-12">
-                  <span className="text-xs italic" style={{ color: "#8a6d1f" }}>
-                    {agentName ?? "Agent"} is typing…
-                  </span>
-                </div>
-              )}
-              {isLoading && <TypingBubble />}
+              {agentTyping && !isLoading && <AgentTypingBubble name={agentName} />}
+              {isLoading && !escalation && <TypingBubble />}
             </>
           )}
 

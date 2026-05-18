@@ -111,7 +111,7 @@ export function useChat() {
             ...prev,
             {
               role: "assistant",
-              content: frame.message ?? "Your session has ended. Thank you.",
+              content: "Your session with the agent has ended. Thank you for using our service.",
             },
           ]);
         }
