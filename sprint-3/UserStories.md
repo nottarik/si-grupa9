@@ -931,6 +931,350 @@ Zavisi od Postavljanje pitanja chatbotu tekstom (22.1).
 
 ---
 
+### PB 48 — Escalation Queue u admin panelu
+
+#### User Story 48.1 — Prikaz eskaliranih upita u admin panelu
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 48.1 |
+| **Naziv** | Prikaz eskaliranih upita u admin panelu |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava agentu da vidi sve upite korisnika koji nisu riješeni chatbotom i zahtijevaju ljudsku intervenciju |
+
+**Uloga:**
+Kao agent, želim vidjeti listu eskaliranih korisničkih upita u admin panelu kako bih mogao prihvatiti razgovor i pomoći korisniku.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da je chatbot već pokušao odgovoriti i uputio korisnika na agenta. Otvoreno pitanje: Da li se eskalacija može dodijeliti specifičnom agentu?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-52 RAG retrieval i LLM klasifikacija. Zavisi od PB-54 WebSocket komunikacija. Preduvjet za PB-50 Automatska odjava agenta.
+
+**Acceptance Criteria:**
+- Kada korisnik pristane na povezivanje s agentom, tada sistem mora dodati upit u escalation queue u admin panelu
+- Queue mora prikazivati korisnički upit, vrijeme čekanja i status
+- Kada agent prihvati upit, tada sistem mora ukloniti upit iz queue-a i otvoriti live chat s korisnikom
+- Sistem ne smije prikazati grešku pri učitavanju escalation queue-a
+- Kada nema eskaliranih upita, sistem mora prikazati odgovarajuću poruku
+
+---
+
+#### User Story 48.2 — Prihvatanje eskaliranog upita i otvaranje live chata
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 48.2 |
+| **Naziv** | Prihvatanje eskaliranog upita i otvaranje live chata |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava direktnu real-time komunikaciju između agenta i korisnika koji čeka pomoć |
+
+**Uloga:**
+Kao agent, želim prihvatiti eskalirani upit i ući u live chat s korisnikom kako bih mu direktno pomogao.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da je WebSocket konekcija aktivna za oba učesnika.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-48.1. Zavisi od PB-54 WebSocket komunikacija.
+
+**Acceptance Criteria:**
+- Kada agent klikne "Prihvati", tada sistem mora otvoriti live chat prozor s historijom razgovora korisnika s chatbotom
+- Agent i korisnik moraju moći razmjenjivati poruke u realnom vremenu
+- Korisnik mora dobiti obavijest da je agent preuzeo razgovor
+- Sistem ne smije dozvoliti da dva agenta prihvate isti upit istovremeno
+
+---
+
+### PB 49 — Historija razgovora korisnika
+
+#### User Story 49.1 — Pregled vlastite historije razgovora
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 49.1 |
+| **Naziv** | Pregled vlastite historije razgovora |
+| **Sprint** | 8 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava korisniku pregled prethodnih interakcija s chatbotom i agentima radi lakšeg snalaženja i praćenja vlastitih upita |
+
+**Uloga:**
+Kao korisnik, želim pregledati historiju svojih razgovora s chatbotom i agentima kako bih mogao pratiti prethodne upite i odgovore.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su razgovori pohranjeni u bazi podataka i vezani za korisnički nalog.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od PB-22 Chat UI.
+
+**Acceptance Criteria:**
+- Kada korisnik otvori "My History", tada sistem mora prikazati listu svih prethodnih razgovora s datumom i prvom porukom
+- Kada korisnik klikne na razgovor, tada sistem mora prikazati kompletan sadržaj tog razgovora
+- Kada nema historije, sistem mora prikazati odgovarajuću poruku
+- Sistem ne smije prikazati razgovore koji ne pripadaju prijavljenom korisniku
+- Sistem ne smije prikazati grešku pri učitavanju historije
+
+---
+
+### PB 50 — Automatska odjava agenta pri završetku korisničke sesije
+
+#### User Story 50.1 — Automatska diskoneksija agenta kada korisnik završi razgovor
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 50.1 |
+| **Naziv** | Automatska diskoneksija agenta kada korisnik završi razgovor |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Sprečava da agent ostane u aktivnoj sesiji bez korisnika i osigurava čisto zatvaranje razgovora s obje strane |
+
+**Uloga:**
+Kao agent, želim biti automatski obaviješten i diskonektovan kada korisnik izađe iz razgovora kako bih znao da je sesija završena.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da sistem prati status konekcije korisnika putem WebSocketa.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-54 WebSocket komunikacija. Zavisi od PB-48 Escalation queue.
+
+**Acceptance Criteria:**
+- Kada korisnik izađe iz chata ili se odjavi, tada sistem mora automatski diskonektovati agenta iz te sesije
+- Agentu mora biti prikazana poruka "Korisnik je završio konverzaciju"
+- Razgovor mora biti automatski označen kao završen
+- Sistem ne smije ostaviti agenta u aktivnoj sesiji nakon što je korisnik izašao
+
+---
+
+### PB 51 — Agent panel s Live Queue i pristupom bazi znanja
+
+#### User Story 51.1 — Agent Live Queue — prikaz upita specifičnih za agenta
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 51.1 |
+| **Naziv** | Agent Live Queue |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Agentima pruža personalizovan prikaz samo njihovih aktivnih sesija i upita, odvojen od globalnog admin pogleda |
+
+**Uloga:**
+Kao agent, želim vidjeti samo moje aktivne upite i sesije u Live Queue-u kako bih se fokusirao na vlastiti rad bez suvišnih informacija.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da je agent prijavljen s ulogom CallCentarAgent.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od PB-48 Escalation queue. Preduvjet za PB-50.
+
+**Acceptance Criteria:**
+- Kada agent otvori panel, tada sistem mora prikazati samo upite i sesije dodijeljene tom agentu
+- Live Queue se mora ažurirati u realnom vremenu bez reload-a stranice
+- Agent ne smije vidjeti upite dodijeljene drugim agentima
+- Sistem ne smije prikazati grešku pri učitavanju Live Queue-a
+
+---
+
+#### User Story 51.2 — Pretraga baze znanja iz agentovog panela
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 51.2 |
+| **Naziv** | Pretraga baze znanja iz agentovog panela |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Agentima omogućava brzo pronalaženje relevantnih informacija iz baze znanja tokom razgovora s korisnikom |
+
+**Uloga:**
+Kao agent, želim pretraživati bazu znanja direktno iz svog panela kako bih brzo pronašao odgovore tokom live razgovora s korisnikom.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da baza znanja sadrži Q&A parove iz obrađenih transkripata.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-27 Izgradnja baze znanja. Zavisi od US-51.1.
+
+**Acceptance Criteria:**
+- Kada agent unese ključnu riječ, tada sistem mora prikazati relevantne Q&A parove iz baze znanja
+- Rezultati moraju biti sortirani po relevantnosti
+- Kada nema rezultata, sistem mora prikazati odgovarajuću poruku
+- Sistem ne smije prikazati grešku pri pretrazi
+
+---
+
+### PB 52 — RAG retrieval i LLM klasifikacija upita
+
+#### User Story 52.1 — Klasifikacija upita — RAG ili LLM
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 52.1 |
+| **Naziv** | Klasifikacija upita — RAG ili LLM |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava da korisnik dobije najtačniji odgovor — iz baze znanja kada postoji relevantan sadržaj, ili od LLM-a za opća pitanja |
+
+**Uloga:**
+Kao korisnik, želim da sistem automatski odabere najprikladniji način odgovaranja na moje pitanje kako bih dobio tačan i relevantan odgovor.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su embeddinzi pohranjeni u Qdrantu i da je LLM API dostupan.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-27 Izgradnja baze znanja. Zavisi od PB-22 Chat UI.
+
+**Acceptance Criteria:**
+- Kada korisnik postavi pitanje, tada sistem mora klasificirati upit kao RAG ili LLM upit
+- Kada upit odgovara sadržaju u bazi znanja, tada sistem mora koristiti RAG retrieval za generisanje odgovora
+- Kada upit nije pokriven bazom znanja, tada LLM mora generisati odgovor na osnovu općeg znanja
+- Sistem ne smije pomiješati izvore odgovora za isti upit
+- Klasifikacija mora biti transparentna u logu ali ne mora biti vidljiva korisniku
+
+---
+
+#### User Story 52.2 — RAG retrieval — pronalaženje relevantnih odgovora
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 52.2 |
+| **Naziv** | RAG retrieval — pronalaženje relevantnih odgovora |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Chatbot daje odgovore utemeljene na stvarnim podacima call centra, a ne izmišljenim informacijama |
+
+**Uloga:**
+Kao korisnik, želim da chatbot odgovori na moje pitanje koristeći informacije iz baze znanja call centra kako bih dobio tačan i relevantan odgovor.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da baza znanja sadrži dovoljno podataka za pokrivanje čestih upita.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-52.1. Zavisi od PB-27 Izgradnja baze znanja.
+
+**Acceptance Criteria:**
+- Kada sistem klasificira upit kao RAG, tada mora pretražiti vektorsku bazu i pronaći najrelevantnije segmente
+- Sistem mora koristiti pronađene segmente kao kontekst za generisanje odgovora
+- Kada sistem ne pronađe relevantan sadržaj s dovoljnom sigurnošću, tada mora uputiti korisnika na agenta
+- Sistem ne smije izmišljati informacije koje ne postoje u bazi znanja
+
+---
+
+### PB 53 — LLM fallback i eskalacija prema agentu
+
+#### User Story 53.1 — Odgovaranje na općenita pitanja i pozdrave
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 53.1 |
+| **Naziv** | Odgovaranje na općenita pitanja i pozdrave |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Poboljšava korisničko iskustvo prirodnom konverzacijom za upite koji nisu vezani za domenu call centra, bez nepotrebnog opterećivanja agenata |
+
+**Uloga:**
+Kao korisnik, želim da chatbot prirodno odgovori na pozdrave i pitanja koja nisu vezana za usluge call centra, kako bi interakcija bila ugodna i tečna.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da LLM može prepoznati razliku između upita vezanih za domenu call centra i općenitih pitanja koja ne zahtijevaju intervenciju agenta.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-52.1 Klasifikacija upita. Zavisi od PB-22 Chat UI.
+
+**Acceptance Criteria:**
+- Kada korisnik pošalje pozdrav (npr. "Hej", "Hello"), tada sistem mora prirodno odgovoriti bez eskalacije na agenta
+- Kada korisnik postavi pitanje koje nije vezano za domenu call centra, tada sistem mora ljubazno odgovoriti ili objasniti svoja ograničenja
+- Sistem ne smije eskalirati na agenta za pozdrave i pitanja izvan domene
+- Sistem mora minimizovati broj nepotrebnih eskalacija na agenta
+
+---
+
+#### User Story 53.2 — Usmjeravanje na agenta kada chatbot ne može odgovoriti
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 53.2 |
+| **Naziv** | Usmjeravanje na agenta kada chatbot ne može odgovoriti |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava da korisnik uvijek dobije odgovarajuću pomoć čak i kada chatbot nema dovoljno informacija za pouzdan odgovor |
+
+**Uloga:**
+Kao korisnik, želim biti upućen na agenta kada chatbot nije u stanju odgovoriti na moj upit, kako bih dobio potrebnu pomoć.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da su agenti dostupni u sistemu. Otvoreno pitanje: Kako sistem postupa kada nema dostupnih agenata?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-52.1. Zavisi od PB-48 Escalation queue.
+
+**Acceptance Criteria:**
+- Kada chatbot ne može generisati pouzdan odgovor, tada mora korisniku ponuditi opciju povezivanja s agentom
+- Kada korisnik pristane, tada sistem mora dodati upit u escalation queue
+- Kada korisnik odbije, tada sistem mora nastaviti konverzaciju bez eskalacije
+- Sistem mora jasno i razumljivo objasniti korisniku razlog preusmjeravanja na agenta
+---
+
+### PB 54 — WebSocket komunikacija između korisnika i agenta
+
+#### User Story 54.1 — Real-time razmjena poruka između korisnika i agenta
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 54.1 |
+| **Naziv** | Real-time razmjena poruka između korisnika i agenta |
+| **Sprint** | 8 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Omogućava neposrednu dvosmjernu komunikaciju bez kašnjenja, što je ključno za kvalitetnu korisničku podršku |
+
+**Uloga:**
+Kao korisnik, želim razmjenjivati poruke s agentom u realnom vremenu kako bih dobio brzu i direktnu pomoć.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da backend podržava WebSocket konekcije. Otvoreno pitanje: Koliko dugo se čuva WebSocket konekcija pri neaktivnosti?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-48 Escalation queue. Preduvjet za PB-50 Automatska odjava agenta.
+
+**Acceptance Criteria:**
+- Kada agent prihvati upit, tada sistem mora uspostaviti WebSocket konekciju između korisnika i agenta
+- Poruke moraju biti isporučene u realnom vremenu bez potrebe za refreshom stranice
+- Kada konekcija padne, sistem mora pokušati automatski se reconnectati
+- Sistem mora prikazati indikator kada druga strana tipka poruku
+- Sistem ne smije izgubiti poruke pri privremenom prekidu konekcije
+
+---
+
+### PB 55 — Resolving chatova
+
+#### User Story 55.1 — Označavanje razgovora kao riješenog
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 55.1 |
+| **Naziv** | Označavanje razgovora kao riješenog |
+| **Sprint** | 8 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava čisto zatvaranje sesija i praćenje riješenih slučajeva, što poboljšava organizaciju rada agenata |
+
+**Uloga:**
+Kao agent, želim označiti razgovor kao riješen kako bih zatvorio aktivnu sesiju i oslobodio kapacitet za nove upite.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da razgovor mora biti aktivan da bi se mogao označiti kao riješen. Otvoreno pitanje: Da li korisnik dobija obavijest kada agent označi razgovor kao riješen?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-48 Escalation queue. Zavisi od PB-54 WebSocket komunikacija.
+
+**Acceptance Criteria:**
+- Kada agent klikne "Resolve", tada sistem mora označiti razgovor kao riješen i zatvoriti aktivnu sesiju
+- Korisnik mora biti obaviješten da je razgovor zatvoren
+- Riješeni razgovor mora biti vidljiv u historiji s odgovarajućim statusom
+- Sistem ne smije dozvoliti slanje novih poruka u riješenom razgovoru
+- Sistem ne smije prikazati grešku pri označavanju razgovora kao riješenog
+
+---
+
 ## Sprint 9
 
 ---
