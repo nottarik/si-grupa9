@@ -57,10 +57,10 @@
 | 47 | Agent queue — pregled i potvrđivanje Q&A parova | Agent ima vlastiti prikaz s listom Q&A parova na čekanju koje pregleda i potvrđuje ili odbija, slično kao admin | feature | High | 8 | Done | MVP inkrement |
 | 48 | Escalation queue u admin panelu | Admin panel prikazuje listu eskaliranih korisničkih upita koje agent može prihvatiti i ući u live chat s korisnikom | feature | High | 8 | Done | MVP inkrement |
 | 49 | Historija razgovora korisnika | Korisnik može pregledati sve prethodne razgovore s chatbotom i agentima | feature | Medium | 5 | Done | MVP inkrement |
-| 50 | Automatska odjava agenta pri završetku korisničke sesije | Kada korisnik izađe iz razgovora, agent se automatski diskonektuje s porukom da je korisnik završio konverzaciju | feature | High | 5 | Done | MVP inkrement |
+| 50 |  Automatsko obavještavanje agenta o završetku korisničke sesije | Kada korisnik izađe iz razgovora, agent se automatski diskonektuje s porukom da je korisnik završio konverzaciju | feature | High | 5 | Done | MVP inkrement |
 | 51 | Agent panel s Live Queue i pristupom bazi znanja | Agent ima vlastiti panel odvojen od admina — Live Queue specifičan za njega, pretraga baze znanja i vlastita historija | feature | High | 13 | Done | MVP inkrement |
 | 52 | RAG retrieval i LLM klasifikacija upita | Implementiran RAG retrieval i LLM koji klasificira da li upit pripada bazi znanja ili treba biti preusmjeren | technical task | High | 13 | Done | MVP inkrement |
-| 53 | LLM za nebitna pitanja i usmjeravanje na agenta | AI odgovara na pozdrave i nebitna pitanja bez eskalacije; za nepoznate upite upućuje korisnika na agenta | feature | High | 8 | Done | MVP inkrement |
+| 53 |  Obrada osnovne komunikacije sa LLM | AI odgovara na pozdrave i nebitna pitanja bez eskalacije; za nepoznate upite upućuje korisnika na agenta | feature | High | 8 | Done | MVP inkrement |
 | 54 | WebSocket komunikacija između korisnika i agenta | Real-time dvosmjerna komunikacija između korisnika u chatu i agenta u panelu putem WebSocketa | technical task | High | 13 | Done | MVP inkrement |
 | 55 | Resolving chatova | Agent ili admin može označiti razgovor kao riješen čime se zatvara aktivna sesija | feature | Medium | 5 | Done | MVP inkrement |
 

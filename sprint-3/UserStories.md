@@ -1018,7 +1018,7 @@ Zavisi od Sign In (PB-36). Zavisi od PB-22 Chat UI.
 
 ---
 
-### PB 50 — Automatska odjava agenta pri završetku korisničke sesije
+### PB 50 — Automatsko obavještavanje agenta o završetku korisničke sesije
 
 #### User Story 50.1 — Automatska diskoneksija agenta kada korisnik završi razgovor
 
@@ -1160,7 +1160,7 @@ Zavisi od US-52.1. Zavisi od PB-27 Izgradnja baze znanja.
 
 ---
 
-### PB 53 — LLM fallback i eskalacija prema agentu
+### PB 53 — Obrada osnovne komunikacije sa LLM
 
 #### User Story 53.1 — Odgovaranje na općenita pitanja i pozdrave
 
