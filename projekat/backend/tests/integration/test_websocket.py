@@ -226,7 +226,7 @@ def test_agent_sends_message_to_connected_user():
                 with c.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    msg = ws.receive_json(timeout=3)
+                    msg = ws.receive_json()
                     received.append(msg)
         except Exception as e:
             error.append(e)
@@ -269,7 +269,7 @@ def test_agent_receives_error_when_not_assigned():
                 "session_id": 99999,
                 "content": "Poruka u void",
             })
-            msg = ws.receive_json(timeout=2)
+            msg = ws.receive_json()
     assert msg["type"] == "error"
 
 
@@ -290,7 +290,7 @@ def test_agent_typing_forwarded_to_user():
                 with c.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    msg = ws.receive_json(timeout=3)
+                    msg = ws.receive_json()
                     received.append(msg)
         except Exception as e:
             error.append(e)
