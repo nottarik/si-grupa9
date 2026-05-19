@@ -21,6 +21,7 @@ async def setup_test_db():
     import app.db.models.user        # noqa: F401
     import app.db.models.transcript  # noqa: F401 — also registers TokenMapRecord
     import app.db.models.knowledge   # noqa: F401
+    import app.db.models.escalation  # noqa: F401
 
     from app.db.session import engine, AsyncSessionLocal, Base
 

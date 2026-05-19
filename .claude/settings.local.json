@@ -10,7 +10,9 @@
       "Bash(xargs grep -l \"chat\\\\|rag\\\\|embedding\")",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(python -m pytest --tb=short -q)"
+      "Bash(python -m pytest --tb=short -q)",
+      "PowerShell(wsl -e bash -c \"cd /mnt/c/Users/Administrator/Desktop/SI/projekat/backend && source .venv/bin/activate && pip install -r requirements.txt 2>&1 | tail -5\")",
+      "PowerShell(wsl -e bash -c \"cd /mnt/c/Users/Administrator/Desktop/SI/projekat/backend && source .venv/bin/activate && pip install --break-system-packages -r requirements.txt 2>&1 | tail -5\")"
     ]
   }
 }
