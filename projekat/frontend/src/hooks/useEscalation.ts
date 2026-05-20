@@ -23,7 +23,7 @@ export interface UserMsg {
 
 function buildWsUrl(path: string): string {
   const base = (import.meta.env.VITE_API_URL ?? "http://localhost:8000") as string;
-  return base.replace(/^http/, "ws") + path;
+  return base.replace(/^http/, "ws").replace(/\/$/, "") + path;
 }
 
 export function useEscalation() {
