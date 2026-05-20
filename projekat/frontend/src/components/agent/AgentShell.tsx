@@ -116,6 +116,7 @@ export default function AgentShell() {
       case "queue":
         return (
           <AgentQueue
+            currentAgentId={user?.id ?? ""}
             agentOnline={agentOnline}
             onToggleOnline={toggleOnline}
             queue={eskal.queue}
@@ -124,6 +125,7 @@ export default function AgentShell() {
             sendAgentMessage={eskal.sendAgentMessage}
             sendTypingSignal={eskal.sendTypingSignal}
             resolveEscalation={eskal.resolveEscalation}
+            releaseEscalation={eskal.releaseEscalation}
             registerUserMsgHandler={eskal.registerUserMsgHandler}
           />
         );

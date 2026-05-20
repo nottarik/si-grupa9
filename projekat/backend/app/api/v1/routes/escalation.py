@@ -1,6 +1,7 @@
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -20,12 +21,15 @@ from app.services.ws.connection_manager import manager
 router = APIRouter(prefix="/escalation", tags=["escalation"])
 
 
-def _eskal_dict(e: Eskalacija, pos: int | None = None) -> dict:
+def _eskal_dict(
+    e: Eskalacija, pos: int | None = None, agent_name: str | None = None
+) -> dict:
     return {
         "id": e.id,
         "sesija_id": e.sesija_id,
         "korisnik_id": str(e.korisnik_id),
         "dodjeljeni_agent_id": str(e.dodjeljeni_agent_id) if e.dodjeljeni_agent_id else None,
+        "agent_name": agent_name,
         "prioritet": e.prioritet,
         "status": e.status,
         "trigger_tip": e.trigger_tip,
@@ -38,11 +42,29 @@ def _eskal_dict(e: Eskalacija, pos: int | None = None) -> dict:
     }
 
 
+async def _agent_names_for_queue(
+    db: AsyncSession, items: List[Eskalacija]
+) -> dict[uuid.UUID, str]:
+    agent_ids = [e.dodjeljeni_agent_id for e in items if e.dodjeljeni_agent_id]
+    if not agent_ids:
+        return {}
+    result = await db.execute(
+        select(Korisnik.id, Korisnik.ime, Korisnik.prezime).where(Korisnik.id.in_(agent_ids))
+    )
+    return {
+        row.id: f"{row.ime} {row.prezime or ''}".strip() for row in result.all()
+    }
+
+
 async def _broadcast_queue(db: AsyncSession) -> None:
     queue = await eskal_svc.get_queue(db)
+    names = await _agent_names_for_queue(db, queue)
     await manager.broadcast_to_agents({
         "type": "queue_update",
-        "data": [_eskal_dict(e, i + 1) for i, e in enumerate(queue)],
+        "data": [
+            _eskal_dict(e, i + 1, agent_name=names.get(e.dodjeljeni_agent_id))
+            for i, e in enumerate(queue)
+        ],
     })
 
 
@@ -72,7 +94,11 @@ async def list_queue(
     _: Korisnik = Depends(require_admin_or_agent),
 ):
     items = await eskal_svc.get_queue(db)
-    return [_eskal_dict(e, i + 1) for i, e in enumerate(items)]
+    names = await _agent_names_for_queue(db, items)
+    return [
+        _eskal_dict(e, i + 1, agent_name=names.get(e.dodjeljeni_agent_id))
+        for i, e in enumerate(items)
+    ]
 
 
 @router.get("/agent-statuses")
@@ -127,11 +153,7 @@ async def request_escalation(
     pos = await eskal_svc.queue_position(db, eskal.id)
     await db.commit()
 
-    queue = await eskal_svc.get_queue(db)
-    await manager.broadcast_to_agents({
-        "type": "queue_update",
-        "data": [_eskal_dict(e, i + 1) for i, e in enumerate(queue)],
-    })
+    await _broadcast_queue(db)
 
     return {
         "escalation": EscalationInfo(
@@ -266,7 +288,27 @@ async def accept(
         "escalation_id": escalation_id,
     })
     await _broadcast_queue(db)
-    return {"ok": True, "escalation": _eskal_dict(eskal)}
+    return {"ok": True, "escalation": _eskal_dict(eskal, agent_name=agent_name)}
+
+
+@router.post("/{escalation_id}/release")
+async def release(
+    escalation_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_admin_or_agent),
+):
+    """Owner agent releases the escalation back to the waiting queue."""
+    eskal = await eskal_svc.release_escalation(db, escalation_id, current_user.id)
+    if not eskal:
+        raise HTTPException(status_code=400, detail="Cannot release — not assigned to you or not in progress")
+    await db.commit()
+
+    await manager.send_to_user(eskal.sesija_id, {
+        "type": "agent_released",
+        "message": "Agent je napustio razgovor. Ponovo ste u redu čekanja.",
+    })
+    await _broadcast_queue(db)
+    return {"ok": True}
 
 
 @router.post("/{escalation_id}/resolve")
@@ -351,12 +393,17 @@ async def ws_agent_queue(
         await websocket.close(code=4001)
         return
 
-    await manager.connect_agent(websocket)
+    agent_id_str = str(agent.id)
+    await manager.connect_agent(agent_id_str, websocket)
 
     queue = await eskal_svc.get_queue(db)
+    names = await _agent_names_for_queue(db, queue)
     await websocket.send_text(json.dumps({
         "type": "queue_sync",
-        "data": [_eskal_dict(e, i + 1) for i, e in enumerate(queue)],
+        "data": [
+            _eskal_dict(e, i + 1, agent_name=names.get(e.dodjeljeni_agent_id))
+            for i, e in enumerate(queue)
+        ],
     }))
 
     agent_name = f"{agent.ime} {agent.prezime or ''}".strip()
@@ -373,12 +420,35 @@ async def ws_agent_queue(
                 sid = msg.get("session_id")
                 content = msg.get("content", "").strip()
                 if sid and content:
+                    result = await db.execute(
+                        select(Eskalacija).where(
+                            Eskalacija.sesija_id == int(sid),
+                            Eskalacija.status == "UToku",
+                        )
+                    )
+                    eskal = result.scalar_one_or_none()
+                    if not eskal or str(eskal.dodjeljeni_agent_id) != agent_id_str:
+                        await websocket.send_text(json.dumps({
+                            "type": "error",
+                            "message": "You are not the assigned agent for this chat.",
+                        }))
+                        continue
+
                     await manager.send_to_user(int(sid), {
                         "type": "agent_message",
                         "content": content,
                         "agent_name": agent_name,
                     })
                     await _persist_chat_message(db, int(sid), "agent", content)
+
+                    await manager.broadcast_to_agents({
+                        "type": "chat_message",
+                        "session_id": int(sid),
+                        "escalation_id": eskal.id,
+                        "role": "agent",
+                        "content": content,
+                        "agent_name": agent_name,
+                    }, exclude_agent_id=agent_id_str)
 
             if msg.get("type") == "typing":
                 sid = msg.get("session_id")
@@ -388,4 +458,4 @@ async def ws_agent_queue(
                         "is_typing": msg.get("is_typing", False),
                     })
     except WebSocketDisconnect:
-        manager.disconnect_agent(websocket)
+        manager.disconnect_agent(agent_id_str, websocket)

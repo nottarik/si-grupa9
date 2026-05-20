@@ -27,12 +27,20 @@ async def ask(
     # If this user has an active agent session, bypass RAG entirely
     active = await eskal_svc.get_active_for_user(db, current_user.id)
     if active and active.status == "UToku":
-        await manager.broadcast_to_agents({
+        msg_payload = {
             "type": "user_message",
             "session_id": active.sesija_id,
             "content": payload.question,
             "escalation_id": active.id,
-        })
+        }
+        if active.dodjeljeni_agent_id:
+            await manager.send_to_agent(str(active.dodjeljeni_agent_id), msg_payload)
+            await manager.broadcast_to_agents(
+                {**msg_payload, "type": "chat_message", "role": "user"},
+                exclude_agent_id=str(active.dodjeljeni_agent_id),
+            )
+        else:
+            await manager.broadcast_to_agents(msg_payload)
         # Persist user message to escalation history
         history = list(active.razgovor or [])
         history.append({"role": "user", "content": payload.question})
