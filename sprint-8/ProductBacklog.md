@@ -2,7 +2,7 @@
 
 
 > **Promjene**
->- **Sprint 8 — Dodano:** Escalation queue u admin panelu (PB-48); Glasovni unos u chatu — mikrofon (PB-22, proširenje); Historija razgovora korisnika (PB-49); Automatska odjava agenta pri završetku korisničke sesije (PB-50); Agent panel s Live Queue i pristupom bazi znanja (PB-51); RAG retrieval i LLM klasifikacija upita (PB-52); LLM za nebitna pitanja i usmjeravanje na agenta (PB-53); WebSocket komunikacija između korisnika i agenta (PB-54); Resolving chatova (PB-55); Upload audio fajlova u admin panelu (PB-13, proširenje)
+>- **Sprint 8 — Dodano:** Escalation queue u admin panelu (PB-48); Glasovni unos u chatu — mikrofon (PB-22, proširenje); Historija razgovora korisnika (PB-49); Automatska odjava agenta pri završetku korisničke sesije (PB-50); Agent panel s Live Queue i pristupom bazi znanja (PB-51); RAG retrieval i LLM klasifikacija upita (PB-52); LLM za općenita pitanja i usmjeravanje na agenta (PB-53); WebSocket komunikacija između korisnika i agenta (PB-54); Resolving chatova (PB-55); Upload audio fajlova u admin panelu (PB-13, proširenje)
 >- **Sprint 8 — Ažurirani statusi:** PB-23, PB-26, PB-27, PB-45, PB-46 → Done
 ---
 
@@ -60,7 +60,7 @@
 | 50 |  Automatsko obavještavanje agenta o završetku korisničke sesije | Kada korisnik izađe iz razgovora, agent se automatski diskonektuje s porukom da je korisnik završio konverzaciju | feature | High | 5 | Done | MVP inkrement |
 | 51 | Agent panel s Live Queue i pristupom bazi znanja | Agent ima vlastiti panel odvojen od admina — Live Queue specifičan za njega, pretraga baze znanja i vlastita historija | feature | High | 13 | Done | MVP inkrement |
 | 52 | RAG retrieval i LLM klasifikacija upita | Implementiran RAG retrieval i LLM koji klasificira da li upit pripada bazi znanja ili treba biti preusmjeren | technical task | High | 13 | Done | MVP inkrement |
-| 53 |  Obrada osnovne komunikacije sa LLM | AI odgovara na pozdrave i nebitna pitanja bez eskalacije; za nepoznate upite upućuje korisnika na agenta | feature | High | 8 | Done | MVP inkrement |
+| 53 |  Obrada osnovne komunikacije sa LLM | AI odgovara na pozdrave i općenita pitanja bez eskalacije; za nepoznate upite upućuje korisnika na agenta | feature | High | 8 | Done | MVP inkrement |
 | 54 | WebSocket komunikacija između korisnika i agenta | Real-time dvosmjerna komunikacija između korisnika u chatu i agenta u panelu putem WebSocketa | technical task | High | 13 | Done | MVP inkrement |
 | 55 | Resolving chatova | Agent ili admin može označiti razgovor kao riješen čime se zatvara aktivna sesija | feature | Medium | 5 | Done | MVP inkrement |
 
