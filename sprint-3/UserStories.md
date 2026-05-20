@@ -1020,18 +1020,18 @@ Zavisi od Sign In (PB-36). Zavisi od PB-22 Chat UI.
 
 ### PB 50 — Automatsko obavještavanje agenta o završetku korisničke sesije
 
-#### User Story 50.1 — Automatska diskoneksija agenta kada korisnik završi razgovor
+#### User Story 50.1 — Automatsko obavještavanje agenta o završetku korisničke sesije
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 50.1 |
-| **Naziv** | Automatska diskoneksija agenta kada korisnik završi razgovor |
+| **Naziv** | Automatsko obavještavanje agenta o završetku korisničke sesije |
 | **Sprint** | 8 |
 | **Prioritet** | High |
-| **Poslovna vrijednost** | Sprečava da agent ostane u aktivnoj sesiji bez korisnika i osigurava čisto zatvaranje razgovora s obje strane |
+| **Poslovna vrijednost** | Osigurava da agent bude pravovremeno obaviješten o završetku korisničke sesije, čime se sprečava ostanak u aktivnoj sesiji bez korisnika |
 
 **Uloga:**
-Kao agent, želim biti automatski obaviješten i diskonektovan kada korisnik izađe iz razgovora kako bih znao da je sesija završena.
+Kao agent, želim automatski primiti obavijest kada korisnik završi sesiju, kako bih bio pravovremeno informisan i kako bi sistem uredno zatvorio razgovor.
 
 **Pretpostavke i otvorena pitanja:**
 Pretpostavlja se da sistem prati status konekcije korisnika putem WebSocketa.
@@ -1040,7 +1040,7 @@ Pretpostavlja se da sistem prati status konekcije korisnika putem WebSocketa.
 Zavisi od PB-54 WebSocket komunikacija. Zavisi od PB-48 Escalation queue.
 
 **Acceptance Criteria:**
-- Kada korisnik izađe iz chata ili se odjavi, tada sistem mora automatski diskonektovati agenta iz te sesije
+- Kada korisnik izađe iz chata ili se odjavi, tada sistem mora automatski poslati obavijest agentu o završetku sesije
 - Agentu mora biti prikazana poruka "Korisnik je završio konverzaciju"
 - Razgovor mora biti automatski označen kao završen
 - Sistem ne smije ostaviti agenta u aktivnoj sesiji nakon što je korisnik izašao
@@ -1162,18 +1162,18 @@ Zavisi od US-52.1. Zavisi od PB-27 Izgradnja baze znanja.
 
 ### PB 53 — Obrada osnovne komunikacije sa LLM
 
-#### User Story 53.1 — Odgovaranje na općenita pitanja i pozdrave
+#### User Story 53.1 — LLM odgovaranje na općenita pitanja i pozdrave
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 53.1 |
-| **Naziv** | Odgovaranje na općenita pitanja i pozdrave |
+| **Naziv** | LLM odgovaranje na općenita pitanja i pozdrave |
 | **Sprint** | 8 |
 | **Prioritet** | High |
-| **Poslovna vrijednost** | Poboljšava korisničko iskustvo prirodnom konverzacijom za upite koji nisu vezani za domenu call centra, bez nepotrebnog opterećivanja agenata |
+| **Poslovna vrijednost** | Poboljšava korisničko iskustvo prirodnom konverzacijom korištenjem LLM-a za obradu upita koji nisu vezani za domenu call centra, bez nepotrebnog opterećivanja agenata |
 
 **Uloga:**
-Kao korisnik, želim da chatbot prirodno odgovori na pozdrave i pitanja koja nisu vezana za usluge call centra, kako bi interakcija bila ugodna i tečna.
+Kao korisnik, želim da LLM obradi i odgovori na moje pozdrave i općenita pitanja koja nisu vezana za usluge call centra, kako bi interakcija bila ugodna i tečna.
 
 **Pretpostavke i otvorena pitanja:**
 Pretpostavlja se da LLM može prepoznati razliku između upita vezanih za domenu call centra i općenitih pitanja koja ne zahtijevaju intervenciju agenta.
@@ -1182,25 +1182,25 @@ Pretpostavlja se da LLM može prepoznati razliku između upita vezanih za domenu
 Zavisi od US-52.1 Klasifikacija upita. Zavisi od PB-22 Chat UI.
 
 **Acceptance Criteria:**
-- Kada korisnik pošalje pozdrav (npr. "Hej", "Hello"), tada sistem mora prirodno odgovoriti bez eskalacije na agenta
-- Kada korisnik postavi pitanje koje nije vezano za domenu call centra, tada sistem mora ljubazno odgovoriti ili objasniti svoja ograničenja
-- Sistem ne smije eskalirati na agenta za pozdrave i pitanja izvan domene
-- Sistem mora minimizovati broj nepotrebnih eskalacija na agenta
+- Kada korisnik pošalje pozdrav (npr. "Hej", "Hello"), tada LLM mora generisati prirodan odgovor bez eskalacije na agenta
+- Kada korisnik postavi pitanje izvan domene call centra, tada LLM mora generisati odgovor ili ljubazno objasniti svoja ograničenja
+- LLM ne smije eskalirati na agenta za pozdrave i pitanja izvan domene
+- LLM mora minimizovati broj nepotrebnih eskalacija na agenta
 
 ---
 
-#### User Story 53.2 — Usmjeravanje na agenta kada chatbot ne može odgovoriti
+#### User Story 53.2 — LLM usmjeravanje na agenta kada odgovor nije moguć
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 53.2 |
-| **Naziv** | Usmjeravanje na agenta kada chatbot ne može odgovoriti |
+| **Naziv** | LLM usmjeravanje na agenta kada odgovor nije moguć |
 | **Sprint** | 8 |
 | **Prioritet** | High |
-| **Poslovna vrijednost** | Osigurava da korisnik uvijek dobije odgovarajuću pomoć čak i kada chatbot nema dovoljno informacija za pouzdan odgovor |
+| **Poslovna vrijednost** | Osigurava da korisnik uvijek dobije odgovarajuću pomoć kada LLM ne raspolaže dovoljno informacijama za pouzdan odgovor |
 
 **Uloga:**
-Kao korisnik, želim biti upućen na agenta kada chatbot nije u stanju odgovoriti na moj upit, kako bih dobio potrebnu pomoć.
+Kao korisnik, želim biti upućen na agenta kada LLM nije u stanju obraditi moj upit, kako bih dobio potrebnu pomoć.
 
 **Pretpostavke i otvorena pitanja:**
 Pretpostavlja se da su agenti dostupni u sistemu. Otvoreno pitanje: Kako sistem postupa kada nema dostupnih agenata?
@@ -1209,10 +1209,11 @@ Pretpostavlja se da su agenti dostupni u sistemu. Otvoreno pitanje: Kako sistem 
 Zavisi od US-52.1. Zavisi od PB-48 Escalation queue.
 
 **Acceptance Criteria:**
-- Kada chatbot ne može generisati pouzdan odgovor, tada mora korisniku ponuditi opciju povezivanja s agentom
+- Kada LLM ne može generisati pouzdan odgovor, tada mora korisniku ponuditi opciju povezivanja s agentom
 - Kada korisnik pristane, tada sistem mora dodati upit u escalation queue
-- Kada korisnik odbije, tada sistem mora nastaviti konverzaciju bez eskalacije
+- Kada korisnik odbije, tada LLM mora nastaviti konverzaciju bez eskalacije
 - Sistem mora jasno i razumljivo objasniti korisniku razlog preusmjeravanja na agenta
+
 ---
 
 ### PB 54 — WebSocket komunikacija između korisnika i agenta
