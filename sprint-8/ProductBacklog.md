@@ -4,6 +4,8 @@
 > **Promjene**
 >- **Sprint 8 — Dodano:** Escalation queue u admin panelu (PB-48); Glasovni unos u chatu — mikrofon (PB-22, proširenje); Historija razgovora korisnika (PB-49); Automatska odjava agenta pri završetku korisničke sesije (PB-50); Agent panel s Live Queue i pristupom bazi znanja (PB-51); RAG retrieval i LLM klasifikacija upita (PB-52); LLM za općenita pitanja i usmjeravanje na agenta (PB-53); WebSocket komunikacija između korisnika i agenta (PB-54); Resolving chatova (PB-55); Upload audio fajlova u admin panelu (PB-13, proširenje)
 >- **Sprint 8 — Ažurirani statusi:** PB-23, PB-26, PB-27, PB-45, PB-46 → Done
+>- **Sprint 9 — Dodano:** Ispravke grešaka u maskiranju i ekstrakciji Q&A parova (PB-56); Ocjena razgovora po završetku sesije (PB-57); Sistemske obavijesti u chatbotu (PB-58)
+>- **Sprint 10 — Dodano:** Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata (PB-59); Pregled i kuriranje sadržaja baze znanja (PB-60); Optimizacija performansi chatbota (PB-61); Dizajn i UX poboljšanja (PB-62); End-to-end i regresijsko testiranje sistema (PB-63)
 ---
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena | Status | Napomena |
@@ -63,6 +65,14 @@
 | 53 |  Obrada osnovne komunikacije sa LLM | AI odgovara na pozdrave i općenita pitanja bez eskalacije; za nepoznate upite upućuje korisnika na agenta | feature | High | 8 | Done | MVP inkrement |
 | 54 | WebSocket komunikacija između korisnika i agenta | Real-time dvosmjerna komunikacija između korisnika u chatu i agenta u panelu putem WebSocketa | technical task | High | 13 | Done | MVP inkrement |
 | 55 | Resolving chatova | Agent ili admin može označiti razgovor kao riješen čime se zatvara aktivna sesija | feature | Medium | 5 | Done | MVP inkrement |
+| 56 | Ispravke grešaka u maskiranju PII podataka i ekstrakciji Q&A parova | Ispravljanje identificiranih grešaka u PII maskiranju (edge case formati JMBG i telefona) i ekstrakciji Q&A parova iz transkripata | bug fix | High | 8 | Not Started | Sprint 9 |
+| 57 | Ocjena razgovora po završetku sesije | Forma za numeričku ocjenu (1–5) prikazuje se korisniku na kraju chat sesije; zamjenjuje thumbs-up/down po pojedinoj poruci | feature | High | 5 | Not Started | Sprint 9; zamjenjuje pristup iz PB-15 |
+| 58 | Sistemske obavijesti u chatbotu | Administrator postavlja vidljivi baner s porukom o poznatim problemima ili planiranom održavanju koji se prikazuje pri otvaranju Chat UI-a | feature | Medium | 3 | Not Started | Sprint 9 |
+| 59 | Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata | Administrator direktno unosi validirane Q&A parove u bazu znanja; sistem generiše embedding i pohranjuje par u Qdrant bez potrebe za transkriptom | feature | High | 5 | Not Started | Sprint 10 |
+| 60 | Pregled i kuriranje sadržaja baze znanja | Administrator pregleda sve unose, uklanja nevažeće i testne podatke te odobrava prijedloge iz agentskih odgovora i ručnih unosa | feature | High | 8 | Not Started | Sprint 10 |
+| 61 | Optimizacija performansi chatbota | Smanjenje latencije odgovora — cilj ispod 3 s za RAG upite i ispod 5 s za LLM upite; keširanje embeddinga unutar sesije | technical task | High | 8 | Not Started | Sprint 10 |
+| 62 | Dizajn i UX poboljšanja | Vizualno konzistentno, moderno i responsivno sučelje za Chat UI i Admin panel s jasnim vizualnim jezikom i komponentnim sistemom | feature | Medium | 8 | Not Started | Sprint 10 |
+| 63 | End-to-end i regresijsko testiranje sistema | Pokrivenost unit testovima ≥ 80%, E2E testovi kritičnih putanja, regresijski testovi za ispravljene greške integrisani u CI/CD pipeline | technical task | High | 13 | Not Started | Sprint 10 |
 
 
 
