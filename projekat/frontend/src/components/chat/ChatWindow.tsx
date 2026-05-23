@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useChat } from "../../hooks/useChat";
 import { useAuth } from "../../hooks/useAuth";
 import ChatHistory from "./ChatHistory";
+import RatingModal from "./RatingModal";
 import type { ChatMessage } from "../../types";
 
 /* ── Laurel Wreath ── */
@@ -78,16 +79,12 @@ const AgentTypingBubble = ({ name }: { name: string | null }) => (
 /* ── Message Bubble ── */
 const MessageBubble = ({
   msg,
-  onFeedback,
   onEscalate,
   isEscalated,
-  rated,
 }: {
   msg: ChatMessage;
-  onFeedback?: (id: string, positive: boolean) => void;
   onEscalate?: () => void;
   isEscalated?: boolean;
-  rated?: "up" | "down";
 }) => {
   if (msg.role === "user") {
     return (
@@ -138,32 +135,8 @@ const MessageBubble = ({
             Source: {msg.sourceTopic}
           </p>
         )}
-        <div className="flex items-center gap-3 mt-2">
-          {msg.interactionId && onFeedback && (
-            rated ? (
-              <span className="text-xs" style={{ color: "#8a6d1f" }}>
-                {rated === "up" ? "👍" : "👎"} Thanks for your feedback
-              </span>
-            ) : (
-              <>
-                <button
-                  onClick={() => onFeedback(msg.interactionId!, true)}
-                  style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-                  title="Helpful"
-                >
-                  👍
-                </button>
-                <button
-                  onClick={() => onFeedback(msg.interactionId!, false)}
-                  style={{ color: "#9a8a6a", background: "none", border: "none", cursor: "pointer", fontSize: 13 }}
-                  title="Not helpful"
-                >
-                  👎
-                </button>
-              </>
-            )
-          )}
-          {onEscalate && (
+        {onEscalate && (
+          <div className="flex items-center gap-3 mt-2">
             <button
               onClick={onEscalate}
               disabled={isEscalated}
@@ -182,8 +155,8 @@ const MessageBubble = ({
             >
               {isEscalated ? "In queue" : "Talk to agent"}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -208,7 +181,13 @@ const getSpeechRecognition = (): SR | null => {
 
 /* ── ChatWindow ── */
 export default function ChatWindow() {
-  const { messages, isLoading, error, sessionId, ask, sendFeedback, requestEscalation, cancelEscalation, clearMessages, loadSession, escalation, agentName, agentTyping } = useChat();
+  const {
+    messages, isLoading, error, sessionId,
+    ask, requestEscalation, cancelEscalation, clearMessages, loadSession,
+    escalation, agentName, agentTyping,
+    isSessionClosed, showRatingModal, showInactivityNudge,
+    endConversation, submitSessionRating, dismissRating,
+  } = useChat();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -216,7 +195,6 @@ export default function ChatWindow() {
   const [isListening, setIsListening] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
   const [speechLang, setSpeechLang] = useState("bs-BA");
-  const [ratedMessages, setRatedMessages] = useState<Record<string, "up" | "down">>({});
   const [historyOpen, setHistoryOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -242,10 +220,9 @@ export default function ChatWindow() {
     if (state.fresh) {
       clearMessages();
     } else if (state.sessionId && state.messages) {
-      loadSession(state.messages, state.sessionId);
+      loadSession(state.messages, state.sessionId, false);
     }
     if (state.autoMic) {
-      // Trigger mic after a short delay so the component is fully mounted
       setTimeout(() => toggleListening(), 300);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,12 +301,12 @@ export default function ChatWindow() {
   const send = useCallback(
     async (text?: string) => {
       const content = (text ?? input).trim();
-      if (!content || isLoading) return;
+      if (!content || isLoading || isSessionClosed) return;
       setInput("");
       if (taRef.current) taRef.current.style.height = "auto";
       await ask(content);
     },
-    [input, isLoading, ask]
+    [input, isLoading, isSessionClosed, ask]
   );
 
   function onKey(e: React.KeyboardEvent) {
@@ -339,13 +316,18 @@ export default function ChatWindow() {
     }
   }
 
-  async function handleFeedback(interactionId: string, isPositive: boolean) {
-    setRatedMessages((prev) => ({ ...prev, [interactionId]: isPositive ? "up" : "down" }));
-    await sendFeedback({ interaction_id: Number(interactionId), is_positive: isPositive });
-  }
+  const inputDisabled = isLoading || isSessionClosed;
+  const showEndButton = messages.length > 0 && !isSessionClosed && sessionId !== null;
 
   return (
     <div className="chat-bg flex flex-col" style={{ height: "100vh" }}>
+      {showRatingModal && (
+        <RatingModal
+          onSubmit={submitSessionRating}
+          onSkip={dismissRating}
+        />
+      )}
+
       <ChatHistory
         isOpen={historyOpen}
         onToggle={() => setHistoryOpen((v) => !v)}
@@ -370,7 +352,7 @@ export default function ChatWindow() {
               <Laurel size={52} flip />
             </div>
 
-            {/* Right actions — role-aware nav links */}
+            {/* Right actions */}
             <div className="flex-shrink-0 flex items-center gap-3 ml-4">
               {user?.role === "admin" && (
                 <>
@@ -407,6 +389,24 @@ export default function ChatWindow() {
                 >
                   ← Home
                 </a>
+              )}
+              {showEndButton && (
+                <button
+                  onClick={endConversation}
+                  style={{
+                    color: "rgba(197,160,89,0.7)",
+                    background: "none",
+                    border: "1px solid rgba(197,160,89,0.3)",
+                    borderRadius: 20,
+                    cursor: "pointer",
+                    fontFamily: "Inter, sans-serif",
+                    fontSize: 11,
+                    padding: "3px 10px",
+                  }}
+                  title="End this conversation"
+                >
+                  End chat
+                </button>
               )}
               <button
                 onClick={handleLogout}
@@ -488,10 +488,8 @@ export default function ChatWindow() {
                 <MessageBubble
                   key={i}
                   msg={m}
-                  onFeedback={m.role === "assistant" ? handleFeedback : undefined}
-                  onEscalate={m.role === "assistant" ? requestEscalation : undefined}
+                  onEscalate={m.role === "assistant" && !isSessionClosed ? requestEscalation : undefined}
                   isEscalated={!!escalation}
-                  rated={m.interactionId ? ratedMessages[m.interactionId] : undefined}
                 />
               ))}
               {agentTyping && !isLoading && <AgentTypingBubble name={agentName} />}
@@ -511,100 +509,139 @@ export default function ChatWindow() {
         {/* ── MEANDER DIVIDER ── */}
         <div className="meander-top flex-shrink-0" />
 
-        {/* ── INPUT AREA ── */}
-        <div className="flex-shrink-0 px-5 sm:px-12 md:px-20 lg:px-32 xl:px-48 pb-5 pt-3" style={{ background: "rgba(255,255,255,0.6)" }}>
-          <div className="input-wrap flex items-end gap-3 px-4 py-3">
-            <textarea
-              ref={taRef}
-              className="chat-textarea flex-1"
-              style={{ minHeight: 24, maxHeight: 130 }}
-              placeholder={isListening ? "Listening…" : "Please type your inquiry…"}
-              value={input}
-              rows={1}
-              disabled={isLoading}
-              onChange={(e) => {
-                setInput(e.target.value);
-                autoResize();
-              }}
-              onKeyDown={onKey}
-            />
-
-            {/* Speech language selector */}
-            <select
-              value={speechLang}
-              onChange={(e) => setSpeechLang(e.target.value)}
-              disabled={isListening || isLoading}
-              title="Jezik glasovnog unosa"
+        {/* ── INPUT AREA or CLOSED STATE ── */}
+        {isSessionClosed ? (
+          <div
+            className="flex-shrink-0 flex flex-col items-center justify-center gap-3 py-6"
+            style={{ background: "rgba(255,255,255,0.6)", borderTop: "1px solid rgba(197,160,89,0.15)" }}
+          >
+            <p className="text-xs font-sans tracking-widest uppercase" style={{ color: "#9a8a6a" }}>
+              Conversation ended
+            </p>
+            <button
+              onClick={clearMessages}
+              className="rounded-full font-cinzel tracking-widest text-xs px-6 py-2.5"
               style={{
-                fontSize: 11,
-                color: "#9a8a6a",
-                background: "transparent",
+                background: "radial-gradient(circle at 38% 35%, #d4aa55, #C5A059, #8a6d1f)",
+                color: "#fff",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "Inter, sans-serif",
-                flexShrink: 0,
-                outline: "none",
-                opacity: isListening ? 0.4 : 1,
+                letterSpacing: "0.15em",
+                boxShadow: "0 4px 14px rgba(197,160,89,0.3)",
               }}
             >
-              <option value="bs-BA">BS</option>
-              <option value="hr-HR">HR</option>
-              <option value="sr-RS">SR</option>
-              <option value="en-US">EN</option>
-            </select>
-
-            {/* Mic button */}
-            <button
-              className={`flex-shrink-0 rounded-full flex items-center justify-center transition-all${isListening ? " animate-pulse" : ""}`}
-              style={{
-                width: 40,
-                height: 40,
-                background: isListening
-                  ? "radial-gradient(circle at 38% 35%, #f87171, #dc2626, #b91c1c)"
-                  : "rgba(197,160,89,0.12)",
-                border: isListening ? "none" : "1px solid rgba(197,160,89,0.35)",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.38 : 1,
-                boxShadow: isListening ? "0 2px 8px rgba(220,38,38,0.4)" : "none",
-              }}
-              disabled={isLoading}
-              onClick={toggleListening}
-              aria-label={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
-              title={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"
-                stroke={isListening ? "#fff" : "#C5A059"} strokeWidth="2">
-                <rect x="9" y="2" width="6" height="12" rx="3" />
-                <path d="M5 10a7 7 0 0 0 14 0" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-                <line x1="8" y1="22" x2="16" y2="22" />
-              </svg>
-            </button>
-
-            <button
-              className="send-btn flex-shrink-0 rounded-full flex items-center justify-center"
-              style={{ width: 40, height: 40 }}
-              disabled={!input.trim() || isLoading}
-              onClick={() => send()}
-              aria-label="Send"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              NEW CONVERSATION
             </button>
           </div>
+        ) : (
+          <div className="flex-shrink-0 px-5 sm:px-12 md:px-20 lg:px-32 xl:px-48 pb-5 pt-3" style={{ background: "rgba(255,255,255,0.6)" }}>
+            <div className="input-wrap flex items-end gap-3 px-4 py-3">
+              <textarea
+                ref={taRef}
+                className="chat-textarea flex-1"
+                style={{ minHeight: 24, maxHeight: 130 }}
+                placeholder={isListening ? "Listening…" : "Please type your inquiry…"}
+                value={input}
+                rows={1}
+                disabled={inputDisabled}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  autoResize();
+                }}
+                onKeyDown={onKey}
+              />
 
-          {micError && (
-            <p className="text-center text-[12px] mt-1 font-sans" style={{ color: "#dc2626" }}>
-              {micError}
+              {/* Speech language selector */}
+              <select
+                value={speechLang}
+                onChange={(e) => setSpeechLang(e.target.value)}
+                disabled={isListening || inputDisabled}
+                title="Jezik glasovnog unosa"
+                style={{
+                  fontSize: 11,
+                  color: "#9a8a6a",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "Inter, sans-serif",
+                  flexShrink: 0,
+                  outline: "none",
+                  opacity: isListening ? 0.4 : 1,
+                }}
+              >
+                <option value="bs-BA">BS</option>
+                <option value="hr-HR">HR</option>
+                <option value="sr-RS">SR</option>
+                <option value="en-US">EN</option>
+              </select>
+
+              {/* Mic button */}
+              <button
+                className={`flex-shrink-0 rounded-full flex items-center justify-center transition-all${isListening ? " animate-pulse" : ""}`}
+                style={{
+                  width: 40,
+                  height: 40,
+                  background: isListening
+                    ? "radial-gradient(circle at 38% 35%, #f87171, #dc2626, #b91c1c)"
+                    : "rgba(197,160,89,0.12)",
+                  border: isListening ? "none" : "1px solid rgba(197,160,89,0.35)",
+                  cursor: inputDisabled ? "not-allowed" : "pointer",
+                  opacity: inputDisabled ? 0.38 : 1,
+                  boxShadow: isListening ? "0 2px 8px rgba(220,38,38,0.4)" : "none",
+                }}
+                disabled={inputDisabled}
+                onClick={toggleListening}
+                aria-label={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
+                title={isListening ? "Zaustavi snimanje" : "Glasovni unos"}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"
+                  stroke={isListening ? "#fff" : "#C5A059"} strokeWidth="2">
+                  <rect x="9" y="2" width="6" height="12" rx="3" />
+                  <path d="M5 10a7 7 0 0 0 14 0" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                  <line x1="8" y1="22" x2="16" y2="22" />
+                </svg>
+              </button>
+
+              <button
+                className="send-btn flex-shrink-0 rounded-full flex items-center justify-center"
+                style={{ width: 40, height: 40 }}
+                disabled={!input.trim() || inputDisabled}
+                onClick={() => send()}
+                aria-label="Send"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+
+            {micError && (
+              <p className="text-center text-[12px] mt-1 font-sans" style={{ color: "#dc2626" }}>
+                {micError}
+              </p>
+            )}
+
+            {/* Inactivity nudge */}
+            {showInactivityNudge && (
+              <p className="text-center text-[12px] mt-1 font-sans" style={{ color: "#8a6d1f" }}>
+                Still here?{" "}
+                <button
+                  onClick={endConversation}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#C5A059", fontFamily: "Inter, sans-serif", fontSize: 12, textDecoration: "underline", padding: 0 }}
+                >
+                  End this conversation
+                </button>
+                {" "}to leave a rating.
+              </p>
+            )}
+
+            <p className="text-center text-[11px] mt-2 font-sans" style={{ color: "#c0b090" }}>
+              Ambassador may occasionally produce errors. Verify critical information independently.
             </p>
-          )}
-
-          <p className="text-center text-[11px] mt-2 font-sans" style={{ color: "#c0b090" }}>
-            Ambassador may occasionally produce errors. Verify critical information independently.
-          </p>
-        </div>
+          </div>
+        )}
 
       </div>
     </div>

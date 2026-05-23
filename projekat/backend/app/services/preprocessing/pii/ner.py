@@ -12,7 +12,7 @@ _LABEL_MAP = {
     "PER":    "PERSON",
     "PERSON": "PERSON",
     "LOC":    "LOKACIJA",
-    "ORG":    "ORGANIZACIJA",
+    # ORG omitted — noisy on call-center content; product/service names are not PII
 }
 
 

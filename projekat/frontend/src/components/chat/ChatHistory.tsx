@@ -5,7 +5,7 @@ import type { ChatMessage } from "../../types";
 interface Props {
   isOpen: boolean;
   onToggle: () => void;
-  onLoadSession: (messages: ChatMessage[], sessionId: number) => void;
+  onLoadSession: (messages: ChatMessage[], sessionId: number, isClosed: boolean) => void;
   currentSessionId: number | null;
 }
 
@@ -45,7 +45,7 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
         role: m.role as "user" | "assistant",
         content: m.content,
       }));
-      onLoadSession(msgs, session.id);
+      onLoadSession(msgs, session.id, session.status === "Zatvorena");
     } catch {
       // ignore
     } finally {
@@ -140,7 +140,17 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
             >
               <div className="flex items-center justify-between mb-0.5">
                 <span className="text-[11px] text-gray-400">{timeLabel(s.started_at)}</span>
-                <span className="text-[10px] text-gray-300">{s.message_count} msg</span>
+                <div className="flex items-center gap-1.5">
+                  {s.status === "Zatvorena" && (
+                    <span
+                      className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+                      style={{ background: "rgba(197,160,89,0.12)", color: "#9a8a6a", border: "1px solid rgba(197,160,89,0.2)" }}
+                    >
+                      Closed
+                    </span>
+                  )}
+                  <span className="text-[10px] text-gray-300">{s.message_count} msg</span>
+                </div>
               </div>
               <p
                 className="text-sm text-charcoal leading-snug"

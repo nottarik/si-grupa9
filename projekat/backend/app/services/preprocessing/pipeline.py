@@ -12,6 +12,7 @@ from .speakers import split_turns
 from .speakers_llm import label_speakers_llm
 from .chunking import chunk_turns
 from .qa_extractor import extract_qa_pairs_llm
+from .qa_validator import validate_qa_pairs
 from .pii.masker import mask
 from .pii.token_store import encrypt_token_map
 from . import audit
@@ -114,6 +115,8 @@ async def run_pipeline(
     llm_pairs = await extract_qa_pairs_llm(turns)
 
     if llm_pairs:
+        raw_count = len(llm_pairs)
+        llm_pairs = await validate_qa_pairs(llm_pairs)
         qa_count = 0
         for question, answer in llm_pairs:
             db.add(UnosBazeZnanja(
@@ -128,10 +131,15 @@ async def run_pipeline(
             transcript_id=transcript_id,
             chunks=len(chunks),
             qa_pairs=qa_count,
+            qa_filtered=raw_count - qa_count,
             qa_method="llm",
         )
     else:
         pattern_pairs = _extract_qa_pattern(turns, turn_first_seg)
+        raw_count = len(pattern_pairs)
+        texts = [(q, a) for q, a, _ in pattern_pairs]
+        valid_texts = set(await validate_qa_pairs(texts))
+        pattern_pairs = [(q, a, s) for q, a, s in pattern_pairs if (q, a) in valid_texts]
         qa_count = 0
         for question, answer, seg_id in pattern_pairs:
             db.add(UnosBazeZnanja(
@@ -146,6 +154,7 @@ async def run_pipeline(
             transcript_id=transcript_id,
             chunks=len(chunks),
             qa_pairs=qa_count,
+            qa_filtered=raw_count - qa_count,
             qa_method="pattern",
         )
 

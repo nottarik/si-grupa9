@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db.models.user import Korisnik
 from app.api.v1.deps import get_current_user, require_admin
-from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest
+from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest, SessionRateRequest
 from app.schemas.escalation import EscalationInfo
 from app.services.ai.rag_service import RagService
 from app.services.escalation import service as eskal_svc
@@ -363,7 +363,66 @@ async def get_session_messages(
                     "confidence_score": odg.skor_pouzdanosti,
                 })
 
-    return {"session_id": session_id, "messages": messages}
+    return {"session_id": session_id, "is_closed": sess.status == "Zatvorena", "messages": messages}
+
+
+@router.post("/sessions/{session_id}/close")
+async def close_session(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(get_current_user),
+):
+    """Mark a chat session as closed (Zatvorena)."""
+    from app.db.models.knowledge import ChatSesija
+    from datetime import datetime, timezone
+    from fastapi import HTTPException
+
+    sess = (await db.execute(
+        select(ChatSesija).where(
+            ChatSesija.id == session_id,
+            ChatSesija.id_korisnika == current_user.id,
+        )
+    )).scalar_one_or_none()
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if sess.status != "Zatvorena":
+        sess.status = "Zatvorena"
+        sess.datum_zavrsetka = datetime.now(timezone.utc)
+        await db.commit()
+    return {"ok": True}
+
+
+@router.post("/sessions/{session_id}/rate")
+async def rate_session(
+    session_id: int,
+    payload: SessionRateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(get_current_user),
+):
+    """Submit an end-of-conversation rating for a session."""
+    from app.db.models.knowledge import ChatSesija, Feedback
+    from fastapi import HTTPException
+
+    sess = (await db.execute(
+        select(ChatSesija).where(
+            ChatSesija.id == session_id,
+            ChatSesija.id_korisnika == current_user.id,
+        )
+    )).scalar_one_or_none()
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    ocjena = max(1.0, min(5.0, float(payload.rating)))
+    feedback = Feedback(
+        id_sesije=session_id,
+        id_korisnika=current_user.id,
+        ocjena=ocjena,
+        komentar=payload.comment or None,
+        tip="KorisnikOcjena",
+    )
+    db.add(feedback)
+    await db.commit()
+    return {"ok": True}
 
 
 @router.get("/issues")

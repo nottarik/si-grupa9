@@ -38,3 +38,8 @@ class FeedbackRequest(BaseModel):
     rating: float | None = None
     comment: str | None = None
     is_incorrect: bool = False
+
+
+class SessionRateRequest(BaseModel):
+    rating: float
+    comment: str | None = None

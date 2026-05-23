@@ -21,6 +21,7 @@ export interface SessionSummary {
 
 export interface SessionMessages {
   session_id: number;
+  is_closed: boolean;
   messages: Array<{
     role: string;
     content: string;
@@ -59,4 +60,12 @@ export async function listSessions(): Promise<SessionSummary[]> {
 export async function getSessionMessages(sessionId: number): Promise<SessionMessages> {
   const { data } = await apiClient.get<SessionMessages>(`/api/v1/chat/sessions/${sessionId}/messages`);
   return data;
+}
+
+export async function closeSession(sessionId: number): Promise<void> {
+  await apiClient.post(`/api/v1/chat/sessions/${sessionId}/close`);
+}
+
+export async function rateSession(sessionId: number, rating: number, comment?: string): Promise<void> {
+  await apiClient.post(`/api/v1/chat/sessions/${sessionId}/rate`, { rating, comment });
 }

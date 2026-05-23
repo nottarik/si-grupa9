@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { sendMessage, submitFeedback } from "../api/chat";
+import { sendMessage, closeSession, rateSession } from "../api/chat";
 import { escalationApi } from "../api/escalation";
-import type { ChatMessage, EscalationInfo, FeedbackRequest } from "../types";
+import type { ChatMessage, EscalationInfo } from "../types";
 
 const CHAT_HISTORY_KEY = "chat_history";
 const CHAT_SESSION_KEY = "chat_session_id";
+const INACTIVITY_MS = 12 * 60 * 1000;
 
 interface WsFrame {
   type: string;
@@ -40,8 +41,16 @@ export function useChat() {
   const [escalation, setEscalation] = useState<EscalationInfo | null>(null);
   const [agentName, setAgentName] = useState<string | null>(null);
   const [agentTyping, setAgentTyping] = useState(false);
+  const [isSessionClosed, setIsSessionClosed] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showInactivityNudge, setShowInactivityNudge] = useState(false);
+
   const wsRef = useRef<WebSocket | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const shouldReconnectRef = useRef(false);
 
   useEffect(() => {
     localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages));
@@ -53,9 +62,18 @@ export function useChat() {
     }
   }, [sessionId]);
 
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const shouldReconnectRef = useRef(false);
+  // Inactivity timer: resets on every message change
+  useEffect(() => {
+    if (isSessionClosed || messages.length === 0) return;
+    setShowInactivityNudge(false);
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    inactivityTimerRef.current = setTimeout(() => {
+      setShowInactivityNudge(true);
+    }, INACTIVITY_MS);
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  }, [messages.length, isSessionClosed]);
 
   const connectUserWs = useCallback((sid: number) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -128,6 +146,9 @@ export function useChat() {
               content: "Your session with the agent has ended. Thank you for using our service.",
             },
           ]);
+          setIsSessionClosed(true);
+          setShowRatingModal(true);
+          closeSession(sid).catch(() => {});
         }
       } catch {
         // ignore malformed frames
@@ -150,6 +171,7 @@ export function useChat() {
       wsRef.current?.close();
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     };
   }, []);
 
@@ -202,8 +224,33 @@ export function useChat() {
     [messages, sessionId, connectUserWs]
   );
 
-  const sendFeedback = useCallback(async (payload: FeedbackRequest) => {
-    await submitFeedback(payload);
+  const endConversation = useCallback(async () => {
+    if (isSessionClosed) return;
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    setShowInactivityNudge(false);
+    shouldReconnectRef.current = false;
+    wsRef.current?.close();
+    wsRef.current = null;
+    if (sessionId) {
+      closeSession(sessionId).catch(() => {});
+    }
+    setIsSessionClosed(true);
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: "Conversation ended. Thank you for chatting with Ambassador." },
+    ]);
+    setShowRatingModal(true);
+  }, [isSessionClosed, sessionId]);
+
+  const submitSessionRating = useCallback(async (rating: number, comment?: string) => {
+    if (sessionId) {
+      await rateSession(sessionId, rating, comment).catch(() => {});
+    }
+    setShowRatingModal(false);
+  }, [sessionId]);
+
+  const dismissRating = useCallback(() => {
+    setShowRatingModal(false);
   }, []);
 
   const requestEscalation = useCallback(async () => {
@@ -235,10 +282,14 @@ export function useChat() {
     }
     shouldReconnectRef.current = false;
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     setMessages([]);
     setSessionId(null);
     setEscalation(null);
     setAgentName(null);
+    setIsSessionClosed(false);
+    setShowRatingModal(false);
+    setShowInactivityNudge(false);
     wsRef.current?.close();
     wsRef.current = null;
     localStorage.removeItem(CHAT_HISTORY_KEY);
@@ -263,10 +314,11 @@ export function useChat() {
     }
   }, [escalation]);
 
-  const loadSession = useCallback((msgs: ChatMessage[], sid: number) => {
+  const loadSession = useCallback((msgs: ChatMessage[], sid: number, isClosed: boolean) => {
     if (escalation && escalation.status === "UToku") return;
     shouldReconnectRef.current = false;
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     wsRef.current?.close();
     wsRef.current = null;
     setMessages(msgs);
@@ -274,6 +326,9 @@ export function useChat() {
     setEscalation(null);
     setAgentName(null);
     setAgentTyping(false);
+    setIsSessionClosed(isClosed);
+    setShowRatingModal(false);
+    setShowInactivityNudge(false);
   }, [escalation]);
 
   return {
@@ -282,7 +337,6 @@ export function useChat() {
     error,
     sessionId,
     ask,
-    sendFeedback,
     requestEscalation,
     cancelEscalation,
     clearMessages,
@@ -290,5 +344,11 @@ export function useChat() {
     escalation,
     agentName,
     agentTyping,
+    isSessionClosed,
+    showRatingModal,
+    showInactivityNudge,
+    endConversation,
+    submitSessionRating,
+    dismissRating,
   };
 }

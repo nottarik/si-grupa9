@@ -176,7 +176,8 @@ class Feedback(Base):
         default="KorisnikOcjena",
     )
     timestamp = Column("timestamp_fb", DateTime(timezone=True), server_default=func.now())
-    id_odgovora = Column(BigInteger, ForeignKey("odgovor.id"), nullable=False)
+    id_odgovora = Column(BigInteger, ForeignKey("odgovor.id"), nullable=True)
+    id_sesije = Column(BigInteger, ForeignKey("chat_sesija.id"), nullable=True)
     id_korisnika = Column(UUID(as_uuid=True), ForeignKey("korisnik.id"), nullable=True)
 
 
