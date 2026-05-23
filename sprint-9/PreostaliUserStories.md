@@ -1,12 +1,23 @@
 # Preostali User Stories — Sprint 9 i Sprint 10
 
-**Projekat:** Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu snimljenih poziva iz call centra
 
----
 
-> **Napomena**
-> Ovaj dokument sadrži user storije koji nadopunjuju postojeći UserStories.md.
-> Pokriva: ispravke grešaka (masking, QA ekstrakcija), izmjenu pristupa ocjenjivanju, sistemske obavijesti, ručni unos u bazu znanja, čišćenje baze, optimizaciju performansi, dizajn i testiranje.
+## Pregled user storija
+
+| ID | Naziv | Sprint | Prioritet | Poslovna vrijednost |
+|----|-------|--------|-----------|---------------------|
+| 56.1 | Poboljšanje maskiranja PII podataka | 9 | High | Osigurava pouzdanu zaštitu privatnosti korisnika i sprečava curenje osjetljivih podataka u odgovorima chatbota |
+| 56.2 | Poboljšanje ekstrakcije Q&A parova iz transkripata | 9 | High | Poboljšava kvalitet baze znanja eliminacijom pogrešno ekstrahiranih parova koji degradiraju relevantnost odgovora chatbota |
+| 57.1 | Prikaz forme za ocjenu na kraju razgovora | 9 | High | Prikuplja relevantnu i promišljenu povratnu informaciju umjesto impulsivnih reakcija po svakoj poruci |
+| 58.1 | Prikaz banera o poznatim problemima ili planiranom održavanju | 9 | Medium | Proaktivno informiše korisnike o problemima, smanjuje frustraciju i broj nepotrebnih eskalacija |
+| 59.1 | Ručni unos Q&A para direktno u bazu znanja bez transkripata | 10 | High | Omogućava administratorima da odmah dodaju provjerene informacije bez potrebe za kreiranjem cijelog transkripata |
+| 60.1 | Pregled i uklanjanje nevažećih unosa iz baze znanja | 10 | High | Osigurava da baza znanja sadrži isključivo provjerene i relevantne informacije |
+| 60.2 | Kontinuirano poboljšanje baze znanja kroz kuriranje sadržaja | 10 | High | Osigurava da baza znanja ostane ažurna, tačna i relevantna kroz kontinuirani proces pregleda |
+| 61.1 | Smanjenje latencije odgovora chatbota | 10 | High | Poboljšava korisničko iskustvo eliminacijom dugog čekanja na odgovor |
+| 62.1 | Poboljšanje vizualnog dizajna Chat UI-a | 10 | Medium | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem |
+| 62.2 | Poboljšanje dizajna Admin panela | 10 | Medium | Čistiji admin panel smanjuje kognitivno opterećenje administratora i ubrzava svakodnevne zadatke |
+| 63.1 | Puno funkcionalno testiranje kritičnih putanja | 10 | High | Garantuje stabilnost sistema pred produkciju i sprečava regresije |
+| 63.2 | Regresijsko testiranje nakon ispravki grešaka | 10 | High | Sprečava ponovnu pojavu već riješenih grešaka i osigurava da nove ispravke ne narušavaju postojeću funkcionalnost |
 
 ---
 
@@ -14,14 +25,14 @@
 
 ---
 
-### PB-56 — Ispravke grešaka u obradi podataka
+### PB-56 — Poboljšanje obrade podataka
 
-#### User Story 56.1 — Ispravljanje grešaka u maskiranju PII podataka
+#### User Story 56.1 — Poboljšanje maskiranja PII podataka
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 56.1 |
-| **Naziv** | Ispravljanje grešaka u maskiranju PII podataka |
+| **Naziv** | Poboljšanje maskiranja PII podataka |
 | **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Osigurava pouzdanu zaštitu privatnosti korisnika i sprečava curenje osjetljivih podataka u odgovorima chatbota |
@@ -45,12 +56,12 @@ Nadograđuje US-26.1 Detekcija i zamjena osjetljivih podataka. Preduvjet za pouz
 
 ---
 
-#### User Story 56.2 — Ispravljanje grešaka u ekstrakciji Q&A parova iz transkripata
+#### User Story 56.2 — Poboljšanje ekstrakcije Q&A parova iz transkripata
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 56.2 |
-| **Naziv** | Ispravljanje grešaka u ekstrakciji Q&A parova iz transkripata |
+| **Naziv** | Poboljšanje ekstrakcije Q&A parova iz transkripata |
 | **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Poboljšava kvalitet baze znanja eliminacijom pogrešno ekstrahiranih parova koji degradiraju relevantnost odgovora chatbota |
