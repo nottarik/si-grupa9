@@ -1,14 +1,6 @@
 # Preostali User Stories — Sprint 9 i Sprint 10
 
-**Projekat:** Sistem za treniranje i implementaciju AI chatbot asistenta na osnovu snimljenih poziva iz call centra
 
----
-
-> **Napomena**
-> Ovaj dokument sadrži user storije koji nadopunjuju postojeći UserStories.md.
-> Pokriva: ispravke grešaka (masking, QA ekstrakcija), izmjenu pristupa ocjenjivanju, sistemske obavijesti, ručni unos u bazu znanja, čišćenje baze, optimizaciju performansi, dizajn i testiranje.
-
----
 
 ## Sprint 9
 
