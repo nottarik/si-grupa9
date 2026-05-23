@@ -14,14 +14,14 @@
 
 ---
 
-### PB-56 — Ispravke grešaka u obradi podataka
+### PB-56 — Poboljšanje obrade podataka
 
-#### User Story 56.1 — Ispravljanje grešaka u maskiranju PII podataka
+#### User Story 56.1 — Poboljšanje maskiranja PII podataka
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 56.1 |
-| **Naziv** | Ispravljanje grešaka u maskiranju PII podataka |
+| **Naziv** | Poboljšanje maskiranja PII podataka |
 | **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Osigurava pouzdanu zaštitu privatnosti korisnika i sprečava curenje osjetljivih podataka u odgovorima chatbota |
@@ -45,12 +45,12 @@ Nadograđuje US-26.1 Detekcija i zamjena osjetljivih podataka. Preduvjet za pouz
 
 ---
 
-#### User Story 56.2 — Ispravljanje grešaka u ekstrakciji Q&A parova iz transkripata
+#### User Story 56.2 — Poboljšanje ekstrakcije Q&A parova iz transkripata
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 56.2 |
-| **Naziv** | Ispravljanje grešaka u ekstrakciji Q&A parova iz transkripata |
+| **Naziv** | Poboljšanje ekstrakcije Q&A parova iz transkripata |
 | **Sprint** | 9 |
 | **Prioritet** | High |
 | **Poslovna vrijednost** | Poboljšava kvalitet baze znanja eliminacijom pogrešno ekstrahiranih parova koji degradiraju relevantnost odgovora chatbota |
