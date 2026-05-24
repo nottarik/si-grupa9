@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { escalationApi, EscalationItem } from "../../../api/escalation";
-import { useEscalation } from "../../../hooks/useEscalation";
+import { escalationApi, EscalationItem, EscalationResolvePayload } from "../../../api/escalation";
+import { UserMsg } from "../../../hooks/useEscalation";
 import { useAuth } from "../../../hooks/useAuth";
 import { Ic, icons } from "../shared";
 import EscalationCard from "../../escalation/EscalationCard";
@@ -25,37 +25,32 @@ function playNotificationTone() {
   }
 }
 
-export default function EscalationQueue() {
+interface Props {
+  queue: EscalationItem[];
+  loading: boolean;
+  fetchQueue: () => void;
+  sendAgentMessage: (session_id: number, content: string) => void;
+  sendTypingSignal: (session_id: number, is_typing: boolean) => void;
+  resolveEscalation: (id: number, payload: EscalationResolvePayload) => Promise<void>;
+  releaseEscalation: (id: number) => Promise<void>;
+  registerUserMsgHandler: (handler: ((msg: UserMsg) => void) | null) => void;
+}
+
+export default function EscalationQueue({
+  queue,
+  loading,
+  fetchQueue,
+  sendAgentMessage,
+  sendTypingSignal,
+  resolveEscalation,
+  releaseEscalation,
+  registerUserMsgHandler,
+}: Props) {
   const { user } = useAuth();
   const currentAgentId = user?.id ?? "";
-  const {
-    queue,
-    loading,
-    fetchQueue,
-    connectAgentWs,
-    disconnectWs,
-    sendAgentMessage,
-    sendTypingSignal,
-    resolveEscalation,
-    releaseEscalation,
-    registerUserMsgHandler,
-  } = useEscalation();
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
   const [agentOnline, setAgentOnline] = useState(false);
   const prevPendingCountRef = useRef(0);
-
-  // Connect agent WS on mount so it's open before any chat is accepted
-  useEffect(() => {
-    connectAgentWs();
-    return () => disconnectWs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    fetchQueue();
-    const id = setInterval(fetchQueue, 10_000);
-    return () => clearInterval(id);
-  }, [fetchQueue]);
 
   useEffect(() => {
     const pendingCount = queue.filter((e) => e.status === "Cekanje").length;
@@ -70,11 +65,10 @@ export default function EscalationQueue() {
 
   useEffect(() => {
     if (activeEskal && !agentOnline) {
-      connectAgentWs();
-      escalationApi.updateAgentStatus("Online");
+      escalationApi.updateAgentStatus("Online").catch(() => {});
       setAgentOnline(true);
     }
-  }, [activeEskal, agentOnline, connectAgentWs]);
+  }, [activeEskal, agentOnline]);
 
   // Keep activeEskal in sync with queue updates
   useEffect(() => {
@@ -94,15 +88,9 @@ export default function EscalationQueue() {
   }, [queue, currentAgentId]);
 
   function toggleOnline() {
-    if (agentOnline) {
-      disconnectWs();
-      escalationApi.updateAgentStatus("Offline");
-      setAgentOnline(false);
-    } else {
-      connectAgentWs();
-      escalationApi.updateAgentStatus("Online");
-      setAgentOnline(true);
-    }
+    const next = !agentOnline;
+    escalationApi.updateAgentStatus(next ? "Online" : "Offline").catch(() => {});
+    setAgentOnline(next);
   }
 
   function handleAccepted(item: EscalationItem) {

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useEscalation } from "../../hooks/useEscalation";
 import { icons } from "./shared";
 import Dashboard from "./sections/Dashboard";
 import UploadSection from "./sections/UploadSection";
@@ -47,7 +48,24 @@ export default function AdminShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Single WS instance for the entire admin session — prevents reconnect loops
+  const eskal = useEscalation();
+
+  useEffect(() => {
+    eskal.connectAgentWs();
+    return () => eskal.disconnectWs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    eskal.fetchQueue();
+    const id = setInterval(eskal.fetchQueue, 10_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function handleLogout() {
+    eskal.disconnectWs();
     logout();
     navigate("/login");
   }
@@ -62,7 +80,16 @@ export default function AdminShell() {
     upload:      <UploadSection />,
     transcripts: <TranscriptList key={transcriptKey} />,
     chat:        <ChatLogs />,
-    escalation:  <EscalationQueue />,
+    escalation:  <EscalationQueue
+      queue={eskal.queue}
+      loading={eskal.loading}
+      fetchQueue={eskal.fetchQueue}
+      sendAgentMessage={eskal.sendAgentMessage}
+      sendTypingSignal={eskal.sendTypingSignal}
+      resolveEscalation={eskal.resolveEscalation}
+      releaseEscalation={eskal.releaseEscalation}
+      registerUserMsgHandler={eskal.registerUserMsgHandler}
+    />,
     ratings:     <Ratings />,
     issues:      <Issues />,
     training:    <Training />,

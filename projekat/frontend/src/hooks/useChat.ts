@@ -76,7 +76,7 @@ export function useChat() {
   }, [messages.length, isSessionClosed]);
 
   const connectUserWs = useCallback((sid: number) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) return;
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
@@ -156,6 +156,7 @@ export function useChat() {
     };
 
     ws.onclose = () => {
+      if (wsRef.current !== ws) return;
       wsRef.current = null;
       if (shouldReconnectRef.current && reconnectAttemptsRef.current < 5) {
         const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 16000);
@@ -196,6 +197,8 @@ export function useChat() {
 
         if (response.is_agent_chat) {
           if (response.escalation) setEscalation(response.escalation);
+          // Re-establish user WS if it dropped (page refresh, network hiccup, etc.)
+          connectUserWs(response.session_id);
           return;
         }
 
@@ -228,6 +231,12 @@ export function useChat() {
     if (isSessionClosed) return;
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
     setShowInactivityNudge(false);
+
+    // Notify the agent before closing — broadcasts user_disconnected to agent queue
+    if (escalation && !["Rijesena", "Napustena"].includes(escalation.status)) {
+      try { await escalationApi.cancel(); } catch { /* best-effort */ }
+    }
+
     shouldReconnectRef.current = false;
     wsRef.current?.close();
     wsRef.current = null;
@@ -235,12 +244,14 @@ export function useChat() {
       closeSession(sessionId).catch(() => {});
     }
     setIsSessionClosed(true);
+    setEscalation(null);
+    setAgentName(null);
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: "Conversation ended. Thank you for chatting with Ambassador." },
     ]);
     setShowRatingModal(true);
-  }, [isSessionClosed, sessionId]);
+  }, [isSessionClosed, sessionId, escalation]);
 
   const submitSessionRating = useCallback(async (rating: number, comment?: string) => {
     if (sessionId) {

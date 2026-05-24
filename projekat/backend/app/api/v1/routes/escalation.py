@@ -1,3 +1,4 @@
+import asyncio
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -358,10 +359,49 @@ async def ws_user_chat(
         return
 
     await manager.connect_user(session_id, websocket)
+
+    # Race condition fix: agent may have accepted before this WS completed handshake.
+    # Re-send agent_connected so the user sees the agent name immediately.
+    try:
+        from app.db.session import AsyncSessionLocal
+        async with AsyncSessionLocal() as fresh_db:
+            r = await fresh_db.execute(
+                select(Eskalacija).where(
+                    Eskalacija.sesija_id == session_id,
+                    Eskalacija.status == "UToku",
+                )
+            )
+            eskal = r.scalar_one_or_none()
+            if eskal and eskal.dodjeljeni_agent_id:
+                ar = await fresh_db.execute(
+                    select(Korisnik).where(Korisnik.id == eskal.dodjeljeni_agent_id)
+                )
+                agent = ar.scalar_one_or_none()
+                agent_name = f"{agent.ime} {agent.prezime or ''}".strip() if agent else "Agent"
+                await websocket.send_text(json.dumps({
+                    "type": "agent_connected",
+                    "agent_name": agent_name,
+                    "escalation_id": eskal.id,
+                }))
+    except Exception:
+        pass
+
+    async def _keepalive():
+        while True:
+            await asyncio.sleep(25)
+            try:
+                await websocket.send_text('{"type":"ping"}')
+            except Exception:
+                break
+
+    keepalive_task = asyncio.create_task(_keepalive())
     try:
         while True:
             await websocket.receive_text()
     except Exception:
+        pass
+    finally:
+        keepalive_task.cancel()
         manager.disconnect_user(session_id)
 
 
@@ -408,6 +448,15 @@ async def ws_agent_queue(
 
     agent_name = f"{agent.ime} {agent.prezime or ''}".strip()
 
+    async def _agent_keepalive():
+        while True:
+            await asyncio.sleep(25)
+            try:
+                await websocket.send_text('{"type":"ping"}')
+            except Exception:
+                break
+
+    keepalive_task = asyncio.create_task(_agent_keepalive())
     try:
         while True:
             raw = await websocket.receive_text()
@@ -420,6 +469,10 @@ async def ws_agent_queue(
                 sid = msg.get("session_id")
                 content = msg.get("content", "").strip()
                 if sid and content:
+                    # Expire the ORM identity map so we read the latest committed
+                    # state from the DB (the accept endpoint ran in a different
+                    # session and updated status + dodjeljeni_agent_id there).
+                    db.expire_all()
                     result = await db.execute(
                         select(Eskalacija).where(
                             Eskalacija.sesija_id == int(sid),
@@ -458,4 +511,7 @@ async def ws_agent_queue(
                         "is_typing": msg.get("is_typing", False),
                     })
     except WebSocketDisconnect:
+        pass
+    finally:
+        keepalive_task.cancel()
         manager.disconnect_agent(agent_id_str, websocket)

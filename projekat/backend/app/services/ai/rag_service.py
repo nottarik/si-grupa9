@@ -68,6 +68,8 @@ class RagService:
         import logging
         logger = logging.getLogger(__name__)
 
+        t_start = time.perf_counter()
+
         llm = LLMService()
         trimmed_history = (history or [])[-6:]
 
@@ -79,11 +81,13 @@ class RagService:
             intent = "escalation_request"
             logger.info("Explicit escalation request detected: %r", question[:100])
         else:
+            t_intent = time.perf_counter()
             try:
                 intent = await asyncio.to_thread(llm.classify_intent, question)
             except Exception as exc:
                 logger.warning("Intent classification failed, assuming domain: %s", exc)
                 intent = "domain"
+            logger.info("PERF intent_classify=%.0fms", (time.perf_counter() - t_intent) * 1000)
 
         logger.info("Intent classification: %r → %s", question[:80], intent)
 
@@ -94,14 +98,12 @@ class RagService:
 
         if intent == "escalation_request":
             answer_text = _EXPLICIT_ESCALATION_MSG
-            latencija_ms = None
             metoda = "Fallback"
             needs_escalation = True
             logger.info("Explicit escalation: routing to agent queue")
 
         elif intent == "out_of_scope":
             answer_text = _OUT_OF_SCOPE_MSG
-            latencija_ms = None
             metoda = "Fallback"
             logger.info("Out-of-scope message rejected: %r", question[:100])
 
@@ -111,12 +113,11 @@ class RagService:
                 answer_text = await asyncio.to_thread(
                     llm.generate_without_context, question, trimmed_history
                 )
-                latencija_ms = int((time.perf_counter() - t0) * 1000)
+                logger.info("PERF llm_only=%.0fms", (time.perf_counter() - t0) * 1000)
                 metoda = "Generativno"
             except Exception as exc:
                 logger.error("LLM conversational call failed: %s", exc)
                 answer_text = "Hello! I'm your ISP virtual assistant. How can I help you today?"
-                latencija_ms = None
                 metoda = "Fallback"
 
         else:
@@ -135,10 +136,15 @@ class RagService:
 
             # Retrieval
             try:
+                t_embed = time.perf_counter()
                 vector = await asyncio.to_thread(EmbeddingService().embed, search_query)
+                logger.info("PERF embed=%.0fms", (time.perf_counter() - t_embed) * 1000)
+
+                t_search = time.perf_counter()
                 hits = await asyncio.to_thread(
                     VectorStoreService().search, vector, settings.RAG_TOP_K
                 )
+                logger.info("PERF vector_search=%.0fms", (time.perf_counter() - t_search) * 1000)
             except Exception as exc:
                 logger.error("Retrieval failed: %s", exc)
                 hits = []
@@ -155,7 +161,6 @@ class RagService:
             if not hits or confidence < settings.RAG_CONFIDENCE_THRESHOLD_LOW:
                 # Very low confidence or no results — escalate to agent
                 answer_text = _CONNECT_AGENT_MSG
-                latencija_ms = None
                 metoda = "Fallback"
                 needs_escalation = True
 
@@ -176,14 +181,14 @@ class RagService:
                 is_uncertain = confidence < settings.RAG_CONFIDENCE_THRESHOLD
 
                 try:
-                    t0 = time.perf_counter()
+                    t_llm = time.perf_counter()
                     answer_text = await asyncio.to_thread(
                         llm.generate, question, context, trimmed_history
                     )
                     answer_text = _strip_pii(answer_text)
                     if is_uncertain:
                         answer_text += _UNCERTAIN_SUFFIX
-                    latencija_ms = int((time.perf_counter() - t0) * 1000)
+                    logger.info("PERF llm_generate=%.0fms", (time.perf_counter() - t_llm) * 1000)
                     metoda = "Retrieval"
                 except Exception as exc:
                     logger.error("LLM call failed: %s — returning stored answer", exc)
@@ -191,8 +196,14 @@ class RagService:
                     if is_uncertain and best_answer:
                         answer_text += _UNCERTAIN_SUFFIX
                     needs_escalation = not bool(best_answer)
-                    latencija_ms = None
                     metoda = "Retrieval"
+
+        # Total pipeline latency (embed + search + LLM + any overhead)
+        latencija_ms = int((time.perf_counter() - t_start) * 1000)
+        logger.info(
+            "PERF total=%.0fms intent=%s method=%s confidence=%.3f",
+            latencija_ms, intent, metoda, confidence,
+        )
 
         # --- Persist session + messages ---
         sesija: ChatSesija | None = None

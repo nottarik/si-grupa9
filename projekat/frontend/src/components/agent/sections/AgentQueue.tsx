@@ -54,12 +54,13 @@ export default function AgentQueue({
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
   const prevPendingCountRef = useRef(0);
 
-  // Keep activeEskal in sync with queue updates (e.g. after release by another agent)
+  // Keep activeEskal in sync with queue updates
   useEffect(() => {
     setActiveEskal((prev) => {
       if (!prev) return prev;
       const fresh = queue.find((e) => e.id === prev.id);
-      if (!fresh) return prev;
+      // Escalation left the queue (resolved, abandoned, or user disconnected) — close panel
+      if (!fresh) return null;
       const wasNotOwner = prev.dodjeljeni_agent_id !== currentAgentId;
       if (wasNotOwner && fresh.status !== "UToku") return null;
       return {

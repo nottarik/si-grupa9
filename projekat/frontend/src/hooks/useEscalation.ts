@@ -111,8 +111,15 @@ export function useEscalation() {
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      // If a newer WS already replaced this one, ignore this stale close event entirely.
+      // Without this guard, the stale onclose would null out the live replacement's ref
+      // and silently drop all outbound messages (sendAgentMessage checks wsRef.current).
+      if (wsRef.current !== ws) return;
       wsRef.current = null;
+      // Code 4000 = server replaced this connection with a newer one from the same agent.
+      // Don't reconnect — fighting back creates an infinite loop between two tabs/instances.
+      if (event.code === 4000) return;
       if (shouldReconnectRef.current && reconnectAttemptsRef.current < 5) {
         const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 16000);
         reconnectAttemptsRef.current += 1;

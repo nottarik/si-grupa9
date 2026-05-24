@@ -138,3 +138,29 @@ export interface KnowledgeItem {
   category: string | null;
   status: QAStatus;
 }
+
+export interface KnowledgeApprovedItem {
+  id: number;
+  question: string;
+  answer: string;
+  category: number | null;
+  source_type: "manual" | "transcript";
+  datum_kreiranja: string | null;
+}
+
+export interface KnowledgeCategory {
+  id: number;
+  naziv: string;
+}
+
+export interface ManualQACreate {
+  pitanje: string;
+  odgovor: string;
+  id_kategorije?: number | null;
+}
+
+export interface ManualQAUpdate {
+  pitanje: string;
+  odgovor: string;
+  id_kategorije?: number | null;
+}
