@@ -227,8 +227,12 @@ def test_agent_sends_message_to_connected_user():
                 with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    msg = ws.receive_json()
-                    received.append(msg)
+                    try:
+                        while True:
+                            msg = ws.receive_json()
+                            received.append(msg)
+                    except Exception:
+                        pass  # connection closed — stop collecting
             except Exception as e:
                 error.append(e)
 
@@ -290,8 +294,12 @@ def test_agent_typing_forwarded_to_user():
                 with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    msg = ws.receive_json()
-                    received.append(msg)
+                    try:
+                        while True:
+                            msg = ws.receive_json()
+                            received.append(msg)
+                    except Exception:
+                        pass  # connection closed — stop collecting
             except Exception as e:
                 error.append(e)
 
