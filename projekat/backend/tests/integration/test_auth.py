@@ -72,3 +72,97 @@ async def test_register_duplicate_email():
             },
         )
     assert response.status_code == 400
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UPDATE PROFILE (PATCH /auth/me)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.asyncio
+async def test_update_me_requires_auth():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.patch("/api/v1/auth/me", json={"full_name": "Novo Ime"})
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_update_me():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await client.post(
+            "/api/v1/auth/register",
+            json={"email": "update_me@test.com", "password": "pass123", "full_name": "Staro Ime", "role": "user"},
+        )
+        login = await client.post(
+            "/api/v1/auth/login",
+            json={"email": "update_me@test.com", "password": "pass123"},
+        )
+        token = login.json()["access_token"]
+        resp = await client.patch(
+            "/api/v1/auth/me",
+            json={"full_name": "Novo Ime Prezime"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    assert resp.status_code == 200
+    assert resp.json()["full_name"] == "Novo Ime Prezime"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELETE CHAT HISTORY (DELETE /auth/me/history)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.asyncio
+async def test_delete_history_requires_auth():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.delete("/api/v1/auth/me/history")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_delete_history():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await client.post(
+            "/api/v1/auth/register",
+            json={"email": "del_hist@test.com", "password": "pass123", "full_name": "Del Hist", "role": "user"},
+        )
+        login = await client.post(
+            "/api/v1/auth/login",
+            json={"email": "del_hist@test.com", "password": "pass123"},
+        )
+        token = login.json()["access_token"]
+        resp = await client.delete(
+            "/api/v1/auth/me/history",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    assert resp.status_code == 200
+    assert resp.json()["ok"] is True
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELETE ACCOUNT (DELETE /auth/me)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.asyncio
+async def test_delete_account_requires_auth():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        resp = await client.delete("/api/v1/auth/me")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_delete_account():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await client.post(
+            "/api/v1/auth/register",
+            json={"email": "del_account@test.com", "password": "pass123", "full_name": "Del Account", "role": "user"},
+        )
+        login = await client.post(
+            "/api/v1/auth/login",
+            json={"email": "del_account@test.com", "password": "pass123"},
+        )
+        token = login.json()["access_token"]
+        resp = await client.delete(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    assert resp.status_code == 200
+    assert resp.json()["ok"] is True
