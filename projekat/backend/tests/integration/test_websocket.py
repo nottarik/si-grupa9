@@ -227,12 +227,11 @@ def test_agent_sends_message_to_connected_user():
                 with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    try:
-                        while True:
-                            msg = ws.receive_json()
-                            received.append(msg)
-                    except Exception:
-                        pass  # connection closed — stop collecting
+                    while True:
+                        msg = ws.receive_json()
+                        received.append(msg)
+                        if msg.get("type") == "agent_message":
+                            break  # got what we need; exit so connection closes
             except Exception as e:
                 error.append(e)
 
@@ -249,9 +248,7 @@ def test_agent_sends_message_to_connected_user():
                 "session_id": session_id,
                 "content": "Zdravo, kako mogu pomoći?",
             })
-            time.sleep(0.5)  # allow message to propagate
-
-    t.join(timeout=5)
+            t.join(timeout=5)  # wait for user to receive before closing TestClient
 
     assert len(error) == 0, f"User thread raised: {error}"
     assert any(m.get("type") == "agent_message" for m in received)
@@ -294,12 +291,11 @@ def test_agent_typing_forwarded_to_user():
                 with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
-                    try:
-                        while True:
-                            msg = ws.receive_json()
-                            received.append(msg)
-                    except Exception:
-                        pass  # connection closed — stop collecting
+                    while True:
+                        msg = ws.receive_json()
+                        received.append(msg)
+                        if msg.get("type") == "agent_typing":
+                            break  # got what we need; exit so connection closes
             except Exception as e:
                 error.append(e)
 
@@ -316,9 +312,7 @@ def test_agent_typing_forwarded_to_user():
                 "session_id": session_id,
                 "is_typing": True,
             })
-            time.sleep(0.5)
-
-    t.join(timeout=5)
+            t.join(timeout=5)  # wait for user to receive before closing TestClient
 
     assert len(error) == 0, f"User thread raised: {error}"
     typing_msgs = [m for m in received if m.get("type") == "agent_typing"]
