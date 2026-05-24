@@ -5,6 +5,7 @@ from app.db.models.knowledge import (
     ChatSesija, Poruka, Odgovor, Feedback, Anomalija,
 )
 from app.db.models.escalation import Eskalacija, StatusAgenta
+from app.db.models.announcement import SistemskaPoruka
 
 __all__ = [
     "Korisnik", "UlogaTip",
@@ -12,4 +13,5 @@ __all__ = [
     "Kategorija", "BazaZnanja", "UnosBazeZnanja",
     "ChatSesija", "Poruka", "Odgovor", "Feedback", "Anomalija",
     "Eskalacija", "StatusAgenta",
+    "SistemskaPoruka",
 ]

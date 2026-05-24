@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import ChatHistory from "./ChatHistory";
 import RatingModal from "./RatingModal";
 import type { ChatMessage } from "../../types";
+import { announcementsApi, type Announcement } from "../../api/announcements";
 
 /* ── Laurel Wreath ── */
 const Laurel = ({ flip = false, size = 56 }: { flip?: boolean; size?: number }) => (
@@ -196,10 +197,15 @@ export default function ChatWindow() {
   const [micError, setMicError] = useState<string | null>(null);
   const [speechLang, setSpeechLang] = useState("bs-BA");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SR | null>(null);
   const inputBeforeRef = useRef("");
+
+  useEffect(() => {
+    announcementsApi.listActive().then((res) => setAnnouncements(res.data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -456,6 +462,50 @@ export default function ChatWindow() {
                 Cancel
               </button>
             )}
+          </div>
+        )}
+
+        {/* ── ANNOUNCEMENT BANNER ── */}
+        {announcements.length > 0 && (
+          <div
+            className="flex-shrink-0 px-6 sm:px-12 md:px-20 lg:px-32 xl:px-48 py-3 space-y-2"
+            style={{
+              background: "rgba(197,160,89,0.07)",
+              borderBottom: "1px solid rgba(197,160,89,0.2)",
+            }}
+          >
+            {announcements.map((a) => (
+              <div key={a.id} className="flex items-start gap-3">
+                <svg
+                  width={15}
+                  height={15}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#C5A059"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="flex-shrink-0 mt-0.5"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <div style={{ borderLeft: "2px solid rgba(197,160,89,0.5)", paddingLeft: 10 }}>
+                  {a.naslov && (
+                    <p
+                      className="font-cinzel text-xs font-semibold tracking-widest uppercase"
+                      style={{ color: "#8a6d1f", marginBottom: 2 }}
+                    >
+                      {a.naslov}
+                    </p>
+                  )}
+                  <p className="text-sm leading-relaxed" style={{ color: "#6b5a3a" }}>
+                    {a.tekst}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

@@ -12,6 +12,7 @@ import Issues from "./sections/Issues";
 import Training from "./sections/Training";
 import UsersSection from "./sections/UsersSection";
 import EscalationQueue from "./sections/EscalationQueue";
+import Announcements from "./sections/Announcements";
 
 const ESCALATION_ICON = (
   <>
@@ -30,7 +31,8 @@ const NAV = [
   { id: "ratings",     label: "Ratings",           icon: icons.ratings },
   { id: "issues",      label: "Issues",            icon: icons.issues },
   { id: "training",    label: "Training Dataset",  icon: icons.training },
-  { id: "users",       label: "Users",             icon: icons.users },
+  { id: "users",          label: "Users",             icon: icons.users },
+  { id: "announcements",  label: "Announcements",     icon: icons.announcements },
 ] as const;
 
 type NavId = (typeof NAV)[number]["id"];
@@ -92,8 +94,9 @@ export default function AdminShell() {
     />,
     ratings:     <Ratings />,
     issues:      <Issues />,
-    training:    <Training />,
-    users:       <UsersSection />,
+    training:       <Training />,
+    users:          <UsersSection />,
+    announcements:  <Announcements />,
   };
 
   const currentLabel = NAV.find((n) => n.id === active)?.label ?? "";
