@@ -1,5 +1,22 @@
-# Preostali User Stories — Sprint 9 i Sprint 10
+# Sprint Backlog — Sprint 9 
 
+## Opis sprinta
+
+Sprint 9 fokusira se na konsolidaciju sistema, poboljšanje kvaliteta podataka i isporuku završnih funkcionalnosti. Nakon što je Sprint 8 postavio end-to-end funkcionalan sistem, ovaj sprint ispravlja preostale tehničke nedostatke u obradi podataka, zaokružuje korisničko iskustvo kroz ocjenu razgovora i sistemske obavijesti, te uvodi upravljanje bazom znanja i optimizaciju performansi kao pripremu za produkcijsku isporuku.
+
+Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
+
+- poboljšanje maskiranja PII podataka — pokrivanje edge case formata JMBG-a i telefonskih brojeva koji nisu bili ispravno maskirani
+- poboljšanje ekstrakcije Q&A parova iz transkripata — eliminacija pogrešno ekstrahiranih parova koji degradiraju bazu znanja
+- ocjenu razgovora po završetku sesije — forma za numeričku ocjenu 1–5 umjesto thumbs-up/down po poruci
+- sistemske obavijesti u chatbotu — baner koji administrator može aktivirati za obavještavanje korisnika
+- ručni unos Q&A parova direktno u bazu znanja bez transkripata
+- pregled, uklanjanje i kuriranje sadržaja baze znanja
+- smanjenje latencije odgovora chatbota
+- poboljšanje vizualnog dizajna Chat UI-a
+- end-to-end i regresijsko testiranje sistema
+
+---
 
 
 ## Pregled user storija
@@ -10,18 +27,17 @@
 | 56.2 | Poboljšanje ekstrakcije Q&A parova iz transkripata | 9 | High | Poboljšava kvalitet baze znanja eliminacijom pogrešno ekstrahiranih parova koji degradiraju relevantnost odgovora chatbota |
 | 57.1 | Prikaz forme za ocjenu na kraju razgovora | 9 | High | Prikuplja relevantnu i promišljenu povratnu informaciju umjesto impulsivnih reakcija po svakoj poruci |
 | 58.1 | Prikaz banera o poznatim problemima ili planiranom održavanju | 9 | Medium | Proaktivno informiše korisnike o problemima, smanjuje frustraciju i broj nepotrebnih eskalacija |
-| 59.1 | Ručni unos Q&A para direktno u bazu znanja bez transkripata | 10 | High | Omogućava administratorima da odmah dodaju provjerene informacije bez potrebe za kreiranjem cijelog transkripata |
-| 60.1 | Pregled i uklanjanje nevažećih unosa iz baze znanja | 10 | High | Osigurava da baza znanja sadrži isključivo provjerene i relevantne informacije |
-| 60.2 | Kontinuirano poboljšanje baze znanja kroz kuriranje sadržaja | 10 | High | Osigurava da baza znanja ostane ažurna, tačna i relevantna kroz kontinuirani proces pregleda |
-| 61.1 | Smanjenje latencije odgovora chatbota | 10 | High | Poboljšava korisničko iskustvo eliminacijom dugog čekanja na odgovor |
-| 62.1 | Poboljšanje vizualnog dizajna Chat UI-a | 10 | Medium | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem |
-| 62.2 | Poboljšanje dizajna Admin panela | 10 | Medium | Čistiji admin panel smanjuje kognitivno opterećenje administratora i ubrzava svakodnevne zadatke |
-| 63.1 | Puno funkcionalno testiranje kritičnih putanja | 10 | High | Garantuje stabilnost sistema pred produkciju i sprečava regresije |
-| 63.2 | Regresijsko testiranje nakon ispravki grešaka | 10 | High | Sprečava ponovnu pojavu već riješenih grešaka i osigurava da nove ispravke ne narušavaju postojeću funkcionalnost |
+| 59.1 | Ručni unos Q&A para direktno u bazu znanja bez transkripata | 9 | High | Omogućava administratorima da odmah dodaju provjerene informacije bez potrebe za kreiranjem cijelog transkripata |
+| 60.1 | Pregled i uklanjanje nevažećih unosa iz baze znanja | 9 | High | Osigurava da baza znanja sadrži isključivo provjerene i relevantne informacije |
+| 60.2 | Kontinuirano poboljšanje baze znanja kroz kuriranje sadržaja | 9 | High | Osigurava da baza znanja ostane ažurna, tačna i relevantna kroz kontinuirani proces pregleda |
+| 61.1 | Smanjenje latencije odgovora chatbota | 9 | High | Poboljšava korisničko iskustvo eliminacijom dugog čekanja na odgovor |
+| 62.1 | Poboljšanje vizualnog dizajna Chat UI-a | 9 | Medium | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem |
+| 63.1 | Puno funkcionalno testiranje kritičnih putanja | 9 | High | Garantuje stabilnost sistema pred produkciju i sprečava regresije |
+| 63.2 | Regresijsko testiranje nakon ispravki grešaka | 9 | High | Sprečava ponovnu pojavu već riješenih grešaka i osigurava da nove ispravke ne narušavaju postojeću funkcionalnost |
 
 ---
 
-## Sprint 9
+## Sprint Backlog stavke
 
 ---
 
@@ -148,9 +164,6 @@ Zavisi od Sign In (PB-36). Vezano za PB-22 Chat UI.
 
 ---
 
-## Sprint 10
-
----
 
 ### PB-59 — Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata
 
@@ -306,33 +319,6 @@ Vezano za PB-22 Chat UI. Zavisi od Sign In (PB-36).
 
 ---
 
-#### User Story 62.2 — Poboljšanje dizajna Admin panela
-
-| Polje | Vrijednost |
-|---|---|
-| **ID** | 62.2 |
-| **Naziv** | Poboljšanje dizajna Admin panela |
-| **Sprint** | 10 |
-| **Prioritet** | Medium |
-| **Poslovna vrijednost** | Čistiji admin panel smanjuje kognitivno opterećenje administratora i ubrzava svakodnevne zadatke upravljanja sistemom |
-
-**Uloga:**
-Kao administrator, želim da admin panel ima preglednu navigaciju i konzistentan vizualni jezik kako bih efikasno upravljao sistemom.
-
-**Pretpostavke i otvorena pitanja:**
-Fokus na: sidebar navigacija, tabele s podacima, forme za unos i status indikatori. Otvoreno pitanje: Da li uvesti dark mode?
-
-**Veze sa drugim storyjima ili zavisnostima:**
-Zavisi od PB-43 Dashboard s aktuelnim podacima. Zavisi od Sign In (PB-36).
-
-**Acceptance Criteria:**
-- Sidebar navigacija mora jasno prikazivati aktivnu sekciju i grupirati srodne stavke
-- Tabele s podacima moraju imati konzistentan stil (zebra stripe, hover highlight, sortabilni naslovi)
-- Forme za unos moraju imati jasne labele, placeholder tekstove i vizualne indikatore validacije
-- Status badge-evi (Pending, Processing, Completed, Failed) moraju biti konzistentno obojeni kroz cijeli admin panel
-- Dizajn mora biti konzistentan s Chat UI-em (iste boje, isti komponenti)
-
----
 
 ### PB-63 — End-to-end testiranje sistema
 
