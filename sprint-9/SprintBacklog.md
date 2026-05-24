@@ -34,6 +34,10 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 | 62.1 | Poboljšanje vizualnog dizajna Chat UI-a | 9 | Medium | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem |
 | 63.1 | Puno funkcionalno testiranje kritičnih putanja | 9 | High | Garantuje stabilnost sistema pred produkciju i sprečava regresije |
 | 63.2 | Regresijsko testiranje nakon ispravki grešaka | 9 | High | Sprečava ponovnu pojavu već riješenih grešaka i osigurava da nove ispravke ne narušavaju postojeću funkcionalnost |
+| 64.1 | Promjena korisničkog imena iz User Settings | 9 | Medium | Omogućava korisniku ažuriranje vlastitog profila bez administratorske intervencije |
+| 64.2 | Brisanje cijele historije razgovora | 9 | Medium | Daje korisniku kontrolu nad vlastitim podacima i privatnošću |
+| 64.3 | Brisanje korisničkog naloga | 9 | Medium | Omogućava korisniku trajno uklanjanje naloga i svih asociranih podataka |
+| 65.1 | Brisanje pojedinačnog chata iz historije | 9 | Medium | Korisnik može selektivno ukloniti određene razgovore bez brisanja cijele historije |
 
 ---
 
@@ -377,3 +381,138 @@ Zavisi od US-56.1 i US-56.2 (bug fixovi). Zavisi od US-63.1.
 - Neuspješan regresijski test mora blokirati merge PR-a
 - Testovi moraju biti opisno nazvani prema grešci koju pokrivaju
 - Svi regresijski testovi moraju biti zeleni na main grani prije produkcijskog deploya
+
+---
+
+### PB-64 — User Settings
+
+**Prioritet:** Medium
+
+**Poslovna vrijednost:** Daje korisniku autonomiju nad vlastitim nalogom i podacima — može ažurirati ime, obrisati historiju razgovora ili trajno ukloniti nalog, bez potrebe za kontaktiranjem administratora.
+
+**Pretpostavke:** Korisnik je prijavljen u sistem. Brisanje naloga i historije su trajne akcije.
+
+**Veze i zavisnosti:** Zavisi od Sign In (PB-36). Zavisi od PB-49 Historija razgovora korisnika.
+
+---
+
+#### US-64.1 — Promjena korisničkog imena iz User Settings
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 64.1 |
+| **Naziv** | Promjena korisničkog imena iz User Settings |
+| **Sprint** | 9 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava korisniku ažuriranje vlastitog profila bez administratorske intervencije |
+
+**Uloga:**
+Kao korisnik, želim promijeniti svoje korisničko ime iz User Settings menija kako bih ažurirao podatke svog naloga.
+
+**Pretpostavke i otvorena pitanja:**
+Korisnik pristupa User Settings klikom na avatar u gornjem desnom uglu. Otvoreno pitanje: Da li novo ime mora biti jedinstveno u sistemu?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36).
+
+**Acceptance Criteria:**
+- Kada korisnik otvori User Settings i klikne "Change name", tada sistem mora prikazati polje za unos novog imena
+- Kada korisnik unese novo ime i potvrdi, tada sistem mora sačuvati promjenu i odmah je prikazati u UI-u
+- Sistem ne smije dozvoliti spremanje praznog imena
+- Nakon uspješne promjene sistem mora prikazati potvrdu
+
+---
+
+#### US-64.2 — Brisanje cijele historije razgovora
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 64.2 |
+| **Naziv** | Brisanje cijele historije razgovora |
+| **Sprint** | 9 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Daje korisniku kontrolu nad vlastitim podacima i privatnošću |
+
+**Uloga:**
+Kao korisnik, želim obrisati cijelu svoju historiju razgovora iz User Settings kako bih uklonio sve prethodne interakcije.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje historije je trajno i ne može se oporaviti.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-49 Historija razgovora korisnika.
+
+**Acceptance Criteria:**
+- Kada korisnik klikne "Delete all history", tada sistem mora prikazati dijalog za potvrdu akcije
+- Kada korisnik potvrdi, tada sistem mora trajno obrisati sve razgovore vezane za taj nalog
+- Nakon brisanja historija mora biti prazna s odgovarajućom porukom
+- Sistem ne smije obrisati historiju bez eksplicitne potvrde korisnika
+
+---
+
+#### US-64.3 — Brisanje korisničkog naloga
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 64.3 |
+| **Naziv** | Brisanje korisničkog naloga |
+| **Sprint** | 9 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Omogućava korisniku trajno uklanjanje naloga i svih asociranih podataka |
+
+**Uloga:**
+Kao korisnik, želim trajno obrisati vlastiti nalog iz User Settings kako bih uklonio sve svoje podatke iz sistema.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje naloga je trajno. Otvoreno pitanje: Da li se brišu i svi razgovori tog korisnika ili ostaju u sistemu bez vlasnika?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od US-64.2.
+
+**Acceptance Criteria:**
+- Kada korisnik klikne "Delete account", tada sistem mora prikazati dijalog za potvrdu s jasnim upozorenjem da je akcija trajna
+- Kada korisnik potvrdi, tada sistem mora obrisati nalog, sve sesije i preusmjeriti korisnika na stranicu za prijavu
+- Sistem ne smije dozvoliti brisanje naloga bez eksplicitne potvrde
+- Nakon brisanja korisnik ne smije moći pristupiti sistemu s istim kredencijalima
+
+---
+
+### PB-65 — Brisanje pojedinačnog chata iz historije
+
+**Prioritet:** Medium
+
+**Poslovna vrijednost:** Korisnik može selektivno ukloniti određene razgovore iz historije bez brisanja svih podataka, što daje finiju kontrolu nad privatnošću.
+
+**Pretpostavke:** Korisnik je prijavljen i ima barem jedan razgovor u historiji.
+
+**Veze i zavisnosti:** Zavisi od PB-49 Historija razgovora korisnika. Zavisi od PB-36 Sign In.
+
+---
+
+#### US-65.1 — Brisanje pojedinačnog chata iz historije
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 65.1 |
+| **Naziv** | Brisanje pojedinačnog chata iz historije |
+| **Sprint** | 9 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Korisnik može selektivno ukloniti određene razgovore bez brisanja cijele historije |
+
+**Uloga:**
+Kao korisnik, želim obrisati specifičan chat iz historije razgovora kako bih uklonio samo određene interakcije koje više ne trebam.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje chata je trajno. Opcija "Delete chat" pojavljuje se na desni klik ili long press na chat u listi historije.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-49 Historija razgovora korisnika. Zavisi od US-64.2.
+
+**Acceptance Criteria:**
+- Kada korisnik desnim klikom (ili long press) odabere chat iz historije, tada sistem mora prikazati opciju "Delete chat"
+- Kada korisnik klikne "Delete chat", tada sistem mora prikazati dijalog za potvrdu
+- Kada korisnik potvrdi, tada sistem mora trajno obrisati taj razgovor i ukloniti ga iz liste historije
+- Ostali razgovori moraju ostati nepromijenjeni
+- Sistem ne smije obrisati chat bez eksplicitne potvrde korisnika
+- Nakon brisanja sistem mora prikazati ažuriranu listu historije bez obrisanog chata
+
