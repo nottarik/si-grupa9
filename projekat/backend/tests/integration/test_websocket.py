@@ -29,6 +29,7 @@ def _run_async(coro):
     try:
         return loop.run_until_complete(coro)
     finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
 
 
@@ -220,22 +221,21 @@ def test_agent_sends_message_to_connected_user():
     received = []
     error = []
 
-    def user_thread():
-        try:
-            with TestClient(app) as c:
-                with c.websocket_connect(
+    with TestClient(app) as client:
+        def user_thread():
+            try:
+                with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
                     msg = ws.receive_json()
                     received.append(msg)
-        except Exception as e:
-            error.append(e)
+            except Exception as e:
+                error.append(e)
 
-    t = threading.Thread(target=user_thread, daemon=True)
-    t.start()
-    time.sleep(0.3)  # allow user to connect first
+        t = threading.Thread(target=user_thread, daemon=True)
+        t.start()
+        time.sleep(0.5)  # allow user to connect first
 
-    with TestClient(app) as client:
         with client.websocket_connect(
             f"/api/v1/escalation/ws/escalation?token={agent_token}"
         ) as ws:
@@ -245,9 +245,9 @@ def test_agent_sends_message_to_connected_user():
                 "session_id": session_id,
                 "content": "Zdravo, kako mogu pomoći?",
             })
-            time.sleep(0.3)  # allow message to propagate
+            time.sleep(0.5)  # allow message to propagate
 
-    t.join(timeout=3)
+    t.join(timeout=5)
 
     assert len(error) == 0, f"User thread raised: {error}"
     assert any(m.get("type") == "agent_message" for m in received)
@@ -284,22 +284,21 @@ def test_agent_typing_forwarded_to_user():
     received = []
     error = []
 
-    def user_thread():
-        try:
-            with TestClient(app) as c:
-                with c.websocket_connect(
+    with TestClient(app) as client:
+        def user_thread():
+            try:
+                with client.websocket_connect(
                     f"/api/v1/escalation/ws/chat/{session_id}?token={user_token}"
                 ) as ws:
                     msg = ws.receive_json()
                     received.append(msg)
-        except Exception as e:
-            error.append(e)
+            except Exception as e:
+                error.append(e)
 
-    t = threading.Thread(target=user_thread, daemon=True)
-    t.start()
-    time.sleep(0.3)
+        t = threading.Thread(target=user_thread, daemon=True)
+        t.start()
+        time.sleep(0.5)
 
-    with TestClient(app) as client:
         with client.websocket_connect(
             f"/api/v1/escalation/ws/escalation?token={agent_token}"
         ) as ws:
@@ -309,9 +308,9 @@ def test_agent_typing_forwarded_to_user():
                 "session_id": session_id,
                 "is_typing": True,
             })
-            time.sleep(0.3)
+            time.sleep(0.5)
 
-    t.join(timeout=3)
+    t.join(timeout=5)
 
     assert len(error) == 0, f"User thread raised: {error}"
     typing_msgs = [m for m in received if m.get("type") == "agent_typing"]
