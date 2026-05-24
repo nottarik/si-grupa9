@@ -40,3 +40,13 @@ class EmbeddingService:
         model = get_model()
         vectors = model.encode(texts, normalize_embeddings=True, batch_size=32)
         return vectors.tolist()
+
+
+_embedding_instance: EmbeddingService | None = None
+
+
+def get_embedding_service() -> EmbeddingService:
+    global _embedding_instance
+    if _embedding_instance is None:
+        _embedding_instance = EmbeddingService()
+    return _embedding_instance

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { listSessions, getSessionMessages, type SessionSummary } from "../../api/chat";
+import { useEffect, useRef, useState } from "react";
+import { listSessions, getSessionMessages, deleteSession, type SessionSummary } from "../../api/chat";
 import type { ChatMessage } from "../../types";
 
 interface Props {
@@ -7,6 +7,13 @@ interface Props {
   onToggle: () => void;
   onLoadSession: (messages: ChatMessage[], sessionId: number, isClosed: boolean) => void;
   currentSessionId: number | null;
+  onSessionDeleted?: (sessionId: number) => void;
+}
+
+interface ContextMenu {
+  x: number;
+  y: number;
+  session: SessionSummary;
 }
 
 function timeLabel(iso: string | null): string {
@@ -21,10 +28,13 @@ function timeLabel(iso: string | null): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSessionId }: Props) {
+export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSessionId, onSessionDeleted }: Props) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,6 +45,17 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
         .finally(() => setLoading(false));
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    function close(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
+    }
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [contextMenu]);
 
   async function handleClick(session: SessionSummary) {
     if (session.id === currentSessionId) return;
@@ -50,6 +71,34 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
       // ignore
     } finally {
       setLoadingId(null);
+    }
+  }
+
+  function handleContextMenu(e: React.MouseEvent, session: SessionSummary) {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, session });
+  }
+
+  async function handleDelete() {
+    if (!contextMenu) return;
+    const { session } = contextMenu;
+    setContextMenu(null);
+    setDeletingId(session.id);
+    setSessions((prev) => prev.filter((s) => s.id !== session.id));
+    try {
+      await deleteSession(session.id);
+      onSessionDeleted?.(session.id);
+    } catch {
+      setSessions((prev) => {
+        if (prev.find((s) => s.id === session.id)) return prev;
+        return [...prev, session].sort((a, b) => {
+          const ta = a.started_at ? new Date(a.started_at).getTime() : 0;
+          const tb = b.started_at ? new Date(b.started_at).getTime() : 0;
+          return tb - ta;
+        });
+      });
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -123,13 +172,14 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
             <button
               key={s.id}
               onClick={() => handleClick(s)}
-              disabled={loadingId === s.id}
+              onContextMenu={(e) => handleContextMenu(e, s)}
+              disabled={loadingId === s.id || deletingId === s.id}
               className="w-full text-left px-4 py-3 transition-colors"
               style={{
                 background: s.id === currentSessionId ? "rgba(197,160,89,0.1)" : "transparent",
                 borderBottom: "1px solid rgba(197,160,89,0.08)",
                 cursor: s.id === currentSessionId ? "default" : "pointer",
-                opacity: loadingId === s.id ? 0.5 : 1,
+                opacity: loadingId === s.id || deletingId === s.id ? 0.4 : 1,
               }}
               onMouseEnter={(e) => {
                 if (s.id !== currentSessionId) (e.currentTarget.style.background = "rgba(197,160,89,0.06)");
@@ -189,6 +239,40 @@ export default function ChatHistory({ isOpen, onToggle, onLoadSession, currentSe
           style={{ background: "rgba(0,0,0,0.1)" }}
           onClick={onToggle}
         />
+      )}
+
+      {/* Right-click context menu */}
+      {contextMenu && (
+        <div
+          ref={menuRef}
+          className="fixed z-[60]"
+          style={{
+            top: contextMenu.y,
+            left: contextMenu.x,
+            background: "rgba(255,255,255,0.97)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(197,160,89,0.25)",
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            minWidth: 140,
+            overflow: "hidden",
+          }}
+        >
+          <button
+            onClick={handleDelete}
+            className="w-full text-left px-4 py-2.5 text-sm transition-colors"
+            style={{
+              color: "#dc2626",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(220,38,38,0.06)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            Delete chat
+          </button>
+        </div>
       )}
     </>
   );

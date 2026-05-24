@@ -93,13 +93,13 @@ async def create_manual_qa(
     await db.flush()
 
     try:
-        from app.services.ai.embedding_service import EmbeddingService
-        from app.services.ai.vector_store import VectorStoreService
+        from app.services.ai.embedding_service import get_embedding_service
+        from app.services.ai.vector_store import get_vector_store
 
-        vector = await asyncio.to_thread(EmbeddingService().embed, item.pitanje)
+        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
         vector_id = str(uuid.uuid4())
         await asyncio.to_thread(
-            VectorStoreService().index_item,
+            get_vector_store().index_item,
             vector_id,
             vector,
             {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
@@ -155,13 +155,13 @@ async def update_item(
     item.id_kategorije = body.id_kategorije
 
     try:
-        from app.services.ai.embedding_service import EmbeddingService
-        from app.services.ai.vector_store import VectorStoreService
+        from app.services.ai.embedding_service import get_embedding_service
+        from app.services.ai.vector_store import get_vector_store
 
-        vector = await asyncio.to_thread(EmbeddingService().embed, item.pitanje)
+        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
         vector_id = item.vector_id or str(uuid.uuid4())
         await asyncio.to_thread(
-            VectorStoreService().index_item,
+            get_vector_store().index_item,
             vector_id,
             vector,
             {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
@@ -189,8 +189,8 @@ async def delete_item(
 
     if item.vector_id:
         try:
-            from app.services.ai.vector_store import VectorStoreService
-            await asyncio.to_thread(VectorStoreService().delete_item, item.vector_id)
+            from app.services.ai.vector_store import get_vector_store
+            await asyncio.to_thread(get_vector_store().delete_item, item.vector_id)
         except Exception:
             logger.warning("Qdrant delete failed for item %s; proceeding with DB soft-delete.", item_id)
 
@@ -217,14 +217,14 @@ async def approve_item(
     # Embed and index into Qdrant now that the item is approved.
     # Done here (one item at a time) rather than during upload to avoid OOM.
     try:
-        from app.services.ai.embedding_service import EmbeddingService
-        from app.services.ai.vector_store import VectorStoreService
+        from app.services.ai.embedding_service import get_embedding_service
+        from app.services.ai.vector_store import get_vector_store
 
-        vector = await asyncio.to_thread(EmbeddingService().embed, item.pitanje)
+        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
         vector_id = str(uuid.uuid4())
 
         await asyncio.to_thread(
-            VectorStoreService().index_item,
+            get_vector_store().index_item,
             vector_id,
             vector,
             {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
@@ -285,10 +285,10 @@ async def reindex_all(
     ok, failed = 0, 0
     for item in items:
         try:
-            vector = await asyncio.to_thread(EmbeddingService().embed, item.pitanje)
+            vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
             vector_id = item.vector_id or str(uuid.uuid4())
             await asyncio.to_thread(
-                VectorStoreService().index_item,
+                get_vector_store().index_item,
                 vector_id,
                 vector,
                 {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
@@ -308,10 +308,9 @@ async def debug_qdrant(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):
-    from app.services.ai.embedding_service import EmbeddingService
-    from app.services.ai.vector_store import VectorStoreService
+    from app.services.ai.vector_store import get_vector_store
 
-    vs = VectorStoreService()
+    vs = get_vector_store()
     try:
         info = vs.client.get_collection(vs.collection)
         collection_info = {
@@ -324,7 +323,7 @@ async def debug_qdrant(
         collection_info = {"error": str(exc)}
 
     try:
-        vector = await asyncio.to_thread(EmbeddingService().embed, q)
+        vector = await asyncio.to_thread(get_embedding_service().embed, q)
         hits = await asyncio.to_thread(vs.search, vector, 5)
         search_results = [
             {"score": round(h.score, 4), "payload": h.payload}

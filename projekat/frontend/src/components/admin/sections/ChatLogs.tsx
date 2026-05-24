@@ -24,12 +24,17 @@ function Stars({ n }: { n: number | null }) {
   );
 }
 
-export default function ChatLogs() {
+interface Props {
+  initialSearch?: string;
+  initialDate?: string;
+}
+
+export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
-  const [date, setDate] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+  const [date, setDate] = useState(initialDate);
   const [minRating, setMinRating] = useState("");
 
   useSubViewBack(open !== null, () => setOpen(null));

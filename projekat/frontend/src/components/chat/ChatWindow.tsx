@@ -4,6 +4,7 @@ import { useChat } from "../../hooks/useChat";
 import { useAuth } from "../../hooks/useAuth";
 import ChatHistory from "./ChatHistory";
 import RatingModal from "./RatingModal";
+import UserMenu from "./UserMenu";
 import type { ChatMessage } from "../../types";
 import { announcementsApi, type Announcement } from "../../api/announcements";
 
@@ -189,7 +190,7 @@ export default function ChatWindow() {
     isSessionClosed, showRatingModal, showInactivityNudge,
     endConversation, submitSessionRating, dismissRating,
   } = useChat();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [input, setInput] = useState("");
@@ -339,6 +340,9 @@ export default function ChatWindow() {
         onToggle={() => setHistoryOpen((v) => !v)}
         onLoadSession={loadSession}
         currentSessionId={sessionId}
+        onSessionDeleted={(deletedId) => {
+          if (deletedId === sessionId) clearMessages();
+        }}
       />
       <div className="flex flex-col h-full w-full">
 
@@ -361,22 +365,13 @@ export default function ChatWindow() {
             {/* Right actions */}
             <div className="flex-shrink-0 flex items-center gap-3 ml-4">
               {user?.role === "admin" && (
-                <>
-                  <a
-                    href="/admin"
-                    className="text-xs transition-colors"
-                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
-                  >
-                    Admin
-                  </a>
-                  <a
-                    href="/agent"
-                    className="text-xs transition-colors"
-                    style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
-                  >
-                    Agent
-                  </a>
-                </>
+                <a
+                  href="/admin"
+                  className="text-xs transition-colors"
+                  style={{ color: "rgba(197,160,89,0.7)", fontFamily: "Inter, sans-serif", textDecoration: "none" }}
+                >
+                  Admin
+                </a>
               )}
               {user?.role === "agent" && (
                 <a
@@ -414,19 +409,14 @@ export default function ChatWindow() {
                   End chat
                 </button>
               )}
-              <button
-                onClick={handleLogout}
-                style={{
-                  color: "rgba(197,160,89,0.75)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: 12,
-                }}
-              >
-                Logout
-              </button>
+              {user && (
+                <UserMenu
+                  user={user}
+                  onLogout={handleLogout}
+                  onRefreshUser={refreshUser}
+                  onHistoryDeleted={clearMessages}
+                />
+              )}
             </div>
           </div>
         </header>

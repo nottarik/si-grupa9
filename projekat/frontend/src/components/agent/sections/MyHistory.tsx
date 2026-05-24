@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { escalationApi, EscalationItem } from "../../../api/escalation";
-import { StatusBadge } from "../../admin/shared";
+import { Stars, StatusBadge } from "../../admin/shared";
 import { PRIORITY_LABELS, TRIGGER_LABELS } from "../../escalation/EscalationCard";
 
 export default function MyHistory() {
@@ -78,7 +78,20 @@ export default function MyHistory() {
                     }
                   >
                     <td className="font-mono text-xs text-gray-400">{e.id}</td>
-                    <td className="text-sm text-charcoal">{e.tema ?? "—"}</td>
+                    <td className="text-sm text-charcoal">
+                      <span className="flex items-center gap-1.5">
+                        {e.tema ?? "—"}
+                        {e.sesija_feedback?.comment && (
+                          <span
+                            title={`"${e.sesija_feedback.comment}"`}
+                            className="inline-flex items-center justify-center rounded-full text-white"
+                            style={{ background: "#C5A059", width: 16, height: 16, fontSize: 9, flexShrink: 0 }}
+                          >
+                            ✦
+                          </span>
+                        )}
+                      </span>
+                    </td>
                     <td className="text-sm">{PRIORITY_LABELS[e.prioritet] ?? e.prioritet}</td>
                     <td className="text-xs text-gray-400">
                       {TRIGGER_LABELS[e.trigger_tip ?? ""] ?? e.trigger_tip ?? "—"}
@@ -107,6 +120,25 @@ export default function MyHistory() {
                                 Resolution Note
                               </div>
                               <p className="text-sm text-charcoal">{e.napomena_rjesavanja}</p>
+                            </div>
+                          )}
+
+                          {e.sesija_feedback && (
+                            <div>
+                              <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">
+                                User Feedback
+                              </div>
+                              <div
+                                className="rounded-lg px-4 py-3"
+                                style={{ background: "rgba(249,245,239,0.7)", border: "1px solid rgba(197,160,89,0.15)" }}
+                              >
+                                {e.sesija_feedback.rating !== null && (
+                                  <Stars n={e.sesija_feedback.rating} />
+                                )}
+                                {e.sesija_feedback.comment && (
+                                  <p className="text-sm text-charcoal mt-1">"{e.sesija_feedback.comment}"</p>
+                                )}
+                              </div>
                             </div>
                           )}
 

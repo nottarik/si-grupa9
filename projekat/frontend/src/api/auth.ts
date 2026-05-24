@@ -25,3 +25,16 @@ export async function getMe(): Promise<User> {
   const { data } = await apiClient.get<User>("/api/v1/auth/me");
   return data;
 }
+
+export async function updateMe(full_name: string): Promise<User> {
+  const { data } = await apiClient.patch<User>("/api/v1/auth/me", { full_name });
+  return data;
+}
+
+export async function deleteMyHistory(): Promise<void> {
+  await apiClient.delete("/api/v1/auth/me/history");
+}
+
+export async function deleteMyAccount(): Promise<void> {
+  await apiClient.delete("/api/v1/auth/me");
+}

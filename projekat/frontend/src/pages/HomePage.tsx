@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import UserMenu from "../components/chat/UserMenu";
 import { listSessions, getSessionMessages, type SessionSummary } from "../api/chat";
 import type { ChatMessage } from "../types";
 
@@ -39,7 +40,7 @@ function timeLabel(iso: string | null): string {
 }
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -48,7 +49,6 @@ export default function HomePage() {
   const didLoad = useRef(false);
 
   const firstName = user?.full_name?.split(" ")[0] ?? user?.email ?? "there";
-  const initial = (user?.full_name || user?.email || "A").charAt(0).toUpperCase();
 
   useEffect(() => {
     if (didLoad.current) return;
@@ -129,28 +129,14 @@ export default function HomePage() {
                 </a>
               </>
             )}
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white font-cinzel font-bold text-xs"
-              style={{
-                background: "radial-gradient(circle at 38% 35%,#e8cc80,#c5a059,#8a6d1f)",
-                boxShadow: "0 2px 6px rgba(197,160,89,0.3)",
-              }}
-            >
-              {initial}
-            </div>
-            <button
-              onClick={handleLogout}
-              style={{
-                color: "rgba(197,160,89,0.75)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "Inter, sans-serif",
-                fontSize: 12,
-              }}
-            >
-              Logout
-            </button>
+            {user && (
+              <UserMenu
+                user={user}
+                onLogout={handleLogout}
+                onRefreshUser={refreshUser}
+                onHistoryDeleted={() => setSessions([])}
+              />
+            )}
           </div>
         </div>
       </header>
@@ -309,18 +295,6 @@ export default function HomePage() {
                     <strong>Talk to a human</strong> — If the assistant can't help, click
                     "Talk to agent" on any response or use the mic button to speak your
                     request. A call-center agent will be connected to you.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <span
-                    className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white font-cinzel"
-                    style={{ background: "radial-gradient(circle at 38% 35%,#e8cc80,#c5a059,#8a6d1f)" }}
-                  >
-                    3
-                  </span>
-                  <p>
-                    <strong>Rate responses</strong> — Use 👍 / 👎 on any assistant message to
-                    help improve the knowledge base over time.
                   </p>
                 </div>
               </div>

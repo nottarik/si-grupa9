@@ -19,6 +19,13 @@ _ESCALATION_REQUEST_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Pronouns/references that indicate the question depends on prior context
+_CONTEXT_REF_RE = re.compile(
+    r'^\s*(it|they|them|that|this|those|these)\b'       # starts with pronoun
+    r'|\b(it|they|them|their)\s+(is|are|was|were|does|did|has|have|will|would|can|could)\b',  # pronoun as subject
+    re.IGNORECASE,
+)
+
 _EXPLICIT_ESCALATION_MSG = "Of course! Let me connect you with a support agent right away. Please hold on while we find someone available for you."
 from datetime import datetime, timezone
 from uuid import UUID
@@ -29,9 +36,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.models.knowledge import Anomalija, ChatSesija, Poruka, Odgovor
 from app.schemas.chat import ChatResponse
-from app.services.ai.embedding_service import EmbeddingService
-from app.services.ai.llm_service import LLMService
-from app.services.ai.vector_store import VectorStoreService
+from app.services.ai.embedding_service import get_embedding_service
+from app.services.ai.llm_service import get_llm_service
+from app.services.ai.vector_store import get_vector_store
 
 _CONNECT_AGENT_MSG = "I don't have enough information in my knowledge base to answer that. Let me connect you with a support agent who can help."
 
@@ -54,6 +61,16 @@ def _strip_pii(text: str) -> str:
     return cleaned
 
 
+def _needs_rewrite(question: str, history: list) -> bool:
+    """Only rewrite when the question references prior context via pronouns or is very short."""
+    if len(history) < 2:
+        return False
+    words = question.split()
+    if len(words) <= 4:
+        return True
+    return bool(_CONTEXT_REF_RE.search(question))
+
+
 class RagService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -70,10 +87,14 @@ class RagService:
 
         t_start = time.perf_counter()
 
-        llm = LLMService()
+        llm = get_llm_service()
+        embedding_svc = get_embedding_service()
+        vector_store = get_vector_store()
         trimmed_history = (history or [])[-6:]
 
-        # --- Classify intent: smalltalk / domain / out_of_scope / escalation_request ---
+        # --- Classify intent ---
+        prefetched_vector: list[float] | None = None
+
         if _INJECTION_RE.search(question):
             intent = "out_of_scope"
             logger.info("Prompt injection detected, short-circuiting: %r", question[:100])
@@ -81,13 +102,18 @@ class RagService:
             intent = "escalation_request"
             logger.info("Explicit escalation request detected: %r", question[:100])
         else:
+            # Classify intent and pre-embed the question in parallel — both are independent
             t_intent = time.perf_counter()
-            try:
-                intent = await asyncio.to_thread(llm.classify_intent, question)
-            except Exception as exc:
-                logger.warning("Intent classification failed, assuming domain: %s", exc)
-                intent = "domain"
-            logger.info("PERF intent_classify=%.0fms", (time.perf_counter() - t_intent) * 1000)
+            results = await asyncio.gather(
+                asyncio.to_thread(llm.classify_intent, question),
+                asyncio.to_thread(embedding_svc.embed, question),
+                return_exceptions=True,
+            )
+            intent = results[0] if not isinstance(results[0], Exception) else "domain"
+            prefetched_vector = results[1] if not isinstance(results[1], Exception) else None
+            if isinstance(results[0], Exception):
+                logger.warning("Intent classification failed, assuming domain: %s", results[0])
+            logger.info("PERF intent_classify+embed=%.0fms", (time.perf_counter() - t_intent) * 1000)
 
         logger.info("Intent classification: %r → %s", question[:80], intent)
 
@@ -123,9 +149,9 @@ class RagService:
         else:
             # Domain question — attempt RAG retrieval
 
-            # Query rewriting (only useful with enough context)
+            # Query rewriting — only when history exists AND question references prior context
             search_query = question
-            if len(trimmed_history) >= 2:
+            if _needs_rewrite(question, trimmed_history):
                 try:
                     search_query = await asyncio.to_thread(
                         llm.rewrite_query, question, trimmed_history
@@ -134,15 +160,19 @@ class RagService:
                 except Exception as exc:
                     logger.warning("Query rewrite failed, using original: %s", exc)
 
-            # Retrieval
+            # Use the pre-fetched embedding when the query wasn't rewritten
             try:
-                t_embed = time.perf_counter()
-                vector = await asyncio.to_thread(EmbeddingService().embed, search_query)
-                logger.info("PERF embed=%.0fms", (time.perf_counter() - t_embed) * 1000)
+                if prefetched_vector is not None and search_query == question:
+                    vector = prefetched_vector
+                    logger.info("PERF embed=0ms (prefetched)")
+                else:
+                    t_embed = time.perf_counter()
+                    vector = await asyncio.to_thread(embedding_svc.embed, search_query)
+                    logger.info("PERF embed=%.0fms", (time.perf_counter() - t_embed) * 1000)
 
                 t_search = time.perf_counter()
                 hits = await asyncio.to_thread(
-                    VectorStoreService().search, vector, settings.RAG_TOP_K
+                    vector_store.search, vector, settings.RAG_TOP_K
                 )
                 logger.info("PERF vector_search=%.0fms", (time.perf_counter() - t_search) * 1000)
             except Exception as exc:
@@ -159,13 +189,11 @@ class RagService:
             )
 
             if not hits or confidence < settings.RAG_CONFIDENCE_THRESHOLD_LOW:
-                # Very low confidence or no results — escalate to agent
                 answer_text = _CONNECT_AGENT_MSG
                 metoda = "Fallback"
                 needs_escalation = True
 
             else:
-                # Build context from top hits
                 context_parts = []
                 for h in hits:
                     p = h.payload
@@ -198,7 +226,7 @@ class RagService:
                     needs_escalation = not bool(best_answer)
                     metoda = "Retrieval"
 
-        # Total pipeline latency (embed + search + LLM + any overhead)
+        # Total pipeline latency
         latencija_ms = int((time.perf_counter() - t_start) * 1000)
         logger.info(
             "PERF total=%.0fms intent=%s method=%s confidence=%.3f",

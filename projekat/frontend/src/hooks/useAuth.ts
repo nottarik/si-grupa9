@@ -54,5 +54,10 @@ export function useAuth() {
     setState({ user: null, isLoading: false, isAuthenticated: false });
   }, []);
 
-  return { ...state, login, register, logout };
+  const refreshUser = useCallback(async () => {
+    const user = await getMe();
+    setState((prev) => ({ ...prev, user }));
+  }, []);
+
+  return { ...state, login, register, logout, refreshUser };
 }

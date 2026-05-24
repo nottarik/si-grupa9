@@ -9,6 +9,7 @@ export interface RatingsStats {
   distribution: Record<string, number>;
   trend: Array<{ date: string; avg: number }>;
   top_rated: Array<{ question: string; rating: number; date: string }>;
+  recent_comments: Array<{ comment: string; rating: number | null; date: string | null; question: string | null; sesija_id: number | null }>;
 }
 
 export interface SessionSummary {
@@ -68,4 +69,13 @@ export async function closeSession(sessionId: number): Promise<void> {
 
 export async function rateSession(sessionId: number, rating: number, comment?: string): Promise<void> {
   await apiClient.post(`/api/v1/chat/sessions/${sessionId}/rate`, { rating, comment });
+}
+
+export async function deleteSession(sessionId: number): Promise<void> {
+  await apiClient.delete(`/api/v1/chat/sessions/${sessionId}`);
+}
+
+export async function adminGetSessionMessages(sessionId: number): Promise<{ session_id: number; messages: Array<{ role: string; content: string; timestamp: string | null }> }> {
+  const { data } = await apiClient.get(`/api/v1/chat/admin/sessions/${sessionId}/messages`);
+  return data;
 }

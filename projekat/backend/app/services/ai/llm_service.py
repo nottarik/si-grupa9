@@ -75,7 +75,7 @@ class LLMService:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            max_tokens=512,
+            max_tokens=350,
             temperature=0.2,
         )
         return response.choices[0].message.content
@@ -102,13 +102,13 @@ class LLMService:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
-            max_tokens=256,
+            max_tokens=150,
             temperature=0.1,
         )
         return response.choices[0].message.content
 
     def classify_intent(self, question: str) -> str:
-        """Returns 'smalltalk', 'domain', or 'out_of_scope'."""
+        """Returns 'smalltalk', 'domain', 'out_of_scope', or 'escalation_request'."""
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -126,3 +126,13 @@ class LLMService:
         if "escalation_request" in raw or "escalation request" in raw:
             return "escalation_request"
         return "domain"
+
+
+_llm_instance: LLMService | None = None
+
+
+def get_llm_service() -> LLMService:
+    global _llm_instance
+    if _llm_instance is None:
+        _llm_instance = LLMService()
+    return _llm_instance

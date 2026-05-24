@@ -255,7 +255,27 @@ async def get_my_history(
         .offset(offset)
     )
     items = result.scalars().all()
-    return [_eskal_dict(e) for e in items]
+
+    from app.db.models.knowledge import Feedback
+    output = []
+    for e in items:
+        d = _eskal_dict(e)
+        fb = (await db.execute(
+            select(Feedback.ocjena, Feedback.komentar)
+            .where(
+                Feedback.id_sesije == e.sesija_id,
+                Feedback.komentar.isnot(None),
+                Feedback.komentar != "",
+            )
+            .order_by(Feedback.timestamp.desc())
+            .limit(1)
+        )).first()
+        d["sesija_feedback"] = {
+            "rating": int(fb.ocjena) if fb and fb.ocjena is not None else None,
+            "comment": fb.komentar if fb else None,
+        } if fb else None
+        output.append(d)
+    return output
 
 
 @router.get("/{escalation_id}")

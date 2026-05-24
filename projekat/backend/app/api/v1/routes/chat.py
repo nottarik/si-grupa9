@@ -209,6 +209,33 @@ async def ratings_stats(
         for row in top_rows
     ]
 
+    comment_rows = (
+        await db.execute(
+            select(
+                Feedback.ocjena,
+                Feedback.komentar,
+                Feedback.timestamp,
+                Feedback.id_sesije,
+                Poruka.tekst.label("question"),
+            )
+            .outerjoin(Odgovor, Feedback.id_odgovora == Odgovor.id)
+            .outerjoin(Poruka, Odgovor.id_poruke == Poruka.id)
+            .where(Feedback.komentar.isnot(None), Feedback.komentar != "")
+            .order_by(Feedback.timestamp.desc())
+            .limit(20)
+        )
+    ).all()
+    recent_comments = [
+        {
+            "comment": row.komentar,
+            "rating": int(row.ocjena) if row.ocjena is not None else None,
+            "date": row.timestamp.strftime("%Y-%m-%d") if row.timestamp else None,
+            "question": row.question,
+            "sesija_id": row.id_sesije,
+        }
+        for row in comment_rows
+    ]
+
     return {
         "average_score": avg_score,
         "total_rated": total,
@@ -217,6 +244,7 @@ async def ratings_stats(
         "distribution": distribution,
         "trend": trend,
         "top_rated": top_rated,
+        "recent_comments": recent_comments,
     }
 
 
@@ -366,6 +394,49 @@ async def get_session_messages(
     return {"session_id": session_id, "is_closed": sess.status == "Zatvorena", "messages": messages}
 
 
+@router.get("/admin/sessions/{session_id}/messages")
+async def admin_get_session_messages(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_admin),
+):
+    """Admin endpoint: get all messages for any session (no ownership check)."""
+    from app.db.models.knowledge import ChatSesija, Poruka, Odgovor
+    from fastapi import HTTPException
+
+    sess = (await db.execute(
+        select(ChatSesija).where(ChatSesija.id == session_id)
+    )).scalar_one_or_none()
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    rows = (await db.execute(
+        select(Poruka)
+        .where(Poruka.id_sesije == session_id)
+        .order_by(Poruka.timestamp_msg.asc())
+    )).scalars().all()
+
+    messages = []
+    for p in rows:
+        messages.append({
+            "role": "user",
+            "content": p.tekst,
+            "timestamp": p.timestamp_msg.isoformat() if p.timestamp_msg else None,
+        })
+        if p.id_odgovora:
+            odg = (await db.execute(
+                select(Odgovor).where(Odgovor.id == p.id_odgovora)
+            )).scalar_one_or_none()
+            if odg:
+                messages.append({
+                    "role": "assistant",
+                    "content": odg.tekst_odgovora,
+                    "timestamp": None,
+                })
+
+    return {"session_id": session_id, "messages": messages}
+
+
 @router.post("/sessions/{session_id}/close")
 async def close_session(
     session_id: int,
@@ -389,6 +460,58 @@ async def close_session(
         sess.status = "Zatvorena"
         sess.datum_zavrsetka = datetime.now(timezone.utc)
         await db.commit()
+    return {"ok": True}
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(get_current_user),
+):
+    from app.db.models.knowledge import ChatSesija, Poruka, Odgovor, Feedback, Anomalija
+    from app.db.models.escalation import Eskalacija
+    from fastapi import HTTPException
+    from sqlalchemy import update as sa_update, delete as sa_delete
+
+    sess = (await db.execute(
+        select(ChatSesija).where(
+            ChatSesija.id == session_id,
+            ChatSesija.id_korisnika == current_user.id,
+        )
+    )).scalar_one_or_none()
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    poruka_ids = list((await db.execute(
+        select(Poruka.id).where(Poruka.id_sesije == session_id)
+    )).scalars().all())
+
+    odgovor_ids: list = []
+    if poruka_ids:
+        odgovor_ids = list((await db.execute(
+            select(Odgovor.id).where(Odgovor.id_poruke.in_(poruka_ids))
+        )).scalars().all())
+
+    # Nullify Anomalija references before deleting
+    if poruka_ids:
+        await db.execute(sa_update(Anomalija).where(Anomalija.id_poruke.in_(poruka_ids)).values(id_poruke=None))
+    if odgovor_ids:
+        await db.execute(sa_update(Anomalija).where(Anomalija.id_odgovora.in_(odgovor_ids)).values(id_odgovora=None))
+        await db.execute(sa_delete(Feedback).where(Feedback.id_odgovora.in_(odgovor_ids)))
+
+    await db.execute(sa_delete(Feedback).where(Feedback.id_sesije == session_id))
+
+    # Break circular FK (Poruka.id_odgovora ↔ Odgovor.id_poruke) before deleting
+    if poruka_ids:
+        await db.execute(sa_update(Poruka).where(Poruka.id_sesije == session_id).values(id_odgovora=None))
+    if odgovor_ids:
+        await db.execute(sa_delete(Odgovor).where(Odgovor.id.in_(odgovor_ids)))
+
+    await db.execute(sa_delete(Poruka).where(Poruka.id_sesije == session_id))
+    await db.execute(sa_delete(Eskalacija).where(Eskalacija.sesija_id == session_id))
+    await db.delete(sess)
+    await db.commit()
     return {"ok": True}
 
 

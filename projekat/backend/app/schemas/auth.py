@@ -72,3 +72,7 @@ class UserRoleUpdate(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class UserNameUpdate(BaseModel):
+    full_name: str

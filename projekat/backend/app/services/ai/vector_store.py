@@ -5,11 +5,17 @@ from app.core.config import settings
 VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output dimension
 
 
+_qdrant_client: QdrantClient | None = None
+
+
 def get_qdrant_client() -> QdrantClient:
-    kwargs = {"url": settings.QDRANT_URL}
-    if settings.QDRANT_API_KEY:
-        kwargs["api_key"] = settings.QDRANT_API_KEY
-    return QdrantClient(**kwargs)
+    global _qdrant_client
+    if _qdrant_client is None:
+        kwargs = {"url": settings.QDRANT_URL}
+        if settings.QDRANT_API_KEY:
+            kwargs["api_key"] = settings.QDRANT_API_KEY
+        _qdrant_client = QdrantClient(**kwargs)
+    return _qdrant_client
 
 
 class VectorStoreService:
@@ -50,3 +56,13 @@ class VectorStoreService:
             collection_name=self.collection,
             points_selector=PointIdsList(points=[item_id]),
         )
+
+
+_vector_store_instance: VectorStoreService | None = None
+
+
+def get_vector_store() -> VectorStoreService:
+    global _vector_store_instance
+    if _vector_store_instance is None:
+        _vector_store_instance = VectorStoreService()
+    return _vector_store_instance

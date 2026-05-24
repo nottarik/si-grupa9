@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import logging
-    from app.services.ai.vector_store import VectorStoreService
+    from app.services.ai.vector_store import get_vector_store
     try:
-        VectorStoreService().ensure_collection()
+        get_vector_store().ensure_collection()
     except Exception as exc:
         logging.getLogger("app.startup").warning(
             "Qdrant unreachable at startup — will retry on first request. %s", exc
