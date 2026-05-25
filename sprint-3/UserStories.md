@@ -1526,34 +1526,34 @@ Zavisi od PB-27 Izgradnja baze znanja. Zavisi od PB-52 RAG retrieval i LLM klasi
 
 ---
 
-### PB-62 — Dizajn i UX poboljšanja
+### PB-62 — Prikaz komentara uz ocjene razgovora u admin i agent panelu
 
-#### User Story 62.1 — Poboljšanje vizualnog dizajna Chat UI-a
+#### US-62.1 — Prikaz komentara uz ocjene razgovora
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 62.1 |
-| **Naziv** | Poboljšanje vizualnog dizajna Chat UI-a |
+| **Naziv** | Prikaz komentara uz ocjene razgovora |
 | **Sprint** | 9 |
 | **Prioritet** | Medium |
-| **Poslovna vrijednost** | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem i smanjuje krivulju učenja za nove korisnike |
+| **Poslovna vrijednost** | Daje administratorima i agentima uvid u tekstualne povratne informacije korisnika, što omogućava identifikaciju problema i kontinuirano poboljšanje kvaliteta usluge |
 
-**Uloga:**
-Kao korisnik, želim koristiti chatbot koji ima pregledan, moderan i konzistentan dizajn kako bi moje iskustvo bilo ugodno i profesionalno.
 
-**Pretpostavke i otvorena pitanja:**
-Poboljšanja obuhvataju: Chat UI, Admin panel i stranica za prijavu. Otvoreno pitanje: Da li je definisan branding (logo, boje) koji treba biti primijenjen?
+**Uloga:** Kao administrator, želim vidjeti sve komentare koje su korisnici ostavili uz ocjene razgovora, a kao agent, želim vidjeti samo komentare razgovora na koje sam ja odgovorio, kako bih mogao pratiti povratne informacije relevantne za moj rad.
 
-**Veze sa drugim storyjima ili zavisnostima:**
-Vezano za PB-22 Chat UI. Zavisi od Sign In (PB-36).
+**Pretpostavke:** Korisnici su u Sprintu 9 dobili mogućnost ostavljanja komentara uz ocjenu razgovora (US-57.1). Komentari su pohranjeni u bazi podataka i vezani za konkretnu chat sesiju i agenta koji je vodio razgovor.
+
+**Veze i zavisnosti:** Zavisi od PB-57 Ocjena razgovora po završetku sesije. Zavisi od PB-36 Sign In. Zavisi od PB-51 Agent panel s Live Queue i pristupom bazi znanja.
 
 **Acceptance Criteria:**
-- Chat UI mora imati konzistentnu paletu boja i tipografiju kroz sve komponente
-- Poruke korisnika i chatbota moraju biti vizualno jasno razlikovane (pozicija, boja mjehurića)
-- Dugmad i interaktivni elementi moraju imati hover/active stanje i vidljive fokus indikatore
-- Dizajn mora biti responzivan i upotrebljiv na mobilnim uređajima (minimalna širina 375px)
-- Stranica za prijavu mora biti vizualno konzistentna s ostatkom aplikacije
-- Sve izmjene moraju proći vizualnu provjeru na Chrome, Firefox i Edge
+
+- Kada administrator otvori pregled ocjena razgovora, tada sistem mora prikazati sve komentare svih korisnika za sve razgovore
+- Kada agent otvori pregled ocjena u svom panelu, tada sistem mora prikazati samo komentare vezane za razgovore na koje je taj agent odgovorio
+- Agent ne smije vidjeti komentare razgovora koje su vodili drugi agenti
+- Svaki komentar mora biti prikazan uz odgovarajuću numeričku ocjenu, datum razgovora i korisnika koji je ostavio ocjenu
+- Kada razgovor nema komentar, sistem ne smije prikazati prazno polje — stavka bez komentara se prikazuje samo s ocjenom
+- Sistem ne smije prikazati grešku pri učitavanju komentara
+
 
 ---
 
