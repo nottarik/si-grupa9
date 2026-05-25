@@ -18,7 +18,9 @@ Na tehničkoj strani sprint donosi optimizaciju performansi chatbota i završno 
 
 **Upravljanje bazom znanja** dodatno proširuje administratorske mogućnosti. Administrator može ručno unositi validirane Q&A parove direktno u bazu znanja bez potrebe za obradom kompletnog transkripta, pregledati postojeće unose, uklanjati nevažeći sadržaj i kurirati prijedloge prije nego što postanu dio aktivne baze znanja.
 
-**Poboljšanje korisničkog iskustva** uvodi novu formu za ocjenu razgovora po završetku sesije, čime se prikuplja kvalitetnija povratna informacija o radu sistema. Dodatno se uvode sistemske obavijesti kroz baner u chatbotu, a Chat UI dobija moderniji i konzistentniji dizajn uz responzivnost i bolju vizualnu preglednost.
+**Poboljšanje korisničkog iskustva** uvodi novu formu za ocjenu razgovora po završetku sesije, čime se prikuplja kvalitetnija povratna informacija o radu sistema. Dodatno se uvode sistemske obavijesti kroz baner u chatbotu, dok korisnici dobijaju veću kontrolu nad vlastitim podacima kroz User Settings i upravljanje historijom razgovora.
+
+**Pregled komentara uz ocjene razgovora** omogućava administratorima i agentima dodatni uvid u povratne informacije korisnika. Administrator ima pristup svim komentarima i ocjenama vezanim za razgovore u sistemu, dok agent vidi samo komentare povezane sa sesijama na koje je upravo on odgovorio.
 
 **Optimizacija performansi i testiranje sistema** zatvaraju sprint kroz fokus na stabilnost i spremnost za produkciju. Latencija odgovora chatbota se smanjuje kroz optimizaciju retrieval i LLM procesa, dok se kompletan sistem prolazi kroz end-to-end i regresijsko testiranje kako bi se osiguralo da nove izmjene ne narušavaju postojeće funkcionalnosti.
 
@@ -34,7 +36,7 @@ Na tehničkoj strani sprint donosi optimizaciju performansi chatbota i završno 
 | PB-59 | Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata | High |
 | PB-60 | Pregled i kuriranje sadržaja baze znanja | High |
 | PB-61 | Optimizacija performansi chatbota | High |
-| PB-62 | Dizajn i UX poboljšanja | Medium |
+| PB-62 | Prikaz komentara uz ocjene razgovora u admin i agent panelu | Medium |
 | PB-63 | End-to-end i regresijsko testiranje sistema | High |
 | PB-64 | User Settings | Medium |
 | PB-65 | Brisanje pojedinačnog chata iz historije | Medium |
