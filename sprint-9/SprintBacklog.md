@@ -13,31 +13,26 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 - ručni unos Q&A parova direktno u bazu znanja bez transkripata
 - pregled, uklanjanje i kuriranje sadržaja baze znanja
 - smanjenje latencije odgovora chatbota
-- poboljšanje vizualnog dizajna Chat UI-a
+- prikaz komentara uz ocjene razgovora u admin i agent panelu
 - end-to-end i regresijsko testiranje sistema
 
 ---
 
 
-## Pregled user storija
+## Pregled stavki sprinta
 
-| ID | Naziv | Sprint | Prioritet | Poslovna vrijednost |
-|----|-------|--------|-----------|---------------------|
-| 56.1 | Poboljšanje maskiranja PII podataka | 9 | High | Osigurava pouzdanu zaštitu privatnosti korisnika i sprečava curenje osjetljivih podataka u odgovorima chatbota |
-| 56.2 | Poboljšanje ekstrakcije Q&A parova iz transkripata | 9 | High | Poboljšava kvalitet baze znanja eliminacijom pogrešno ekstrahiranih parova koji degradiraju relevantnost odgovora chatbota |
-| 57.1 | Prikaz forme za ocjenu na kraju razgovora | 9 | High | Prikuplja relevantnu i promišljenu povratnu informaciju umjesto impulsivnih reakcija po svakoj poruci |
-| 58.1 | Prikaz banera o poznatim problemima ili planiranom održavanju | 9 | Medium | Proaktivno informiše korisnike o problemima, smanjuje frustraciju i broj nepotrebnih eskalacija |
-| 59.1 | Ručni unos Q&A para direktno u bazu znanja bez transkripata | 9 | High | Omogućava administratorima da odmah dodaju provjerene informacije bez potrebe za kreiranjem cijelog transkripata |
-| 60.1 | Pregled i uklanjanje nevažećih unosa iz baze znanja | 9 | High | Osigurava da baza znanja sadrži isključivo provjerene i relevantne informacije |
-| 60.2 | Kontinuirano poboljšanje baze znanja kroz kuriranje sadržaja | 9 | High | Osigurava da baza znanja ostane ažurna, tačna i relevantna kroz kontinuirani proces pregleda |
-| 61.1 | Smanjenje latencije odgovora chatbota | 9 | High | Poboljšava korisničko iskustvo eliminacijom dugog čekanja na odgovor |
-| 62.1 | Poboljšanje vizualnog dizajna Chat UI-a | 9 | Medium | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem |
-| 63.1 | Puno funkcionalno testiranje kritičnih putanja | 9 | High | Garantuje stabilnost sistema pred produkciju i sprečava regresije |
-| 63.2 | Regresijsko testiranje nakon ispravki grešaka | 9 | High | Sprečava ponovnu pojavu već riješenih grešaka i osigurava da nove ispravke ne narušavaju postojeću funkcionalnost |
-| 64.1 | Promjena korisničkog imena iz User Settings | 9 | Medium | Omogućava korisniku ažuriranje vlastitog profila bez administratorske intervencije |
-| 64.2 | Brisanje cijele historije razgovora | 9 | Medium | Daje korisniku kontrolu nad vlastitim podacima i privatnošću |
-| 64.3 | Brisanje korisničkog naloga | 9 | Medium | Omogućava korisniku trajno uklanjanje naloga i svih asociranih podataka |
-| 65.1 | Brisanje pojedinačnog chata iz historije | 9 | Medium | Korisnik može selektivno ukloniti određene razgovore bez brisanja cijele historije |
+| ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena napora | Status |
+|----|--------------|-------------|-----|-----------|-----------------|--------|
+| PB-56 | Poboljšanje maskiranja PII podataka i ekstrakcije Q&A parova | Ispravka edge case formata maskiranja i poboljšanje ekstrakcije Q&A parova (US-56.1, US-56.2) | Bug Fix | High | 8 | Završeno |
+| PB-57 | Ocjena razgovora po završetku sesije | Forma za numeričku ocjenu 1–5 prikazuje se korisniku na kraju chat sesije (US-57.1) | Feature | High | 5 | Završeno |
+| PB-58 | Sistemske obavijesti u chatbotu | Administrator postavlja vidljivi baner s porukom koji se prikazuje pri otvaranju Chat UI-a (US-58.1) | Feature | Medium | 3 | Završeno |
+| PB-59 | Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata | Administrator direktno unosi validirane Q&A parove u bazu znanja (US-59.1) | Feature | High | 5 | Završeno |
+| PB-60 | Pregled i kuriranje sadržaja baze znanja | Pregled, uklanjanje nevažećih unosa i odobravanje prijedloga za bazu znanja (US-60.1, US-60.2) | Feature | High | 8 | Završeno |
+| PB-61 | Optimizacija performansi chatbota | Smanjenje latencije RAG upita ispod 3 s i LLM upita ispod 5 s (US-61.1) | Technical Task | High | 8 | Završeno |
+| PB-62 | Prikaz komentara uz ocjene razgovora u admin i agent panelu | Admin vidi sve komentare uz ocjene, agent vidi samo komentare razgovora na koje je on odgovorio (US-62.1) | Feature | Medium | 5 | Završeno |
+| PB-63 | End-to-end i regresijsko testiranje sistema | Pokrivenost testovima ≥ 80%, E2E testovi kritičnih putanja, regresijski testovi (US-63.1, US-63.2) | Technical Task | High | 13 | Završeno |
+| PB-64 | User Settings | Promjena korisničkog imena, brisanje historije razgovora i brisanje naloga (US-64.1, US-64.2, US-64.3) | Feature | Medium | 5 | Završeno |
+| PB-65 | Brisanje pojedinačnog chata iz historije | Korisnik može obrisati specifičan chat iz historije s potvrdom akcije (US-65.1) | Feature | Medium | 3 | Završeno |
 
 ---
 
@@ -292,34 +287,33 @@ Zavisi od PB-27 Izgradnja baze znanja. Zavisi od PB-52 RAG retrieval i LLM klasi
 
 ---
 
-### PB-62 — Dizajn i UX poboljšanja
+### PB-62 — Prikaz komentara uz ocjene razgovora u admin i agent panelu
 
-#### User Story 62.1 — Poboljšanje vizualnog dizajna Chat UI-a
+#### US-62.1 — Prikaz komentara uz ocjene razgovora
 
 | Polje | Vrijednost |
 |---|---|
 | **ID** | 62.1 |
-| **Naziv** | Poboljšanje vizualnog dizajna Chat UI-a |
-| **Sprint** | 10 |
+| **Naziv** | Prikaz komentara uz ocjene razgovora |
+| **Sprint** | 9 |
 | **Prioritet** | Medium |
-| **Poslovna vrijednost** | Profesionalniji i intuitivniji izgled povećava povjerenje korisnika u sistem i smanjuje krivulju učenja za nove korisnike |
+| **Poslovna vrijednost** | Daje administratorima i agentima uvid u tekstualne povratne informacije korisnika, što omogućava identifikaciju problema i kontinuirano poboljšanje kvaliteta usluge |
 
-**Uloga:**
-Kao korisnik, želim koristiti chatbot koji ima pregledan, moderan i konzistentan dizajn kako bi moje iskustvo bilo ugodno i profesionalno.
 
-**Pretpostavke i otvorena pitanja:**
-Poboljšanja obuhvataju: Chat UI, Admin panel i stranica za prijavu. Otvoreno pitanje: Da li je definisan branding (logo, boje) koji treba biti primijenjen?
+**Uloga:** Kao administrator, želim vidjeti sve komentare koje su korisnici ostavili uz ocjene razgovora, a kao agent, želim vidjeti samo komentare razgovora na koje sam ja odgovorio, kako bih mogao pratiti povratne informacije relevantne za moj rad.
 
-**Veze sa drugim storyjima ili zavisnostima:**
-Vezano za PB-22 Chat UI. Zavisi od Sign In (PB-36).
+**Pretpostavke:** Korisnici su u Sprintu 9 dobili mogućnost ostavljanja komentara uz ocjenu razgovora (US-57.1). Komentari su pohranjeni u bazi podataka i vezani za konkretnu chat sesiju i agenta koji je vodio razgovor.
+
+**Veze i zavisnosti:** Zavisi od PB-57 Ocjena razgovora po završetku sesije. Zavisi od PB-36 Sign In. Zavisi od PB-51 Agent panel s Live Queue i pristupom bazi znanja.
 
 **Acceptance Criteria:**
-- Chat UI mora imati konzistentnu paletu boja i tipografiju kroz sve komponente
-- Poruke korisnika i chatbota moraju biti vizualno jasno razlikovane (pozicija, boja mjehurića)
-- Dugmad i interaktivni elementi moraju imati hover/active stanje i vidljive fokus indikatore
-- Dizajn mora biti responzivan i upotrebljiv na mobilnim uređajima (minimalna širina 375px)
-- Stranica za prijavu mora biti vizualno konzistentna s ostatkom aplikacije
-- Sve izmjene moraju proći vizualnu provjeru na Chrome, Firefox i Edge
+
+- Kada administrator otvori pregled ocjena razgovora, tada sistem mora prikazati sve komentare svih korisnika za sve razgovore
+- Kada agent otvori pregled ocjena u svom panelu, tada sistem mora prikazati samo komentare vezane za razgovore na koje je taj agent odgovorio
+- Agent ne smije vidjeti komentare razgovora koje su vodili drugi agenti
+- Svaki komentar mora biti prikazan uz odgovarajuću numeričku ocjenu, datum razgovora i korisnika koji je ostavio ocjenu
+- Kada razgovor nema komentar, sistem ne smije prikazati prazno polje — stavka bez komentara se prikazuje samo s ocjenom
+- Sistem ne smije prikazati grešku pri učitavanju komentara
 
 ---
 
