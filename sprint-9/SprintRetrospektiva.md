@@ -15,7 +15,7 @@
 
 Sprint 9 je bio usmjeren manje na dodavanje potpuno novih funkcionalnosti, a više na stabilizaciju i kvalitet sistema. Takav pristup pokazao se važnim jer su tokom rada otkriveni problemi koji se nisu pojavljivali u ranijim sprintovima — posebno kod maskiranja podataka i ekstrakcije Q&A parova iz realnih transkripata.
 
-Tim je tokom sprinta više pažnje posvetio testiranju i validaciji nego ranije. Umjesto brzog zatvaranja stavki, fokus je bio na provjeri da nove izmjene ne narušavaju postojeće funkcionalnosti. Posebno koristan dio procesa bilo je regresijsko testiranje i zajedničko prolazak kroz kritične korisničke tokove sistema.
+Tim je tokom sprinta poseban fokus stavio na optimizaciju performansi sistema kako bi se poboljšalo korisničko iskustvo kroz brže odgovore chatbota, ali bez narušavanja kvaliteta i relevantnosti odgovora. Paralelno s optimizacijom performansi radilo se i na dodatnom unapređenju kvaliteta odgovora i stabilnosti retrieval procesa.
 
 Također je vidljiv napredak u organizaciji rada i raspodjeli odgovornosti. Članovi tima su samostalnije preuzimali ownership nad funkcionalnostima, dok je komunikacija ostala dovoljno česta da se problemi brzo identifikuju i riješe.
 
@@ -23,6 +23,6 @@ Također je vidljiv napredak u organizaciji rada i raspodjeli odgovornosti. Čla
 
 ## Zaključak
 
-Sprint 9 predstavlja važan korak prema produkcijski spremnom sistemu. Fokus na kvalitet podataka, optimizaciju performansi i testiranje značajno je povećao stabilnost aplikacije i povjerenje u postojeće funkcionalnosti.
+Sprint 9 predstavlja važan korak prema produkcijski spremnom sistemu. Fokus na kvalitet podataka, optimizaciju performansi i očuvanje kvaliteta odgovora značajno je povećao stabilnost aplikacije i unaprijedio ukupno korisničko iskustvo.
 
 Za naredni sprint važno je nastaviti održavati isti nivo testiranja i provjere kvaliteta, posebno prilikom završnih integracija i produkcijskog deploya. Dodatni fokus treba ostati na dokumentovanju procesa, automatizaciji testova i kontinuiranom unapređenju baze znanja kako bi sistem dugoročno ostao pouzdan i održiv.
