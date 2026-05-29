@@ -1,5 +1,14 @@
 # Sprint 10 — Preostale User Stories
 
+| # | User Story | Kao | Želi | Kako bi |
+|---|-----------|-----|------|---------|
+| US-1 | Batch procesiranje fajlova sa web lokacije | Administrator | Unese Google Drive Folder ID i pokrene batch uvoz audio/txt/pdf fajlova | Masovno popunio bazu znanja bez ručnog upload-a |
+| US-2 | CHAT dugme u header-u (Admin i Agent) | Administrator ili agent | Klikne na "Chat" link u gornjem desnom uglu i bude preusmjeren na `/chat` | Brzo prešao iz admin/agent panela na chatbot interfejs |
+| US-3 | Poboljšanje deployment pipeline-a i ubrzanje build vremena | Developer | CI/CD pipeline brže završi i svaki korak builde bude optimizovan | Smanjio čekanje pri svakom deploy-u i poboljšao razvojni tok |
+| US-4 | Filtriranje issues-a u pregledu baze znanja | Administrator | Lista issues ne prikazuje duplikate, pozive agenta, pozdrave ni eksplicitne zahtjeve | Dobio čišći i relevantniji pregled stvarnih problema bez šuma |
+| US-5 | Prikaz "Top Rated Responses" | Administrator | Sekcija "Top Rated Responses" prikazuje odgovore s najvišim prosječnim ocjenama | Vidio koji odgovori su korisnicima bili najkorisniji |
+| US-6 | Poboljšanje UI-a eskalacijske queue | Korisnik ili agent | Sučelje eskalacijske queue prikazuje jasne i pregledne informacije | Znao status zahtjeva za eskalacijom i imao bolji uvid u tijek čekanja |
+
 ---
 
 ## US-1: Batch procesiranje fajlova sa web lokacije (on-demand)
