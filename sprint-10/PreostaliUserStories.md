@@ -62,7 +62,7 @@
 
 ---
 
-## US-5: Ispravka prikaza "Top Rated Responses"
+## US-5: Prikaz "Top Rated Responses"
 
 **Kao** administrator,  
 **želim** da sekcija "Top Rated Responses" prikazuje odgovore s najvišim prosječnim ocjenama,  
