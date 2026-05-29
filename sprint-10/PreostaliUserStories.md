@@ -1,4 +1,4 @@
-# Sprint 10 — Preostale User Stories
+# Sprint 10 — Preostali User Stories
 
 | # | User Story | Kao | Želi | Kako bi |
 |---|-----------|-----|------|---------|
