@@ -19,10 +19,13 @@ _ESCALATION_REQUEST_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Pronouns/references that indicate the question depends on prior context
+# Pronouns/references that indicate the question depends on prior context (English + Bosnian)
 _CONTEXT_REF_RE = re.compile(
-    r'^\s*(it|they|them|that|this|those|these)\b'       # starts with pronoun
-    r'|\b(it|they|them|their)\s+(is|are|was|were|does|did|has|have|will|would|can|could)\b',  # pronoun as subject
+    r'^\s*(it|they|them|that|this|those|these'
+    r'|to|taj|ta|ti|te|taj|ova|ovaj|ove|ovi|ona|oni|one|ono|toga|tome|tim|tom)\b'
+    r'|\b(it|they|them|their|to|ono|oni|one)\s+'
+    r'(is|are|was|were|does|did|has|have|will|would|can|could'
+    r'|je|su|nije|nisu|ima|imaju|može|mogu|će|bi|treba|trebaju)\b',
     re.IGNORECASE,
 )
 

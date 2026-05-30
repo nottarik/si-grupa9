@@ -22,6 +22,23 @@ export async function uploadTranscript(
   return data;
 }
 
+export interface DriveImportResult {
+  folder_id: string;
+  message: string;
+  files: { name: string; status: "queued" | "skipped" }[];
+}
+
+export async function importDriveTranscripts(
+  folderId: string,
+  language: string
+): Promise<DriveImportResult> {
+  const { data } = await apiClient.post<DriveImportResult>(
+    "/api/v1/transcripts/import-drive",
+    { folder_id: folderId, language }
+  );
+  return data;
+}
+
 export async function createManualTranscript(
   body: TranscriptManualCreate
 ): Promise<TranscriptManualResponse> {

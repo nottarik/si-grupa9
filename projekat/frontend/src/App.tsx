@@ -25,8 +25,8 @@ export default function App() {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
-        {/* Agent only */}
-        <Route element={<ProtectedRoute requiredRole="agent" />}>
+        {/* Admin or agent */}
+        <Route element={<ProtectedRoute requiredRole={["admin", "agent"]} />}>
           <Route path="/agent" element={<AgentPage />} />
         </Route>
 

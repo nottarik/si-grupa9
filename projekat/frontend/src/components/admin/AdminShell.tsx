@@ -229,7 +229,7 @@ export default function AdminShell() {
           <div className="ml-auto flex items-center gap-3">
             <div className="text-xs text-gray-400">{TODAY}</div>
             <a
-              href="/"
+              href="/chat"
               className="text-xs transition-colors"
               style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
               onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     RAG_CONFIDENCE_THRESHOLD: float = 0.55
     RAG_CONFIDENCE_THRESHOLD_LOW: float = 0.35
 
+    # Google Drive batch import (service account JSON key as a single string)
+    GOOGLE_SERVICE_ACCOUNT_JSON: str = ""
+
     # Supabase Storage
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""

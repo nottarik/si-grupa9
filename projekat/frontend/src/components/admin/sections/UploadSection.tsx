@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   confirmAudioTranscript,
   createManualTranscript,
+  importDriveTranscripts,
+  listTranscripts,
   transcribeAudioPreview,
   uploadTranscript,
 } from "../../../api/transcripts";
@@ -18,7 +20,7 @@ function extractError(e: unknown): string {
   return "An unexpected error occurred. Please try again.";
 }
 
-type UploadType = "text" | "audio";
+type UploadType = "text" | "audio" | "drive";
 type TextTab = "file" | "manual";
 type AudioStage = "upload" | "transcribing" | "review" | "saving" | "done";
 
@@ -600,6 +602,173 @@ function AudioUpload() {
   );
 }
 
+// ── Google Drive import sub-panel ────────────────────────────────────
+
+type DriveFile = { name: string; status: "queued" | "skipped" | "imported" | "failed" };
+
+function DriveImport() {
+  const [folderId, setFolderId] = useState("");
+  const [language, setLanguage] = useState("bs");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle"
+  );
+  const [message, setMessage] = useState("");
+  const [files, setFiles] = useState<DriveFile[]>([]);
+
+  // Keep a live mirror of files so the polling interval reads current state.
+  const filesRef = useRef<DriveFile[]>(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  const pollRef = useRef<number | null>(null);
+  const attemptsRef = useRef(0);
+
+  function stopPolling() {
+    if (pollRef.current !== null) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }
+
+  // Clear the interval if the component unmounts mid-import.
+  useEffect(() => () => stopPolling(), []);
+
+  function startPolling(fid: string) {
+    stopPolling();
+    attemptsRef.current = 0;
+    // Transcripts move Sirovi → Obradjeno (or Odbacen) as the pipeline runs.
+    // Match each queued file by name against this folder's transcripts.
+    pollRef.current = window.setInterval(async () => {
+      attemptsRef.current += 1;
+      const current = filesRef.current;
+      if (!current.some((f) => f.status === "queued")) {
+        stopPolling();
+        return;
+      }
+      try {
+        const list = await listTranscripts({ q: fid });
+        const statusByName = new Map(list.map((t) => [t.naziv, t.status]));
+        const next = current.map<DriveFile>((f) => {
+          if (f.status !== "queued") return f;
+          const s = statusByName.get(f.name);
+          if (s === "Obradjeno") return { ...f, status: "imported" };
+          if (s === "Odbacen") return { ...f, status: "failed" };
+          return f;
+        });
+        setFiles(next);
+        if (!next.some((f) => f.status === "queued")) stopPolling();
+      } catch {
+        // transient error — keep trying
+      }
+      // Give up after ~3 minutes so the interval doesn't run forever.
+      if (attemptsRef.current >= 72) stopPolling();
+    }, 2500);
+  }
+
+  async function handleImport() {
+    const id = folderId.trim();
+    if (!id) return;
+    stopPolling();
+    setStatus("loading");
+    setMessage("");
+    setFiles([]);
+    try {
+      const res = await importDriveTranscripts(id, language);
+      setMessage(res.message);
+      setFiles(res.files);
+      setStatus("success");
+      if (res.files.some((f) => f.status === "queued")) startPolling(id);
+    } catch (e: unknown) {
+      setMessage(extractError(e));
+      setStatus("error");
+    }
+  }
+
+  return (
+    <div className="card p-6 space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-charcoal">Import from Google Drive</p>
+        <p className="text-xs mt-1" style={{ color: "#6b5a3a" }}>
+          Share the folder with the service account, then paste its folder ID below.
+          Supported files (.mp3, .wav, .m4a, .ogg, .txt, .pdf) are imported and processed.
+          Files already imported from this folder are skipped.
+        </p>
+      </div>
+
+      <input
+        className="input-field"
+        placeholder="Google Drive Folder ID"
+        value={folderId}
+        onChange={(e) => {
+          setFolderId(e.target.value);
+          if (status !== "idle") {
+            stopPolling();
+            setStatus("idle");
+            setMessage("");
+            setFiles([]);
+          }
+        }}
+      />
+
+      <select
+        className="input-field"
+        value={language}
+        onChange={(e) => setLanguage(e.target.value)}
+      >
+        <option value="bs">Language: Bosnian (BS)</option>
+        <option value="en">English (EN)</option>
+        <option value="de">German (DE)</option>
+        <option value="auto">Auto / Mixed (detect per file)</option>
+      </select>
+
+      <button
+        className="gold-btn"
+        onClick={handleImport}
+        disabled={!folderId.trim() || status === "loading"}
+      >
+        {status === "loading" ? "Starting…" : "Start Import"}
+      </button>
+
+      {status === "success" && (
+        <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+          ✓ {message}
+        </div>
+      )}
+      {status === "error" && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          ✗ {message}
+        </div>
+      )}
+
+      {status === "success" && files.length > 0 && (
+        <ul className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+          {files.map((f) => (
+            <li
+              key={f.name}
+              className="flex items-center justify-between px-3 py-2 text-sm"
+            >
+              <span className="text-charcoal truncate mr-3">{f.name}</span>
+              {f.status === "queued" && (
+                <span className="badge badge-yellow shrink-0">Importing…</span>
+              )}
+              {f.status === "imported" && (
+                <span className="text-xs text-green-700 shrink-0">✓ Imported</span>
+              )}
+              {f.status === "failed" && (
+                <span className="text-xs text-red-600 shrink-0">✗ Failed</span>
+              )}
+              {f.status === "skipped" && (
+                <span className="text-xs text-gray-400 shrink-0">Already imported</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // ── Main Upload section ──────────────────────────────────────────────
 
 export default function UploadSection() {
@@ -622,6 +791,12 @@ export default function UploadSection() {
             onClick={() => setType("audio")}
           >
             🎙️ Audio
+          </button>
+          <button
+            className={type === "drive" ? "on" : ""}
+            onClick={() => setType("drive")}
+          >
+            ☁️ Drive
           </button>
         </div>
       </div>
@@ -653,6 +828,8 @@ export default function UploadSection() {
       )}
 
       {type === "audio" && <AudioUpload />}
+
+      {type === "drive" && <DriveImport />}
     </div>
   );
 }

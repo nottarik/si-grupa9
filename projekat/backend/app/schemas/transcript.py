@@ -6,6 +6,16 @@ from datetime import date, datetime
 from app.db.models.transcript import TranskStatusTip, FormatTip
 
 
+def _display_naziv(v: str) -> str:
+    """Drive imports are stored as ``gdrive:<folder_id>:<filename>`` for folder-scoped
+    dedup; show only the original filename to the user."""
+    if v.startswith("gdrive:"):
+        parts = v.split(":", 2)
+        if len(parts) == 3:
+            return parts[2]
+    return v
+
+
 def _check_transcript_format(text: str) -> None:
     lines = text.splitlines()
     has_agent = any(
@@ -32,6 +42,11 @@ class TranscriptRead(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("naziv")
+    @classmethod
+    def clean_naziv(cls, v: str) -> str:
+        return _display_naziv(v)
+
 
 class TranscriptDetail(BaseModel):
     id: int
@@ -43,6 +58,11 @@ class TranscriptDetail(BaseModel):
     processed_text: str | None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("naziv")
+    @classmethod
+    def clean_naziv(cls, v: str) -> str:
+        return _display_naziv(v)
 
 
 class TranscriptUploadResponse(BaseModel):
@@ -88,6 +108,31 @@ class TranscribePreviewResponse(BaseModel):
     text: str
     quality_warning: str | None
     filename: str
+
+
+class DriveImportRequest(BaseModel):
+    folder_id: str
+    # ISO code for audio transcription; "auto" lets Whisper detect per file.
+    language: str = "bs"
+
+    @field_validator("folder_id")
+    @classmethod
+    def folder_id_required(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Google Drive folder ID is required")
+        return stripped
+
+
+class DriveFileStatus(BaseModel):
+    name: str
+    status: str  # "queued" (new, being imported) | "skipped" (already imported)
+
+
+class DriveImportResponse(BaseModel):
+    folder_id: str
+    message: str
+    files: list[DriveFileStatus] = []
 
 
 class AudioTranscriptConfirm(BaseModel):

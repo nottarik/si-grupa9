@@ -30,6 +30,10 @@ qdrant-client==1.9.1
 # Cloud Storage
 supabase==2.9.0
 
+# Google Drive batch import
+google-api-python-client==2.137.0
+google-auth==2.32.0
+
 # HTTP client
 httpx==0.27.0
 

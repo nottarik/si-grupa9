@@ -1,5 +1,9 @@
+import logging
+
 from groq import Groq
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 _SYSTEM_WITH_CONTEXT = """\
 You are the virtual assistant for a telecom and internet service provider based in Bosnia.
@@ -78,6 +82,8 @@ class LLMService:
             max_tokens=350,
             temperature=0.2,
         )
+        if response.choices[0].finish_reason == "length":
+            logger.warning("generate: response truncated (finish_reason=length) for question: %r", question[:80])
         return response.choices[0].message.content
 
     def rewrite_query(self, question: str, history: list[dict]) -> str:

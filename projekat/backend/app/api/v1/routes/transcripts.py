@@ -1,4 +1,4 @@
-import io
+import logging
 import os
 import tempfile
 from datetime import date as DateType, datetime, timedelta, timezone
@@ -6,14 +6,19 @@ from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.db.models.user import Korisnik, UlogaTip
-from app.db.models.transcript import Transkript, FormatTip, TranskStatusTip
+from app.db.models.transcript import Segment, TokenMapRecord, Transkript, FormatTip, TranskStatusTip
+from app.db.models.knowledge import UnosBazeZnanja
 from app.api.v1.deps import require_role
 from app.schemas.transcript import (
     AudioTranscriptConfirm,
+    DriveFileStatus,
+    DriveImportRequest,
+    DriveImportResponse,
     TranscribePreviewResponse,
     TranscriptDetail,
     TranscriptManualCreate,
@@ -23,41 +28,16 @@ from app.schemas.transcript import (
     TranscriptUploadResponse,
 )
 from app.services.storage.storage_service import StorageService
-from app.tasks.transcript_tasks import process_transcript
+from app.services.transcript.file_utils import (
+    MAX_FILE_SIZE,
+    classify_file,
+    extract_pdf_text,
+)
+from app.tasks.transcript_tasks import import_drive_folder, process_transcript
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/transcripts", tags=["transcripts"])
-
-ALLOWED_AUDIO_TYPES = {"audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a", "audio/ogg"}
-ALLOWED_TEXT_TYPES = {"text/plain", "text/x-plain"}
-ALLOWED_PDF_TYPES = {"application/pdf"}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-
-
-def _classify_file(content_type: str, filename: str) -> tuple[bool, bool, bool]:
-    ct = content_type.lower()
-    is_audio = ct in ALLOWED_AUDIO_TYPES
-    is_text = ct in ALLOWED_TEXT_TYPES
-    is_pdf = ct in ALLOWED_PDF_TYPES
-
-    if not (is_audio or is_text or is_pdf):
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        if ext == "pdf":
-            is_pdf = True
-        elif ext == "txt":
-            is_text = True
-        elif ext in {"mp3", "wav", "m4a", "ogg"}:
-            is_audio = True
-
-    return is_audio, is_text, is_pdf
-
-
-def _extract_pdf_text(content: bytes) -> str:
-    try:
-        import pdfplumber
-        with pdfplumber.open(io.BytesIO(content)) as pdf:
-            return "\n".join(page.extract_text() or "" for page in pdf.pages)
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Could not extract text from PDF: {exc}")
 
 
 @router.post("/transcribe-preview", response_model=TranscribePreviewResponse)
@@ -68,7 +48,7 @@ async def transcribe_audio_preview(
 ):
     from app.services.transcript.transcription_service import TranscriptionService
 
-    is_audio, _, _ = _classify_file(file.content_type or "", file.filename or "")
+    is_audio, _, _ = classify_file(file.content_type or "", file.filename or "")
     if not is_audio:
         raise HTTPException(
             status_code=400,
@@ -162,7 +142,7 @@ async def upload_transcript(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
-    is_audio, is_text, is_pdf = _classify_file(
+    is_audio, is_text, is_pdf = classify_file(
         file.content_type or "", file.filename or ""
     )
 
@@ -199,7 +179,7 @@ async def upload_transcript(
         if is_text:
             raw_text = file_bytes.decode("utf-8", errors="replace")
         elif is_pdf:
-            raw_text = _extract_pdf_text(file_bytes)
+            raw_text = extract_pdf_text(file_bytes)
 
     transkript = Transkript(
         id_korisnika_upload=current_user.id,
@@ -220,6 +200,56 @@ async def upload_transcript(
         task_id=None,
         message="Upload successful. Processing started.",
     )
+
+
+@router.post("/import-drive", response_model=DriveImportResponse)
+async def import_drive_transcripts(
+    body: DriveImportRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
+):
+    if not settings.GOOGLE_SERVICE_ACCOUNT_JSON:
+        raise HTTPException(
+            status_code=503,
+            detail="Google Drive import is not configured (GOOGLE_SERVICE_ACCOUNT_JSON).",
+        )
+
+    from app.services.storage.google_drive_service import GoogleDriveService
+
+    try:
+        drive_files = GoogleDriveService().list_files(body.folder_id)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not access the Drive folder. Check the folder ID and sharing: {exc}",
+        )
+
+    existing = await db.execute(
+        select(Transkript.naziv).where(Transkript.naziv.like(f"gdrive:{body.folder_id}:%"))
+    )
+    seen = set(existing.scalars().all())
+
+    files: list[DriveFileStatus] = []
+    new_count = 0
+    for f in drive_files:
+        already = f"gdrive:{body.folder_id}:{f['name']}" in seen
+        files.append(DriveFileStatus(name=f["name"], status="skipped" if already else "queued"))
+        if not already:
+            new_count += 1
+
+    language = None if body.language == "auto" else body.language
+    background_tasks.add_task(import_drive_folder, body.folder_id, current_user.id, language)
+
+    if not files:
+        message = "No supported files (.mp3, .wav, .m4a, .ogg, .txt, .pdf) found in the folder."
+    else:
+        message = (
+            f"Import started: {new_count} new file(s) queued, "
+            f"{len(files) - new_count} already imported."
+        )
+
+    return DriveImportResponse(folder_id=body.folder_id, message=message, files=files)
 
 
 @router.post("/manual", response_model=TranscriptManualResponse)
@@ -333,5 +363,37 @@ async def delete_transcript(
     transkript = result.scalar_one_or_none()
     if not transkript:
         raise HTTPException(status_code=404, detail="Transcript not found")
+
+    # Clean up children first — segment.id_transkripta has no ON DELETE CASCADE, so a
+    # processed transcript (with segments / KB entries / token map) can't be deleted directly.
+    seg_ids = (
+        await db.execute(select(Segment.id).where(Segment.id_transkripta == transcript_id))
+    ).scalars().all()
+
+    if seg_ids:
+        kb_entries = (
+            await db.execute(
+                select(UnosBazeZnanja).where(UnosBazeZnanja.id_segmenta.in_(seg_ids))
+            )
+        ).scalars().all()
+        if kb_entries:
+            from app.services.ai.vector_store import get_vector_store
+
+            vector_store = get_vector_store()
+            for entry in kb_entries:
+                if entry.vector_id:
+                    try:
+                        vector_store.delete_item(entry.vector_id)
+                    except Exception:
+                        logger.warning(
+                            "Could not delete Qdrant vector %s for KB entry %s",
+                            entry.vector_id, entry.id,
+                        )
+            await db.execute(
+                delete(UnosBazeZnanja).where(UnosBazeZnanja.id_segmenta.in_(seg_ids))
+            )
+
+    await db.execute(delete(TokenMapRecord).where(TokenMapRecord.transkript_id == transcript_id))
+    await db.execute(delete(Segment).where(Segment.id_transkripta == transcript_id))
     await db.delete(transkript)
     await db.commit()

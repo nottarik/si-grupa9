@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, model_validator
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from app.db.models.user import Korisnik, UlogaTip
 
@@ -76,3 +76,10 @@ class LoginRequest(BaseModel):
 
 class UserNameUpdate(BaseModel):
     full_name: str
+
+    @field_validator("full_name")
+    @classmethod
+    def name_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("full_name must not be blank")
+        return v

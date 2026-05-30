@@ -470,7 +470,7 @@ async def delete_session(
     current_user: Korisnik = Depends(get_current_user),
 ):
     from app.db.models.knowledge import ChatSesija, Poruka, Odgovor, Feedback, Anomalija
-    from app.db.models.escalation import Eskalacija
+    from app.db.models.escalation import Eskalacija, StatusAgenta
     from fastapi import HTTPException
     from sqlalchemy import update as sa_update, delete as sa_delete
 
@@ -509,6 +509,12 @@ async def delete_session(
         await db.execute(sa_delete(Odgovor).where(Odgovor.id.in_(odgovor_ids)))
 
     await db.execute(sa_delete(Poruka).where(Poruka.id_sesije == session_id))
+
+    eskal_ids = list((await db.execute(
+        select(Eskalacija.id).where(Eskalacija.sesija_id == session_id)
+    )).scalars().all())
+    if eskal_ids:
+        await db.execute(sa_update(StatusAgenta).where(StatusAgenta.trenutna_eskalacija_id.in_(eskal_ids)).values(trenutna_eskalacija_id=None))
     await db.execute(sa_delete(Eskalacija).where(Eskalacija.sesija_id == session_id))
     await db.delete(sess)
     await db.commit()

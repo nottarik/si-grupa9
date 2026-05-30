@@ -69,7 +69,7 @@ async def delete_my_history(
 ):
     from sqlalchemy import update as sa_update, delete as sa_delete
     from app.db.models.knowledge import ChatSesija, Poruka, Odgovor, Feedback, Anomalija
-    from app.db.models.escalation import Eskalacija
+    from app.db.models.escalation import Eskalacija, StatusAgenta
 
     session_ids = list((await db.execute(
         select(ChatSesija.id).where(ChatSesija.id_korisnika == current_user.id)
@@ -93,6 +93,12 @@ async def delete_my_history(
             await db.execute(sa_delete(Feedback).where(Feedback.id_odgovora.in_(odgovor_ids)))
 
         await db.execute(sa_delete(Feedback).where(Feedback.id_sesije.in_(session_ids)))
+
+        eskal_ids = list((await db.execute(
+            select(Eskalacija.id).where(Eskalacija.sesija_id.in_(session_ids))
+        )).scalars().all())
+        if eskal_ids:
+            await db.execute(sa_update(StatusAgenta).where(StatusAgenta.trenutna_eskalacija_id.in_(eskal_ids)).values(trenutna_eskalacija_id=None))
         await db.execute(sa_delete(Eskalacija).where(Eskalacija.sesija_id.in_(session_ids)))
 
         if poruka_ids:
@@ -114,7 +120,7 @@ async def delete_my_account(
 ):
     from sqlalchemy import update as sa_update, delete as sa_delete
     from app.db.models.knowledge import ChatSesija, Poruka, Odgovor, Feedback, Anomalija
-    from app.db.models.escalation import Eskalacija
+    from app.db.models.escalation import Eskalacija, StatusAgenta
 
     session_ids = list((await db.execute(
         select(ChatSesija.id).where(ChatSesija.id_korisnika == current_user.id)
@@ -138,6 +144,12 @@ async def delete_my_account(
             await db.execute(sa_delete(Feedback).where(Feedback.id_odgovora.in_(odgovor_ids)))
 
         await db.execute(sa_delete(Feedback).where(Feedback.id_sesije.in_(session_ids)))
+
+        eskal_ids = list((await db.execute(
+            select(Eskalacija.id).where(Eskalacija.sesija_id.in_(session_ids))
+        )).scalars().all())
+        if eskal_ids:
+            await db.execute(sa_update(StatusAgenta).where(StatusAgenta.trenutna_eskalacija_id.in_(eskal_ids)).values(trenutna_eskalacija_id=None))
         await db.execute(sa_delete(Eskalacija).where(Eskalacija.sesija_id.in_(session_ids)))
 
         if poruka_ids:

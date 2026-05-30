@@ -1,4 +1,5 @@
 import logging
+import threading
 from functools import lru_cache
 
 from sentence_transformers import SentenceTransformer
@@ -7,6 +8,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 _model: SentenceTransformer | None = None
+_model_lock = threading.Lock()
 
 
 def get_model() -> SentenceTransformer:
@@ -19,7 +21,8 @@ def get_model() -> SentenceTransformer:
 @lru_cache(maxsize=512)
 def _embed_cached(text: str) -> tuple[float, ...]:
     """Module-level cached embed — same text always produces the same vector."""
-    vector = get_model().encode(text, normalize_embeddings=True)
+    with _model_lock:
+        vector = get_model().encode(text, normalize_embeddings=True)
     return tuple(vector.tolist())
 
 
@@ -37,8 +40,8 @@ class EmbeddingService:
         return result
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        model = get_model()
-        vectors = model.encode(texts, normalize_embeddings=True, batch_size=32)
+        with _model_lock:
+            vectors = get_model().encode(texts, normalize_embeddings=True, batch_size=32)
         return vectors.tolist()
 
 

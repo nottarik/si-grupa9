@@ -15,7 +15,11 @@ interface WsFrame {
 }
 
 function buildWsUrl(path: string): string {
-  const base = (import.meta.env.VITE_API_URL ?? "http://localhost:8000") as string;
+  const base = import.meta.env.VITE_API_URL as string | undefined;
+  if (!base) {
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${proto}//${window.location.host}${path}`;
+  }
   return base.replace(/^http/, "ws").replace(/\/$/, "") + path;
 }
 
