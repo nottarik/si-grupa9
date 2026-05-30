@@ -123,7 +123,10 @@ async def run_pipeline(
                 pitanje=question,
                 odgovor=answer,
                 id_segmenta=None,
-                status_aprovacije="NaCekanju",
+                # Live in the KB (Odobren) but not yet human-reviewed; embedded by the
+                # resumable embed_pending() sweep after this atomic commit.
+                status_aprovacije="Odobren",
+                pregledano=False,
             ))
             qa_count += 1
         audit.safe_log(
@@ -146,7 +149,10 @@ async def run_pipeline(
                 pitanje=question,
                 odgovor=answer,
                 id_segmenta=seg_id,
-                status_aprovacije="NaCekanju",
+                # Live in the KB (Odobren) but not yet human-reviewed; embedded by the
+                # resumable embed_pending() sweep after this atomic commit.
+                status_aprovacije="Odobren",
+                pregledano=False,
             ))
             qa_count += 1
         audit.safe_log(

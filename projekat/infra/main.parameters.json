@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "${AZURE_ENV_NAME}" },
+    "location": { "value": "${AZURE_LOCATION}" },
+    "staticWebAppLocation": { "value": "${AZURE_STATIC_WEB_APP_LOCATION=westeurope}" },
+    "backendImageName": { "value": "${SERVICE_BACKEND_IMAGE_NAME}" },
+    "databaseUrl": { "value": "${DATABASE_URL}" },
+    "qdrantUrl": { "value": "${QDRANT_URL}" },
+    "qdrantApiKey": { "value": "${QDRANT_API_KEY}" },
+    "groqApiKey": { "value": "${GROQ_API_KEY}" },
+    "supabaseUrl": { "value": "${SUPABASE_URL}" },
+    "supabaseServiceKey": { "value": "${SUPABASE_SERVICE_KEY}" },
+    "tokenMapKey": { "value": "${TOKEN_MAP_KEY}" },
+    "googleServiceAccountJson": { "value": "${GOOGLE_SERVICE_ACCOUNT_JSON}" },
+    "googleDriveTranscriptsFolderId": { "value": "${GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID}" }
+  }
+}

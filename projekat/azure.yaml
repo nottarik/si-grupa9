@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+#
+# Azure Developer CLI (azd) project manifest.
+# One command — `azd up` — provisions the infra in infra/main.bicep, builds the
+# two Dockerfiles / the Vite app, and deploys them. This is the "single-click deploy".
+name: chatbot
+metadata:
+  template: chatbot-azure@1.0.0
+
+services:
+  # FastAPI backend -> Azure Container App (built from backend/Dockerfile, unchanged)
+  backend:
+    project: ./backend
+    host: containerapp
+    language: docker
+    docker:
+      path: ./Dockerfile
+      context: .
+      # Built locally with Docker, then pushed to ACR. (Cloud/ACR-Tasks build is
+      # blocked on free-trial subscriptions — "TasksOperationsNotAllowed" — so a
+      # local Docker daemon is required.)
+
+  # Vite SPA -> Azure Static Web App. azd runs `npm run build`; VITE_API_URL is
+  # injected from the backend's provisioned URL (see VITE_API_URL output in main.bicep).
+  web:
+    project: ./frontend
+    host: staticwebapp
+    language: js
+    dist: dist

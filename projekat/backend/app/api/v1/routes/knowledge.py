@@ -1,5 +1,4 @@
 import asyncio
-import uuid
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -13,6 +12,7 @@ from app.db.models.knowledge import UnosBazeZnanja, Kategorija
 from sqlalchemy import or_
 
 from app.api.v1.deps import require_role, require_admin_or_agent
+from app.services.ai.kb_indexing import embed_and_index_item
 
 router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 logger = logging.getLogger(__name__)
@@ -49,8 +49,12 @@ async def list_pending(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):
+    # Moderation queue: active entries a human hasn't reviewed yet. Covers pipeline-added
+    # items (Odobren + already live in the KB) and any legacy NaCekanju entries.
     result = await db.execute(
-        select(UnosBazeZnanja).where(UnosBazeZnanja.status_aprovacije == "NaCekanju")
+        select(UnosBazeZnanja)
+        .where(UnosBazeZnanja.aktivan == True, UnosBazeZnanja.pregledano == False)  # noqa: E712
+        .order_by(UnosBazeZnanja.datum_kreiranja.desc())
     )
     items = result.scalars().all()
     return [
@@ -88,23 +92,13 @@ async def create_manual_qa(
         id_segmenta=None,
         status_aprovacije="Odobren",
         aktivan=True,
+        pregledano=True,  # human-authored — no moderation needed
     )
     db.add(item)
     await db.flush()
 
     try:
-        from app.services.ai.embedding_service import get_embedding_service
-        from app.services.ai.vector_store import get_vector_store
-
-        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
-        vector_id = str(uuid.uuid4())
-        await asyncio.to_thread(
-            get_vector_store().index_item,
-            vector_id,
-            vector,
-            {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
-        )
-        item.vector_id = vector_id
+        await embed_and_index_item(item)
     except Exception:
         logger.warning("Qdrant indexing failed for manual item %s; saved without vector.", item.id)
 
@@ -155,18 +149,7 @@ async def update_item(
     item.id_kategorije = body.id_kategorije
 
     try:
-        from app.services.ai.embedding_service import get_embedding_service
-        from app.services.ai.vector_store import get_vector_store
-
-        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
-        vector_id = item.vector_id or str(uuid.uuid4())
-        await asyncio.to_thread(
-            get_vector_store().index_item,
-            vector_id,
-            vector,
-            {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
-        )
-        item.vector_id = vector_id
+        await embed_and_index_item(item)
     except Exception:
         logger.warning("Qdrant re-index failed for item %s after update.", item_id)
 
@@ -213,25 +196,15 @@ async def approve_item(
 
     item.status_aprovacije = "Odobren"
     item.aktivan = True
+    item.pregledano = True  # confirm/keep — moderation done
 
-    # Embed and index into Qdrant now that the item is approved.
-    # Done here (one item at a time) rather than during upload to avoid OOM.
-    try:
-        from app.services.ai.embedding_service import get_embedding_service
-        from app.services.ai.vector_store import get_vector_store
-
-        vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
-        vector_id = str(uuid.uuid4())
-
-        await asyncio.to_thread(
-            get_vector_store().index_item,
-            vector_id,
-            vector,
-            {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
-        )
-        item.vector_id = vector_id
-    except Exception:
-        logger.warning("Qdrant indexing failed for item %s; approved without vector.", item_id)
+    # Pipeline-added items are already live in Qdrant; only legacy un-embedded
+    # (NaCekanju) rows still need indexing here.
+    if not item.vector_id:
+        try:
+            await embed_and_index_item(item)
+        except Exception:
+            logger.warning("Qdrant indexing failed for item %s; approved without vector.", item_id)
 
     await db.commit()
     return {"message": "Item approved"}
@@ -275,9 +248,6 @@ async def reindex_all(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):
-    from app.services.ai.embedding_service import EmbeddingService
-    from app.services.ai.vector_store import VectorStoreService
-
     result = await db.execute(
         select(UnosBazeZnanja).where(UnosBazeZnanja.status_aprovacije == "Odobren")
     )
@@ -285,15 +255,7 @@ async def reindex_all(
     ok, failed = 0, 0
     for item in items:
         try:
-            vector = await asyncio.to_thread(get_embedding_service().embed, item.pitanje)
-            vector_id = item.vector_id or str(uuid.uuid4())
-            await asyncio.to_thread(
-                get_vector_store().index_item,
-                vector_id,
-                vector,
-                {"item_id": item.id, "question": item.pitanje, "answer": item.odgovor},
-            )
-            item.vector_id = vector_id
+            await embed_and_index_item(item)
             ok += 1
         except Exception as exc:
             logger.warning("Reindex failed for item %s: %s", item.id, exc)
@@ -359,5 +321,15 @@ async def reject_item(
 
     item.status_aprovacije = "Odbijen"
     item.aktivan = False
+
+    # Items are live in the KB as soon as the pipeline runs, so rejecting must also
+    # take the vector down — otherwise the chatbot keeps retrieving a rejected answer.
+    if item.vector_id:
+        try:
+            from app.services.ai.vector_store import get_vector_store
+            await asyncio.to_thread(get_vector_store().delete_item, item.vector_id)
+        except Exception:
+            logger.warning("Qdrant delete failed for rejected item %s.", item_id)
+
     await db.commit()
     return {"message": "Item rejected"}

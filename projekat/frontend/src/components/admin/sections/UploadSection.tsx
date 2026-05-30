@@ -7,6 +7,7 @@ import {
   transcribeAudioPreview,
   uploadTranscript,
 } from "../../../api/transcripts";
+import { StageStepper } from "../PipelineStage";
 
 // Extract a human-readable message from an Axios/fetch error response
 function extractError(e: unknown): string {
@@ -604,7 +605,11 @@ function AudioUpload() {
 
 // ── Google Drive import sub-panel ────────────────────────────────────
 
-type DriveFile = { name: string; status: "queued" | "skipped" | "imported" | "failed" };
+type DriveFile = {
+  name: string;
+  status: "queued" | "skipped" | "imported" | "failed";
+  stage?: string | null; // live pipeline_stage while status === "queued"
+};
 
 function DriveImport() {
   const [folderId, setFolderId] = useState("");
@@ -648,13 +653,15 @@ function DriveImport() {
       }
       try {
         const list = await listTranscripts({ q: fid });
-        const statusByName = new Map(list.map((t) => [t.naziv, t.status]));
+        const byName = new Map(list.map((t) => [t.naziv, t]));
         const next = current.map<DriveFile>((f) => {
           if (f.status !== "queued") return f;
-          const s = statusByName.get(f.name);
-          if (s === "Obradjeno") return { ...f, status: "imported" };
-          if (s === "Odbacen") return { ...f, status: "failed" };
-          return f;
+          const t = byName.get(f.name);
+          // Wait for the stage to clear (post-embedding) before marking imported, so the
+          // final Embedding tick is visible rather than jumping straight to ✓.
+          if (t?.status === "Obradjeno" && !t.pipeline_stage) return { ...f, status: "imported" };
+          if (t?.status === "Odbacen") return { ...f, status: "failed" };
+          return { ...f, stage: t?.pipeline_stage ?? null };
         });
         setFiles(next);
         if (!next.some((f) => f.status === "queued")) stopPolling();
@@ -750,7 +757,7 @@ function DriveImport() {
             >
               <span className="text-charcoal truncate mr-3">{f.name}</span>
               {f.status === "queued" && (
-                <span className="badge badge-yellow shrink-0">Importing…</span>
+                <StageStepper status="Sirovi" stage={f.stage ?? null} />
               )}
               {f.status === "imported" && (
                 <span className="text-xs text-green-700 shrink-0">✓ Imported</span>

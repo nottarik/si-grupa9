@@ -6,6 +6,24 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 
+async def set_stage(transcript_id: int, stage: str | None) -> None:
+    """Update a transcript's live ``pipeline_stage`` in its own short transaction.
+
+    Kept independent of the pipeline's transaction so stage updates are pollable mid-run
+    and survive a pipeline rollback (a failed run still ends up showing ``Greska``).
+    """
+    from sqlalchemy import update
+
+    from app.db.session import AsyncSessionLocal
+    from app.db.models.transcript import Transkript
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(
+            update(Transkript).where(Transkript.id == transcript_id).values(pipeline_stage=stage)
+        )
+        await db.commit()
+
+
 async def import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> None:
     """
     Import all supported files from a Google Drive folder, reusing the same path
@@ -128,10 +146,12 @@ async def process_transcript(transcript_id: int, language: str | None = "bs") ->
 
     from app.db.session import AsyncSessionLocal
     from app.db.models.transcript import FormatTip, Transkript, TranskStatusTip
+    from app.services.ai.kb_indexing import embed_pending
     from app.services.preprocessing.pipeline import run_pipeline
     from app.services.storage.storage_service import StorageService
     from app.services.transcript.transcription_service import TranscriptionService
 
+    # --- Phase A: transcription + preprocessing (one atomic commit) ---
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(Transkript).where(Transkript.id == transcript_id)
@@ -144,6 +164,7 @@ async def process_transcript(transcript_id: int, language: str | None = "bs") ->
             raw_text = transkript.raw_text or ""
 
             if transkript.format == FormatTip.audio and transkript.file_path:
+                await set_stage(transcript_id, "Transkripcija")
                 storage = StorageService()
                 audio_bytes = storage.download(transkript.file_path)
                 suffix = os.path.splitext(transkript.file_path)[1] or ".audio"
@@ -158,16 +179,32 @@ async def process_transcript(transcript_id: int, language: str | None = "bs") ->
                         os.unlink(tmp_path)
                 transkript.raw_text = raw_text
 
+            await set_stage(transcript_id, "Ciscenje")
             pipeline_result = await run_pipeline(transcript_id, raw_text, db)
             transkript.processed_text = pipeline_result.masked_text
             transkript.status = TranskStatusTip.obradjeno
+            await db.commit()
 
         except Exception:
             logger.exception(
                 "Failed to process transcript transcript_id=%s", transcript_id
             )
-            transkript.status = TranskStatusTip.odbacen
+            # Discard any half-built pipeline rows, then record the failure cleanly.
+            await db.rollback()
+            failed = (await db.execute(
+                select(Transkript).where(Transkript.id == transcript_id)
+            )).scalar_one_or_none()
+            if failed:
+                failed.status = TranskStatusTip.odbacen
+                await db.commit()
+            await set_stage(transcript_id, "Greska")
             raise
 
-        finally:
-            await db.commit()
+    # --- Phase B: resumable embed sweep (outside the pipeline transaction) ---
+    await set_stage(transcript_id, "Ugradnja")
+    try:
+        await embed_pending()
+    except Exception:
+        # Sweep is resumable — leave vector_id NULL; startup self-heal will finish it.
+        logger.exception("embed_pending failed after transcript_id=%s", transcript_id)
+    await set_stage(transcript_id, None)

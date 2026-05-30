@@ -11,8 +11,50 @@ from app.api.v1.router import api_router
 logger = logging.getLogger(__name__)
 
 
+async def _startup_self_heal():
+    """Resume anything an earlier process left half-done (no durable queue exists).
+
+    (a) finish any approved KB items that were never embedded, and (b) re-run transcripts
+    left stuck in Sirovi (their in-process BackgroundTask died with the server). Runs in the
+    background so it never blocks startup.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    from sqlalchemy import select
+
+    from app.db.session import AsyncSessionLocal
+    from app.db.models.transcript import Transkript, TranskStatusTip
+    from app.services.ai.kb_indexing import embed_pending
+    from app.tasks.transcript_tasks import process_transcript
+
+    log = logging.getLogger("app.startup")
+    try:
+        # No race: finishing un-embedded approved items is always safe.
+        await embed_pending()
+        # Only re-queue Sirovi rows old enough that their (now-dead) BackgroundTask
+        # can't still be running — avoids double-processing a fresh upload at startup.
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=1)
+        async with AsyncSessionLocal() as db:
+            ids = (await db.execute(
+                select(Transkript.id).where(
+                    Transkript.status == TranskStatusTip.sirovi,
+                    Transkript.datum_uploada < cutoff,
+                )
+            )).scalars().all()
+        for tid in ids:
+            try:
+                await process_transcript(tid)
+            except Exception:
+                log.exception("self-heal: re-processing transcript %s failed", tid)
+        if ids:
+            log.info("self-heal: re-queued %d stuck transcript(s)", len(ids))
+    except Exception:
+        log.exception("startup self-heal failed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import asyncio
     import logging
     from app.services.ai.vector_store import get_vector_store
     try:
@@ -21,6 +63,8 @@ async def lifespan(app: FastAPI):
         logging.getLogger("app.startup").warning(
             "Qdrant unreachable at startup — will retry on first request. %s", exc
         )
+    # Keep a reference so the background task isn't garbage-collected mid-run.
+    app.state.heal_task = asyncio.create_task(_startup_self_heal())
     yield
 
 

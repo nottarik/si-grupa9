@@ -126,6 +126,10 @@ async def confirm_audio_transcript(
     transkript.status = TranskStatusTip.obradjeno
     await db.commit()
 
+    # Embed the freshly-extracted Q&A so the chatbot can use them right away.
+    from app.services.ai.kb_indexing import embed_pending
+    await embed_pending()
+
     return TranscriptManualResponse(
         transcript_id=transkript.id,
         message=(
@@ -215,10 +219,18 @@ async def import_drive_transcripts(
             detail="Google Drive import is not configured (GOOGLE_SERVICE_ACCOUNT_JSON).",
         )
 
+    # The one-click run button sends no folder → fall back to the configured default.
+    folder_id = body.folder_id or settings.GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID
+    if not folder_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No Drive folder specified and GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID is not set.",
+        )
+
     from app.services.storage.google_drive_service import GoogleDriveService
 
     try:
-        drive_files = GoogleDriveService().list_files(body.folder_id)
+        drive_files = GoogleDriveService().list_files(folder_id)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -226,20 +238,20 @@ async def import_drive_transcripts(
         )
 
     existing = await db.execute(
-        select(Transkript.naziv).where(Transkript.naziv.like(f"gdrive:{body.folder_id}:%"))
+        select(Transkript.naziv).where(Transkript.naziv.like(f"gdrive:{folder_id}:%"))
     )
     seen = set(existing.scalars().all())
 
     files: list[DriveFileStatus] = []
     new_count = 0
     for f in drive_files:
-        already = f"gdrive:{body.folder_id}:{f['name']}" in seen
+        already = f"gdrive:{folder_id}:{f['name']}" in seen
         files.append(DriveFileStatus(name=f["name"], status="skipped" if already else "queued"))
         if not already:
             new_count += 1
 
     language = None if body.language == "auto" else body.language
-    background_tasks.add_task(import_drive_folder, body.folder_id, current_user.id, language)
+    background_tasks.add_task(import_drive_folder, folder_id, current_user.id, language)
 
     if not files:
         message = "No supported files (.mp3, .wav, .m4a, .ogg, .txt, .pdf) found in the folder."
@@ -249,7 +261,7 @@ async def import_drive_transcripts(
             f"{len(files) - new_count} already imported."
         )
 
-    return DriveImportResponse(folder_id=body.folder_id, message=message, files=files)
+    return DriveImportResponse(folder_id=folder_id, message=message, files=files)
 
 
 @router.post("/manual", response_model=TranscriptManualResponse)
@@ -276,6 +288,10 @@ async def create_manual_transcript(
     transkript.processed_text = pipeline_result.masked_text
     transkript.status = TranskStatusTip.obradjeno
     await db.commit()
+
+    # Embed the freshly-extracted Q&A so the chatbot can use them right away.
+    from app.services.ai.kb_indexing import embed_pending
+    await embed_pending()
 
     return TranscriptManualResponse(
         transcript_id=transkript.id,
@@ -312,6 +328,30 @@ async def list_transcripts(
         stmt = stmt.where(
             Transkript.datum_uploada < datetime.combine(date_to + timedelta(days=1), datetime.min.time())
         )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+@router.get("/active", response_model=list[TranscriptRead])
+async def list_active_transcripts(
+    folder_id: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
+):
+    """In-progress transcripts only — what the pipeline-progress pollers hit.
+
+    Lightweight: filters to rows still being processed (queued or mid-stage) so an idle
+    pipeline returns an empty list instead of the full transcript history.
+    """
+    stmt = select(Transkript).where(
+        or_(
+            Transkript.status == TranskStatusTip.sirovi,
+            Transkript.pipeline_stage.isnot(None),
+        )
+    ).order_by(Transkript.datum_uploada.desc())
+    if folder_id:
+        # Prefix match (index-friendly) — Drive imports are named gdrive:<folder>:<file>.
+        stmt = stmt.where(Transkript.naziv.like(f"gdrive:{folder_id}:%"))
     result = await db.execute(stmt)
     return result.scalars().all()
 

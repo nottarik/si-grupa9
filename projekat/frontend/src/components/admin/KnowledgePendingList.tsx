@@ -34,8 +34,11 @@ export default function KnowledgePendingList() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2 mb-1">
-        <span className="badge badge-yellow">{items.length} Pending</span>
+        <span className="badge badge-yellow">{items.length} awaiting review</span>
       </div>
+      <p className="text-xs" style={{ color: "#6b5a3a" }}>
+        These answers are already live in the knowledge base. Keep to confirm them, or remove to take them down.
+      </p>
 
       {items.map((item) => (
         <div key={item.id} className="card p-5 space-y-3">
@@ -61,7 +64,7 @@ export default function KnowledgePendingList() {
               disabled={approve.isPending}
               className="gold-btn flex items-center gap-2 text-xs py-1.5 disabled:opacity-50"
             >
-              <Ic d={icons.check} size={13} /> Approve
+              <Ic d={icons.check} size={13} /> Keep
             </button>
             <button
               onClick={() => reject.mutate(item.id)}
@@ -69,7 +72,7 @@ export default function KnowledgePendingList() {
               className="outline-btn flex items-center gap-2 text-xs py-1.5 disabled:opacity-50"
               style={{ borderColor: "rgba(198,40,40,.3)", color: "#c62828" }}
             >
-              <Ic d={icons.x} size={13} /> Reject
+              <Ic d={icons.x} size={13} /> Remove
             </button>
           </div>
         </div>

@@ -8,7 +8,7 @@ export interface RatingsStats {
   below_three_pct: number;
   distribution: Record<string, number>;
   trend: Array<{ date: string; avg: number }>;
-  top_rated: Array<{ question: string; rating: number; date: string }>;
+  top_rated: Array<{ question: string; answer: string; confidence: number | null; rating: number; date: string }>;
   recent_comments: Array<{ comment: string; rating: number | null; date: string | null; question: string | null; sesija_id: number | null }>;
 }
 

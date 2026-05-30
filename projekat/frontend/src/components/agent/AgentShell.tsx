@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEscalation } from "../../hooks/useEscalation";
 import { escalationApi } from "../../api/escalation";
@@ -183,10 +183,10 @@ export default function AgentShell() {
         </nav>
 
         <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(197,160,89,0.15)" }}>
-          <a
-            href="/chat"
+          <Link
+            to="/chat"
             className="text-xs flex items-center gap-1.5 transition-colors"
-            style={{ color: "rgba(197,160,89,0.7)" }}
+            style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
             onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}
             onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(197,160,89,0.7)")}
           >
@@ -203,7 +203,7 @@ export default function AgentShell() {
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             Open Chatbot
-          </a>
+          </Link>
         </div>
       </aside>
 
@@ -243,15 +243,15 @@ export default function AgentShell() {
           <div className="ml-auto flex items-center gap-3">
             <div className="text-xs text-gray-400">{TODAY}</div>
 
-            <a
-              href="/chat"
+            <Link
+              to="/chat"
               className="text-xs transition-colors"
               style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
               onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(197,160,89,0.7)")}
             >
               Chat
-            </a>
+            </Link>
 
             {/* Agent status pill — always visible, controls the WS */}
             <button

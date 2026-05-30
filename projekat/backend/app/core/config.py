@@ -30,6 +30,9 @@ class Settings(BaseSettings):
 
     # Google Drive batch import (service account JSON key as a single string)
     GOOGLE_SERVICE_ACCOUNT_JSON: str = ""
+    # Default folder the one-click "Run complete pipeline" button scans when no
+    # folder is supplied in the request.
+    GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID: str = ""
 
     # Supabase Storage
     SUPABASE_URL: str = ""

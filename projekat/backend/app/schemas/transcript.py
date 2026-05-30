@@ -37,6 +37,7 @@ class TranscriptRead(BaseModel):
     naziv: str
     format: FormatTip
     status: TranskStatusTip
+    pipeline_stage: str | None = None
     celery_task_id: str | None
     datum_uploada: datetime | None
 
@@ -111,17 +112,18 @@ class TranscribePreviewResponse(BaseModel):
 
 
 class DriveImportRequest(BaseModel):
-    folder_id: str
+    # Optional: when omitted, the route falls back to the configured default folder
+    # (the one-click "Run complete pipeline" button sends no folder).
+    folder_id: str | None = None
     # ISO code for audio transcription; "auto" lets Whisper detect per file.
     language: str = "bs"
 
     @field_validator("folder_id")
     @classmethod
-    def folder_id_required(cls, v: str) -> str:
-        stripped = v.strip()
-        if not stripped:
-            raise ValueError("Google Drive folder ID is required")
-        return stripped
+    def folder_id_clean(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return v.strip() or None
 
 
 class DriveFileStatus(BaseModel):

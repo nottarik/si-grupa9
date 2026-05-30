@@ -66,6 +66,9 @@ class Transkript(Base):
     raw_text = Column(Text, nullable=True)
     processed_text = Column(Text, nullable=True)
     celery_task_id = Column(String, nullable=True)
+    # Live sub-stage while processing (Transkripcija/Ciscenje/Ugradnja/Greska);
+    # NULL once terminal (the coarse outcome stays in ``status``).
+    pipeline_stage = Column(String, nullable=True)
 
 
 class Segment(Base):

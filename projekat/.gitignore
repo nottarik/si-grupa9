@@ -18,6 +18,9 @@ frontend/.env
 backend/.env.tunnel
 .cloudflared.env
 
+# Azure Developer CLI – stores deploy secrets/outputs locally
+.azure/
+
 # Node
 node_modules/
 frontend/dist/

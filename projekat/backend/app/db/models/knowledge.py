@@ -108,6 +108,9 @@ class UnosBazeZnanja(Base):
     verzija_broj = Column(Integer, default=1)
     prethodna_verzija_id = Column(BigInteger, ForeignKey("unos_baze_znanja.id"), nullable=True)
     vector_id = Column(String, nullable=True)
+    # False = auto-added by the pipeline and not yet human-reviewed (moderation queue);
+    # True = a human confirmed it via approve.
+    pregledano = Column(Boolean, nullable=False, server_default="false", default=False)
 
 
 class ChatSesija(Base):

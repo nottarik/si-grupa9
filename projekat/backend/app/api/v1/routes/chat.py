@@ -192,10 +192,10 @@ async def ratings_stats(
 
     top_rows = (
         await db.execute(
-            select(Poruka.tekst, Feedback.ocjena, Feedback.timestamp)
+            select(Poruka.tekst, Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti, Feedback.ocjena, Feedback.timestamp)
             .join(Odgovor, Feedback.id_odgovora == Odgovor.id)
             .join(Poruka, Odgovor.id_poruke == Poruka.id)
-            .where(rated)
+            .where(rated, Feedback.id_odgovora.isnot(None))
             .order_by(Feedback.ocjena.desc(), Feedback.timestamp.desc())
             .limit(10)
         )
@@ -203,6 +203,8 @@ async def ratings_stats(
     top_rated = [
         {
             "question": row.tekst,
+            "answer": row.tekst_odgovora,
+            "confidence": round(float(row.skor_pouzdanosti), 2) if row.skor_pouzdanosti is not None else None,
             "rating": int(row.ocjena),
             "date": row.timestamp.strftime("%Y-%m-%d") if row.timestamp else "",
         }

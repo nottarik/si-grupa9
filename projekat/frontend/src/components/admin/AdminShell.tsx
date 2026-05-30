@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEscalation } from "../../hooks/useEscalation";
 import { icons } from "./shared";
 import Dashboard from "./sections/Dashboard";
 import UploadSection from "./sections/UploadSection";
+import PipelineMonitor from "./sections/PipelineMonitor";
 import TranscriptList from "./sections/TranscriptList";
 import ChatLogs from "./sections/ChatLogs";
 import Ratings from "./sections/Ratings";
@@ -22,8 +23,11 @@ const ESCALATION_ICON = (
   </>
 );
 
+const PIPELINE_ICON = <polygon points="5 3 19 12 5 21 5 3" />;
+
 const NAV = [
   { id: "dashboard",   label: "Dashboard",        icon: icons.dashboard },
+  { id: "pipeline",    label: "Pipeline",          icon: PIPELINE_ICON },
   { id: "upload",      label: "Upload",            icon: icons.upload },
   { id: "transcripts", label: "Transcripts",       icon: icons.transcripts },
   { id: "chat",        label: "Chat Logs",         icon: icons.chat },
@@ -79,6 +83,7 @@ export default function AdminShell() {
 
   const sections: Record<NavId, JSX.Element> = {
     dashboard:   <Dashboard />,
+    pipeline:    <PipelineMonitor />,
     upload:      <UploadSection />,
     transcripts: <TranscriptList key={transcriptKey} />,
     chat:        <ChatLogs />,
@@ -161,10 +166,10 @@ export default function AdminShell() {
           className="px-5 py-4"
           style={{ borderTop: "1px solid rgba(197,160,89,0.15)" }}
         >
-          <a
-            href="/"
+          <Link
+            to="/chat"
             className="text-xs flex items-center gap-1.5 transition-colors"
-            style={{ color: "rgba(197,160,89,0.7)" }}
+            style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
             onMouseEnter={(e) =>
               ((e.target as HTMLElement).style.color = "#C5A059")
             }
@@ -185,7 +190,7 @@ export default function AdminShell() {
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             Open Chatbot
-          </a>
+          </Link>
         </div>
       </aside>
 
@@ -228,15 +233,15 @@ export default function AdminShell() {
           {/* Right side */}
           <div className="ml-auto flex items-center gap-3">
             <div className="text-xs text-gray-400">{TODAY}</div>
-            <a
-              href="/chat"
+            <Link
+              to="/chat"
               className="text-xs transition-colors"
               style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
               onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(197,160,89,0.7)")}
             >
               Chat
-            </a>
+            </Link>
             <button
               onClick={handleLogout}
               className="text-xs text-gray-400 hover:text-gold transition-colors"

@@ -127,26 +127,34 @@ export default function Ratings() {
         {data.top_rated.length === 0 ? (
           <div className="text-sm text-gray-400 text-center py-6">No rated responses.</div>
         ) : (
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Question</th>
-                <th>Rating</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.top_rated.map((l, i) => (
-                <tr key={i}>
-                  <td className="text-charcoal">{l.question}</td>
-                  <td>
-                    <Stars n={l.rating} />
-                  </td>
-                  <td className="text-gray-400">{l.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-3">
+            {data.top_rated.map((l, i) => (
+              <div
+                key={i}
+                className="rounded-lg p-4"
+                style={{ background: "rgba(249,245,239,0.7)", border: "1px solid rgba(197,160,89,0.15)" }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Stars n={l.rating} />
+                  <div className="flex items-center gap-3">
+                    {l.confidence !== null && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(197,160,89,0.12)", color: "#8a6d1f" }}
+                      >
+                        {Math.round(l.confidence * 100)}% confidence
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-400">{l.date}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wide">Question</p>
+                <p className="text-sm text-charcoal mb-2 leading-snug">{l.question}</p>
+                <p className="text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wide">Response</p>
+                <p className="text-sm text-gray-600 leading-snug line-clamp-3">{l.answer}</p>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

@@ -29,12 +29,13 @@ export interface DriveImportResult {
 }
 
 export async function importDriveTranscripts(
-  folderId: string,
+  folderId: string | null,
   language: string
 ): Promise<DriveImportResult> {
   const { data } = await apiClient.post<DriveImportResult>(
     "/api/v1/transcripts/import-drive",
-    { folder_id: folderId, language }
+    // folderId null → backend uses the configured default folder (one-click run).
+    { folder_id: folderId || undefined, language }
   );
   return data;
 }
@@ -55,6 +56,14 @@ export async function listTranscripts(params?: {
   date_to?: string;
 }): Promise<Transcript[]> {
   const { data } = await apiClient.get<Transcript[]>("/api/v1/transcripts/", { params });
+  return data;
+}
+
+// In-progress transcripts only — for live pipeline-progress polling.
+export async function listActiveTranscripts(folderId?: string): Promise<Transcript[]> {
+  const { data } = await apiClient.get<Transcript[]>("/api/v1/transcripts/active", {
+    params: folderId ? { folder_id: folderId } : undefined,
+  });
   return data;
 }
 

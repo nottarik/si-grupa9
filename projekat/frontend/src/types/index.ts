@@ -68,6 +68,7 @@ export interface Transcript {
   naziv: string;
   format: string;
   status: string;
+  pipeline_stage: string | null;
   celery_task_id: string | null;
   datum_uploada: string | null;
   transcript_type: TranscriptType;
