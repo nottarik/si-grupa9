@@ -54,7 +54,8 @@ param supabaseServiceKey string
 @description('Fernet key for PII token maps. MUST reuse the existing value — a new key makes already-masked data undecryptable.')
 param tokenMapKey string
 @secure()
-param googleServiceAccountJson string
+@description('Base64-encoded service-account JSON. Base64 is used because the raw JSON contains quotes/newlines that corrupt the azd parameters file during substitution; it is decoded back to JSON below.')
+param googleServiceAccountJsonBase64 string = ''
 param googleDriveTranscriptsFolderId string = ''
 
 // Generated per deploy — SECRET_KEY rotation only forces users to log in again.
@@ -163,7 +164,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
         { name: 'supabase-url', value: supabaseUrl }
         { name: 'supabase-service-key', value: supabaseServiceKey }
         { name: 'token-map-key', value: tokenMapKey }
-        { name: 'google-service-account-json', value: googleServiceAccountJson }
+        { name: 'google-service-account-json', value: empty(googleServiceAccountJsonBase64) ? '' : base64ToString(googleServiceAccountJsonBase64) }
         { name: 'secret-key', value: secretKey }
         { name: 'internal-api-key', value: internalApiKey }
       ]

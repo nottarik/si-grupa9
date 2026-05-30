@@ -13,7 +13,7 @@
     "supabaseUrl": { "value": "${SUPABASE_URL}" },
     "supabaseServiceKey": { "value": "${SUPABASE_SERVICE_KEY}" },
     "tokenMapKey": { "value": "${TOKEN_MAP_KEY}" },
-    "googleServiceAccountJson": { "value": "${GOOGLE_SERVICE_ACCOUNT_JSON}" },
+    "googleServiceAccountJsonBase64": { "value": "${GOOGLE_SERVICE_ACCOUNT_JSON_BASE64}" },
     "googleDriveTranscriptsFolderId": { "value": "${GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID}" }
   }
 }
