@@ -43,3 +43,7 @@ class FeedbackRequest(BaseModel):
 class SessionRateRequest(BaseModel):
     rating: float
     comment: str | None = None
+
+
+class IssueBulkDelete(BaseModel):
+    ids: list[int] = []

@@ -281,11 +281,15 @@ class RagService:
 
         poruka.id_odgovora = odgovor.id
 
-        if needs_escalation:
-            anomalija_tip = "EksplicitanZahtjev" if intent == "escalation_request" else ("BezOdgovora" if not hits else "NiskaPouzdanost")
+        # Log an Issue (Anomalija) only when the bot/KB actually failed. An
+        # explicit "talk to a human" request is healthy routing — it belongs in
+        # the escalation queue, not the issues list.
+        if needs_escalation and intent != "escalation_request":
+            anomalija_tip = "BezOdgovora" if not hits else "NiskaPouzdanost"
+            nivo = "Visoka" if anomalija_tip == "BezOdgovora" else "Niska"
             self.db.add(Anomalija(
                 tip=anomalija_tip,
-                nivo_ozbiljnosti="Visoka",
+                nivo_ozbiljnosti=nivo,
                 status="Otvorena",
                 opis=f"score={confidence:.3f}, question={question[:200]}",
                 id_poruke=poruka.id,

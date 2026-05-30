@@ -611,6 +611,17 @@ type DriveFile = {
   stage?: string | null; // live pipeline_stage while status === "queued"
 };
 
+// Accept either a bare folder ID or a pasted Drive URL and return the ID.
+function extractDriveId(input: string): string {
+  const s = input.trim();
+  const patterns = [/\/folders\/([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) return m[1];
+  }
+  return s;
+}
+
 function DriveImport() {
   const [folderId, setFolderId] = useState("");
   const [language, setLanguage] = useState("bs");
@@ -674,7 +685,7 @@ function DriveImport() {
   }
 
   async function handleImport() {
-    const id = folderId.trim();
+    const id = extractDriveId(folderId);
     if (!id) return;
     stopPolling();
     setStatus("loading");
@@ -697,7 +708,7 @@ function DriveImport() {
       <div>
         <p className="text-sm font-semibold text-charcoal">Import from Google Drive</p>
         <p className="text-xs mt-1" style={{ color: "#6b5a3a" }}>
-          Share the folder with the service account, then paste its folder ID below.
+          Share the folder with the service account, then paste its folder URL or ID below.
           Supported files (.mp3, .wav, .m4a, .ogg, .txt, .pdf) are imported and processed.
           Files already imported from this folder are skipped.
         </p>
@@ -705,7 +716,7 @@ function DriveImport() {
 
       <input
         className="input-field"
-        placeholder="Google Drive Folder ID"
+        placeholder="Google Drive folder URL or ID"
         value={folderId}
         onChange={(e) => {
           setFolderId(e.target.value);

@@ -118,6 +118,8 @@ export default function Issues() {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [detail, setDetail] = useState<Issue | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   useSubViewBack(detail !== null, () => setDetail(null));
 
@@ -129,6 +131,7 @@ export default function Issues() {
       if (activeFilter !== "All") params.status_filter = activeFilter;
       const { data } = await apiClient.get<Issue[]>("/api/v1/chat/issues", { params });
       setIssues(data);
+      setSelected(new Set());
     } catch {
       // ignore
     } finally {
@@ -141,6 +144,45 @@ export default function Issues() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
+  async function handleDelete(id: number) {
+    if (!window.confirm("Delete this issue?\nThis action cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await apiClient.delete(`/api/v1/chat/issues/${id}`);
+      setIssues((prev) => prev.filter((i) => i.id !== id));
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function handleDeleteSelected() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (
+      !window.confirm(
+        `Delete ${ids.length} selected issue${ids.length > 1 ? "s" : ""}?\nThis action cannot be undone.`
+      )
+    )
+      return;
+    setDeleting(true);
+    try {
+      await apiClient.post("/api/v1/chat/issues/bulk-delete", { ids });
+      setIssues((prev) => prev.filter((i) => !selected.has(i.id)));
+      setSelected(new Set());
+    } catch {
+      // ignore
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (detail) {
     return <IssueDetail issue={detail} onBack={() => setDetail(null)} onUpdate={fetchIssues} />;
   }
@@ -149,6 +191,30 @@ export default function Issues() {
     if (!search) return true;
     return i.title.toLowerCase().includes(search.toLowerCase());
   });
+
+  function toggleOne(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const allSelected = filtered.length > 0 && filtered.every((i) => selected.has(i.id));
+
+  function toggleAll() {
+    setSelected((prev) => {
+      if (filtered.every((i) => prev.has(i.id))) {
+        const next = new Set(prev);
+        filtered.forEach((i) => next.delete(i.id));
+        return next;
+      }
+      const next = new Set(prev);
+      filtered.forEach((i) => next.add(i.id));
+      return next;
+    });
+  }
 
   return (
     <div className="space-y-5">
@@ -171,6 +237,22 @@ export default function Issues() {
               {s}
             </button>
           ))}
+          {selected.size > 0 && (
+            <button
+              className="px-3 py-1 rounded text-xs flex items-center gap-1.5"
+              onClick={handleDeleteSelected}
+              disabled={deleting}
+              style={{
+                border: "1px solid rgba(220,38,38,0.3)",
+                background: "rgba(220,38,38,0.05)",
+                color: "#dc2626",
+                cursor: deleting ? "default" : "pointer",
+              }}
+            >
+              <Ic d={icons.trash} size={13} />
+              Delete selected ({selected.size})
+            </button>
+          )}
           <div className="ml-auto relative">
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               <Ic d={icons.search} />
@@ -191,6 +273,14 @@ export default function Issues() {
           <table className="tbl">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="Select all"
+                  />
+                </th>
                 <th>#</th>
                 <th>Title</th>
                 <th>Type</th>
@@ -203,13 +293,21 @@ export default function Issues() {
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center text-gray-400 py-8 text-sm">
+                  <td colSpan={8} className="text-center text-gray-400 py-8 text-sm">
                     No issues found.
                   </td>
                 </tr>
               )}
               {filtered.map((i) => (
                 <tr key={i.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(i.id)}
+                      onChange={() => toggleOne(i.id)}
+                      aria-label={`Select issue ${i.id}`}
+                    />
+                  </td>
                   <td className="text-gray-400 font-mono text-xs">{i.id}</td>
                   <td className="font-medium text-charcoal max-w-xs truncate">{i.title}</td>
                   <td className="text-xs text-gray-400">{i.type ?? "—"}</td>
@@ -217,12 +315,23 @@ export default function Issues() {
                   <td><StatusBadge s={i.status} /></td>
                   <td className="text-gray-400">{i.date}</td>
                   <td>
-                    <button
-                      className="outline-btn py-1 text-xs"
-                      onClick={() => setDetail(i)}
-                    >
-                      View
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        className="outline-btn py-1 text-xs"
+                        onClick={() => setDetail(i)}
+                      >
+                        View
+                      </button>
+                      <button
+                        className="p-1.5 rounded"
+                        onClick={() => handleDelete(i.id)}
+                        disabled={deleting}
+                        title="Delete issue"
+                        style={{ color: "#ef4444", cursor: deleting ? "default" : "pointer" }}
+                      >
+                        <Ic d={icons.trash} size={13} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db.models.user import Korisnik
 from app.api.v1.deps import get_current_user, require_admin
-from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest, SessionRateRequest
+from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest, SessionRateRequest, IssueBulkDelete
 from app.schemas.escalation import EscalationInfo
 from app.services.ai.rag_service import RagService
 from app.services.escalation import service as eskal_svc
@@ -136,6 +136,35 @@ async def submit_feedback(
         tip="KorisnikOcjena",
     )
     db.add(feedback)
+
+    # A low rating or an explicit "incorrect answer" flag means the bot answered
+    # but got it wrong. A confidently-wrong answer never trips escalation, so this
+    # is the only way it surfaces as an Issue for admin follow-up.
+    is_negative = payload.is_incorrect or (ocjena is not None and ocjena <= 2)
+    if is_negative and payload.interaction_id:
+        from app.db.models.knowledge import Odgovor, Anomalija
+
+        already = (await db.execute(
+            select(Anomalija.id).where(Anomalija.id_odgovora == payload.interaction_id)
+        )).scalar_one_or_none()
+
+        if already is None:
+            id_poruke = (await db.execute(
+                select(Odgovor.id_poruke).where(Odgovor.id == payload.interaction_id)
+            )).scalar_one_or_none()
+
+            opis = f"Negative feedback (rating={ocjena})"
+            if komentar:
+                opis = f"{opis}: {komentar[:200]}"
+            db.add(Anomalija(
+                tip="NevalidanPodatak",
+                nivo_ozbiljnosti="Visoka" if payload.is_incorrect else "Niska",
+                status="Otvorena",
+                opis=opis,
+                id_poruke=id_poruke,
+                id_odgovora=payload.interaction_id,
+            ))
+
     await db.commit()
     return {"message": "Feedback saved"}
 
@@ -261,20 +290,41 @@ async def chat_logs(
 ):
     """Admin endpoint: list recent chat interactions with answers and ratings."""
     from app.db.models.knowledge import Poruka, Odgovor, Feedback
+    from sqlalchemy.orm import aliased
+
+    # Ratings can be left per-response (Feedback.id_odgovora) or per-session
+    # (Feedback.id_sesije, the end-of-conversation rating). Surface either one.
+    SessFb = aliased(Feedback)
+    session_rating_sq = (
+        select(func.avg(SessFb.ocjena))
+        .where(SessFb.id_sesije == Poruka.id_sesije, SessFb.ocjena.isnot(None))
+        .correlate(Poruka)
+        .scalar_subquery()
+    )
 
     query = (
         select(
             Poruka.id,
+            Poruka.id_sesije,
             Poruka.tekst,
             Poruka.timestamp_msg,
             Odgovor.tekst_odgovora,
             Odgovor.skor_pouzdanosti,
             Odgovor.metoda_generisanja,
-            func.avg(Feedback.ocjena).label("avg_rating"),
+            func.coalesce(func.avg(Feedback.ocjena), session_rating_sq).label("avg_rating"),
         )
         .join(Odgovor, Poruka.id_odgovora == Odgovor.id)
         .outerjoin(Feedback, Feedback.id_odgovora == Odgovor.id)
-        .group_by(Poruka.id, Poruka.tekst, Poruka.timestamp_msg, Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti, Odgovor.metoda_generisanja)
+        .group_by(Poruka.id, Poruka.id_sesije, Poruka.tekst, Poruka.timestamp_msg, Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti, Odgovor.metoda_generisanja)
+    )
+
+    # Hide non-substantive turns: greetings/smalltalk ("Generativno") and
+    # explicit "talk to an agent" requests. We want the real questions asked.
+    from app.services.ai.rag_service import _EXPLICIT_ESCALATION_MSG
+
+    query = query.where(
+        func.coalesce(Odgovor.metoda_generisanja, "") != "Generativno",
+        func.coalesce(Odgovor.tekst_odgovora, "") != _EXPLICIT_ESCALATION_MSG,
     )
 
     if search:
@@ -292,7 +342,7 @@ async def chat_logs(
             pass
 
     if min_rating is not None:
-        query = query.having(func.avg(Feedback.ocjena) >= min_rating)
+        query = query.having(func.coalesce(func.avg(Feedback.ocjena), session_rating_sq) >= min_rating)
 
     query = query.order_by(Poruka.timestamp_msg.desc()).limit(limit)
     rows = (await db.execute(query)).all()
@@ -300,6 +350,7 @@ async def chat_logs(
     return [
         {
             "id": row.id,
+            "session_id": row.id_sesije,
             "question": row.tekst,
             "answer": row.tekst_odgovora,
             "time": row.timestamp_msg.strftime("%H:%M") if row.timestamp_msg else None,
@@ -404,6 +455,7 @@ async def admin_get_session_messages(
 ):
     """Admin endpoint: get all messages for any session (no ownership check)."""
     from app.db.models.knowledge import ChatSesija, Poruka, Odgovor
+    from app.db.models.escalation import Eskalacija
     from fastapi import HTTPException
 
     sess = (await db.execute(
@@ -435,6 +487,25 @@ async def admin_get_session_messages(
                     "content": odg.tekst_odgovora,
                     "timestamp": None,
                 })
+
+    # Human-agent (escalated) chat messages live only in the escalation
+    # razgovor JSON, not as Poruka rows. Merge them in so the admin sees the
+    # full conversation. Dedupe by (role, content) since the razgovor snapshot
+    # repeats the bot turns already captured above.
+    seen = {(m["role"], m["content"]) for m in messages}
+    escalations = (await db.execute(
+        select(Eskalacija.razgovor)
+        .where(Eskalacija.sesija_id == session_id)
+        .order_by(Eskalacija.datum_kreiranja.asc())
+    )).scalars().all()
+    for razgovor in escalations:
+        for entry in razgovor or []:
+            role = entry.get("role")
+            content = entry.get("content")
+            if content is None or (role, content) in seen:
+                continue
+            seen.add((role, content))
+            messages.append({"role": role, "content": content, "timestamp": None})
 
     return {"session_id": session_id, "messages": messages}
 
@@ -623,3 +694,41 @@ async def update_issue(
 
     await db.commit()
     return {"ok": True}
+
+
+@router.delete("/issues/{issue_id}")
+async def delete_issue(
+    issue_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_admin),
+):
+    """Delete a single anomaly (issue)."""
+    from app.db.models.knowledge import Anomalija
+
+    result = await db.execute(select(Anomalija).where(Anomalija.id == issue_id))
+    anomalija = result.scalar_one_or_none()
+    if not anomalija:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not found")
+
+    await db.delete(anomalija)
+    await db.commit()
+    return {"ok": True}
+
+
+@router.post("/issues/bulk-delete")
+async def bulk_delete_issues(
+    payload: IssueBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_admin),
+):
+    """Delete the given anomalies (issues) by id."""
+    from app.db.models.knowledge import Anomalija
+    from sqlalchemy import delete as sa_delete
+
+    if not payload.ids:
+        return {"ok": True, "deleted": 0}
+
+    result = await db.execute(sa_delete(Anomalija).where(Anomalija.id.in_(payload.ids)))
+    await db.commit()
+    return {"ok": True, "deleted": result.rowcount or 0}

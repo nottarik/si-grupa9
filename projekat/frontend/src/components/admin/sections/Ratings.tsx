@@ -258,7 +258,7 @@ export default function Ratings() {
                           className="font-semibold block mb-0.5"
                           style={{ color: m.role === "user" ? "#C5A059" : "#6b7280" }}
                         >
-                          {m.role === "user" ? "User" : "Ambassador"}
+                          {m.role === "user" ? "User" : m.role === "agent" ? "Agent" : "Ambassador"}
                         </span>
                         {m.content}
                       </div>

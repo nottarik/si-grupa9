@@ -7,12 +7,13 @@ from app.db.models.transcript import TranskStatusTip, FormatTip
 
 
 def _display_naziv(v: str) -> str:
-    """Drive imports are stored as ``gdrive:<folder_id>:<filename>`` for folder-scoped
+    """Drive imports are stored as ``gdrive:<folder_id>:<filename>`` (with the Drive
+    modifiedTime appended after ``::v::`` for change detection) for folder-scoped
     dedup; show only the original filename to the user."""
     if v.startswith("gdrive:"):
         parts = v.split(":", 2)
         if len(parts) == 3:
-            return parts[2]
+            return parts[2].split("::v::", 1)[0]
     return v
 
 

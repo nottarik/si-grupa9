@@ -33,7 +33,7 @@ from app.services.transcript.file_utils import (
     classify_file,
     extract_pdf_text,
 )
-from app.tasks.transcript_tasks import import_drive_folder, process_transcript
+from app.tasks.transcript_tasks import import_drive_folder, process_transcript, _parse_drive_naziv
 
 logger = logging.getLogger(__name__)
 
@@ -240,13 +240,21 @@ async def import_drive_transcripts(
     existing = await db.execute(
         select(Transkript.naziv).where(Transkript.naziv.like(f"gdrive:{folder_id}:%"))
     )
-    seen = set(existing.scalars().all())
+    # file name -> recorded modifiedTime (None for legacy entries without a version)
+    recorded: dict[str, str | None] = {}
+    for nz in existing.scalars().all():
+        parsed = _parse_drive_naziv(nz, folder_id)
+        if parsed:
+            recorded[parsed[0]] = parsed[1]
 
     files: list[DriveFileStatus] = []
     new_count = 0
     for f in drive_files:
-        already = f"gdrive:{folder_id}:{f['name']}" in seen
-        files.append(DriveFileStatus(name=f["name"], status="skipped" if already else "queued"))
+        name = f["name"]
+        # Skip only if this exact version was already imported; a newer
+        # modifiedTime (or a legacy entry) is re-imported by the task.
+        already = name in recorded and recorded[name] is not None and recorded[name] == f.get("modifiedTime")
+        files.append(DriveFileStatus(name=name, status="skipped" if already else "queued"))
         if not already:
             new_count += 1
 

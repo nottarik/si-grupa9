@@ -5,6 +5,67 @@ from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
+# Drive imports are named ``gdrive:<folder_id>:<name>`` with the file's Drive
+# modifiedTime appended after this separator, so a re-uploaded/edited file
+# (same name, newer modifiedTime) is detected as a new version rather than skipped.
+_DRIVE_VER_SEP = "::v::"
+
+
+def _drive_naziv(folder_id: str, name: str, modified_time: str | None) -> str:
+    base = f"gdrive:{folder_id}:{name}"
+    return f"{base}{_DRIVE_VER_SEP}{modified_time}" if modified_time else base
+
+
+def _parse_drive_naziv(naziv: str, folder_id: str) -> tuple[str, str | None] | None:
+    """Split a stored naziv into (file_name, modified_time). modified_time is None
+    for legacy entries imported before versioning. Returns None if not from this folder."""
+    prefix = f"gdrive:{folder_id}:"
+    if not naziv.startswith(prefix):
+        return None
+    rest = naziv[len(prefix):]
+    if _DRIVE_VER_SEP in rest:
+        name, mtime = rest.rsplit(_DRIVE_VER_SEP, 1)
+        return name, mtime
+    return rest, None
+
+
+async def purge_transcript(db, transcript_id: int) -> None:
+    """Delete a transcript and all derived data (segments, KB entries, Qdrant vectors,
+    token map). Mirrors the cleanup in the DELETE /transcripts route. Does not commit."""
+    from sqlalchemy import delete, select
+
+    from app.db.models.transcript import Segment, TokenMapRecord, Transkript
+    from app.db.models.knowledge import UnosBazeZnanja
+
+    seg_ids = (
+        await db.execute(select(Segment.id).where(Segment.id_transkripta == transcript_id))
+    ).scalars().all()
+    if seg_ids:
+        kb_entries = (
+            await db.execute(
+                select(UnosBazeZnanja).where(UnosBazeZnanja.id_segmenta.in_(seg_ids))
+            )
+        ).scalars().all()
+        if kb_entries:
+            from app.services.ai.vector_store import get_vector_store
+
+            vector_store = get_vector_store()
+            for entry in kb_entries:
+                if entry.vector_id:
+                    try:
+                        vector_store.delete_item(entry.vector_id)
+                    except Exception:
+                        logger.warning(
+                            "Could not delete Qdrant vector %s for KB entry %s",
+                            entry.vector_id, entry.id,
+                        )
+            await db.execute(
+                delete(UnosBazeZnanja).where(UnosBazeZnanja.id_segmenta.in_(seg_ids))
+            )
+    await db.execute(delete(TokenMapRecord).where(TokenMapRecord.transkript_id == transcript_id))
+    await db.execute(delete(Segment).where(Segment.id_transkripta == transcript_id))
+    await db.execute(delete(Transkript).where(Transkript.id == transcript_id))
+
 
 async def set_stage(transcript_id: int, stage: str | None) -> None:
     """Update a transcript's live ``pipeline_stage`` in its own short transaction.
@@ -57,17 +118,33 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
 
     async with AsyncSessionLocal() as db:
         existing = await db.execute(
-            select(Transkript.naziv).where(
+            select(Transkript.id, Transkript.naziv).where(
                 Transkript.naziv.like(f"gdrive:{folder_id}:%")
             )
         )
-        seen = set(existing.scalars().all())
+        # file name -> (transcript_id, recorded modifiedTime or None for legacy)
+        recorded: dict[str, tuple[int, str | None]] = {}
+        for tid, nz in existing.all():
+            parsed = _parse_drive_naziv(nz, folder_id)
+            if parsed:
+                recorded[parsed[0]] = (tid, parsed[1])
 
         for f in files:
-            naziv = f"gdrive:{folder_id}:{f['name']}"
-            if naziv in seen:
-                skipped += 1
-                continue
+            name = f["name"]
+            mtime = f.get("modifiedTime")
+            naziv = _drive_naziv(folder_id, name, mtime)
+
+            rec = recorded.get(name)
+            replace_id: int | None = None
+            if rec is not None:
+                rec_id, rec_mtime = rec
+                if rec_mtime is not None and rec_mtime == mtime:
+                    skipped += 1  # already imported this exact version
+                    continue
+                # Changed file (newer modifiedTime) or a legacy import with no
+                # recorded version — replace the old transcript. Deferred until the
+                # new file is validated below so a failed re-import keeps the old one.
+                replace_id = rec_id
 
             try:
                 content = drive.download_file(f["id"])
@@ -107,6 +184,11 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
                 errors += 1
                 continue
 
+            # New version validated — now drop the superseded import (same transaction).
+            if replace_id is not None:
+                await purge_transcript(db, replace_id)
+                recorded.pop(name, None)
+
             transkript = Transkript(
                 id_korisnika_upload=uploader_id,
                 naziv=naziv,
@@ -119,7 +201,7 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
             db.add(transkript)
             await db.commit()
             await db.refresh(transkript)
-            seen.add(naziv)
+            recorded[name] = (transkript.id, mtime)
             queued += 1
 
             try:

@@ -5,7 +5,6 @@ import type { User, UserRole } from "../../../types";
 
 const ROLES: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Admin" },
-  { value: "manager", label: "Manager" },
   { value: "agent", label: "Agent" },
   { value: "user", label: "User" },
 ];
@@ -138,6 +137,9 @@ export default function UsersSection() {
                         minWidth: 110,
                       }}
                     >
+                      {!ROLES.some((r) => r.value === u.role) && (
+                        <option value={u.role}>{u.role}</option>
+                      )}
                       {ROLES.map((r) => (
                         <option key={r.value} value={r.value}>
                           {r.label}

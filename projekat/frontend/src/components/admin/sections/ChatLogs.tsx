@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSubViewBack } from "../../../hooks/useSubViewBack";
 import { Ic, icons } from "../shared";
 import apiClient from "../../../api/client";
+import { adminGetSessionMessages } from "../../../api/chat";
 
 interface LogEntry {
   id: number;
+  session_id: number | null;
   question: string;
   answer: string;
   time: string | null;
@@ -12,6 +14,12 @@ interface LogEntry {
   confidence: number;
   method: string;
   rating: number | null;
+}
+
+interface SessionMessage {
+  role: string;
+  content: string;
+  timestamp: string | null;
 }
 
 function Stars({ n }: { n: number | null }) {
@@ -33,11 +41,33 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<number | null>(null);
+  const [convo, setConvo] = useState<SessionMessage[] | null>(null);
+  const [convoLoading, setConvoLoading] = useState(false);
   const [search, setSearch] = useState(initialSearch);
   const [date, setDate] = useState(initialDate);
   const [minRating, setMinRating] = useState("");
 
-  useSubViewBack(open !== null, () => setOpen(null));
+  useSubViewBack(open !== null, () => { setOpen(null); setConvo(null); });
+
+  async function toggleDetails(l: LogEntry) {
+    if (open === l.id) {
+      setOpen(null);
+      setConvo(null);
+      return;
+    }
+    setOpen(l.id);
+    setConvo(null);
+    if (l.session_id == null) return;
+    setConvoLoading(true);
+    try {
+      const res = await adminGetSessionMessages(l.session_id);
+      setConvo(res.messages);
+    } catch {
+      setConvo(null);
+    } finally {
+      setConvoLoading(false);
+    }
+  }
 
   const searchRef = useRef(search);
   const dateRef = useRef(date);
@@ -150,7 +180,7 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
                     <td>
                       <button
                         className="outline-btn py-1 text-xs"
-                        onClick={() => setOpen(open === l.id ? null : l.id)}
+                        onClick={() => toggleDetails(l)}
                       >
                         {open === l.id ? "Close" : "Details"}
                       </button>
@@ -164,21 +194,44 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
                         className="px-5 py-4"
                       >
                         <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">
-                          Full Exchange
+                          Full Conversation
                         </div>
                         <div className="space-y-2">
-                          <div
-                            className="rounded-lg p-3 text-sm border"
-                            style={{ background: "#fff", borderColor: "rgba(197,160,89,0.2)" }}
-                          >
-                            <strong>User:</strong> {l.question}
-                          </div>
-                          <div
-                            className="rounded-lg p-3 text-sm border-l-2"
-                            style={{ background: "#fff", borderLeftColor: "#C5A059" }}
-                          >
-                            <strong>Ambassador:</strong> {l.answer}
-                          </div>
+                          {convoLoading ? (
+                            <div className="text-sm text-gray-400 py-2">Loading…</div>
+                          ) : convo && convo.length > 0 ? (
+                            convo.map((m, i) => (
+                              <div
+                                key={i}
+                                className="rounded-lg p-3 text-sm"
+                                style={
+                                  m.role === "user"
+                                    ? { background: "#fff", border: "1px solid rgba(197,160,89,0.2)" }
+                                    : { background: "#fff", borderLeft: "2px solid #C5A059" }
+                                }
+                              >
+                                <strong>
+                                  {m.role === "user" ? "User" : m.role === "agent" ? "Agent" : "Ambassador"}:
+                                </strong>{" "}
+                                {m.content}
+                              </div>
+                            ))
+                          ) : (
+                            <>
+                              <div
+                                className="rounded-lg p-3 text-sm border"
+                                style={{ background: "#fff", borderColor: "rgba(197,160,89,0.2)" }}
+                              >
+                                <strong>User:</strong> {l.question}
+                              </div>
+                              <div
+                                className="rounded-lg p-3 text-sm border-l-2"
+                                style={{ background: "#fff", borderLeftColor: "#C5A059" }}
+                              >
+                                <strong>Ambassador:</strong> {l.answer}
+                              </div>
+                            </>
+                          )}
                           <div className="flex gap-4 text-xs text-gray-400 mt-2">
                             <span>Confidence: {(l.confidence * 100).toFixed(0)}%</span>
                             <span>Method: {l.method}</span>

@@ -51,7 +51,7 @@ class GoogleDriveService:
         return self._service
 
     def list_files(self, folder_id: str) -> list[dict]:
-        """Return [{id, name, mimeType}] for supported, non-trashed files in the folder."""
+        """Return [{id, name, mimeType, modifiedTime}] for supported, non-trashed files."""
         service = self._client()
         query = f"'{folder_id}' in parents and trashed = false"
         files: list[dict] = []
@@ -62,7 +62,7 @@ class GoogleDriveService:
                 .list(
                     q=query,
                     spaces="drive",
-                    fields="nextPageToken, files(id, name, mimeType)",
+                    fields="nextPageToken, files(id, name, mimeType, modifiedTime)",
                     pageToken=page_token,
                     pageSize=100,
                     supportsAllDrives=True,
