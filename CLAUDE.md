@@ -14,15 +14,15 @@ npm run lint      # ESLint (strict, max-warnings 0)
 ### Backend (`projekat/backend/`)
 ```bash
 pip install -r requirements.txt
-uvicorn app.main:app --reload                              # Dev server on port 8000
-celery -A app.workers.celery_app worker --loglevel=info   # Async task worker
-pytest                                                     # Run all tests
-pytest tests/path/to/test_file.py                         # Run single test file
+uvicorn app.main:app --reload    # Dev server on port 8000
+pytest                           # Run all tests
+pytest tests/path/to/test_file.py
 ```
 
 ### Full Stack (from `projekat/`)
 ```bash
-docker-compose up     # Start all 7 services
+docker-compose up                                          # Local dev (backend + db + qdrant)
+docker-compose -f docker-compose.tunnel.yml up --build    # Production via Cloudflare Tunnel
 docker-compose down
 ```
 
@@ -37,10 +37,10 @@ alembic revision --autogenerate -m "description"
 ### Backend (`projekat/backend/app/`)
 - **`api/v1/`** — Thin route handlers: `auth`, `chat`, `knowledge`, `transcripts`
 - **`services/ai/`** — `RagService`, `EmbeddingService` (sentence-transformers), `LLMService` (Groq), `VectorStoreService` (Qdrant)
-- **`services/transcript/`** — `TranscriptionService` (faster-whisper)
+- **`services/transcript/`** — `TranscriptionService` (Groq Whisper API)
 - **`services/pipeline/`** — `PipelineService`: normalize → mask PII → embed → store in Qdrant
 - **`services/auth/`** — JWT generation, RBAC enforcement
-- **`db/`** — SQLAlchemy ORM models; **`schemas/`** — Pydantic v2; **`tasks/`** — Celery jobs; **`core/`** — config + security
+- **`db/`** — SQLAlchemy ORM models; **`schemas/`** — Pydantic v2; **`core/`** — config + security
 
 ### Frontend (`projekat/frontend/src/`)
 - **`api/`** — Axios modules per domain; **`components/`** — `ChatWindow`, `TranscriptUpload`, `Layout`
@@ -48,13 +48,17 @@ alembic revision --autogenerate -m "description"
 - **`App.tsx`** — Router with role-checked protected routes
 
 ### Infrastructure
-Docker Compose: `frontend`, `backend`, `celery_worker`, `db` (PostgreSQL 16), `redis`, `qdrant`, `nginx` (SSL).
+- **Local dev** (`docker-compose.yml` + `docker-compose.override.yml`): `backend`, `db` (PostgreSQL 16), `qdrant`, `frontend` (Vite dev), `nginx`
+- **Production** (`docker-compose.tunnel.yml`): `backend`, `frontend` (nginx serving built SPA), `cloudflared` (Cloudflare Tunnel)
+- All persistent data (DB, file storage, vector DB) is in the cloud — no local db/qdrant in production
+- GitHub Actions CI/CD: push to `main` → deploy frontend to Cloudflare Pages automatically
 
 ### RAG Pipeline
-1. Transcript uploaded → `PipelineService` normalizes, masks PII, chunks text
-2. Chunks embedded via `all-MiniLM-L6-v2` (384-dim) → stored in Qdrant collection `knowledge_base`
-3. On `/ask`: question embedded → cosine search (top-K=5) → context injected into Groq `llama-3.1-70b-versatile` → answer + confidence score
-4. Confidence threshold 0.6 — below triggers fallback message
+1. Transcript uploaded → audio sent to Groq Whisper API (`whisper-large-v3`) for transcription
+2. `PipelineService` normalizes, masks PII, chunks text — runs via `FastAPI BackgroundTasks`
+3. Chunks embedded via `all-MiniLM-L6-v2` (384-dim, local) → stored in Qdrant Cloud
+4. On `/ask`: question embedded → cosine search (top-K=5) → context injected into Groq `llama-3.3-70b-versatile` → answer + confidence score
+5. Confidence threshold 0.6 — below triggers fallback message
 
 ### Auth & Roles
 JWT (stateless). Roles: `admin`, `agent`, `user`, `manager`. RBAC enforced in service layer.
@@ -63,19 +67,18 @@ JWT (stateless). Roles: `admin`, `agent`, `user`, `manager`. RBAC enforced in se
 
 All settings via env vars (`app/core/config.py`):
 - `GROQ_API_KEY`, `SECRET_KEY`
-- `DATABASE_URL` — `postgresql+asyncpg://...`
-- `QDRANT_URL`, `QDRANT_COLLECTION_NAME`
-- `REDIS_URL`
-- `WHISPER_MODEL_SIZE` — `small` | `base` | `medium` | `large`
+- `DATABASE_URL` — `postgresql+asyncpg://...` (Supabase)
+- `QDRANT_URL`, `QDRANT_COLLECTION_NAME` (Qdrant Cloud)
+- `SUPABASE_URL`, `SUPABASE_KEY` — file storage
 - `RAG_TOP_K`, `RAG_CONFIDENCE_THRESHOLD`
 
 ## Tech Stack
 
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Axios, React Query
 - **Backend:** Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2.0, Alembic, python-jose, passlib/bcrypt
-- **AI:** LangChain, Groq API (`llama-3.1-70b-versatile`), faster-whisper, sentence-transformers, Celery
-- **Data:** PostgreSQL 16 (Supabase), Qdrant (vector DB), Redis 7
-- **Infra:** Docker Compose, Nginx, Let's Encrypt, Ubuntu 22.04, Render + Supabase + Qdrant free tiers, GitHub Actions
+- **AI:** Groq API (`llama-3.3-70b-versatile`), Groq Whisper API (`whisper-large-v3`), sentence-transformers (`all-MiniLM-L6-v2`), FastAPI BackgroundTasks
+- **Data:** PostgreSQL 16 (Supabase), Supabase Storage (file uploads), Qdrant Cloud (vector DB)
+- **Infra:** Docker Compose, Cloudflare Tunnel (backend), Cloudflare Pages (frontend), GitHub Actions
 
 ## Database (Supabase)
 
