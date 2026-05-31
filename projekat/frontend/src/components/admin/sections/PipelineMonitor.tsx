@@ -29,13 +29,28 @@ function extractError(e: unknown): string {
   return "An unexpected error occurred. Please try again.";
 }
 
+function fmtSchedTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-GB", {
+    timeZone: "Europe/Sarajevo",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function PipelineMonitor() {
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [active, setActive] = useState<Transcript[]>([]);
   const [folderName, setFolderName] = useState<string | null>(null);
-  const [schedRunning, setSchedRunning] = useState(false);
+  const [sched, setSched] = useState<{
+    running: boolean;
+    last_run_at: string | null;
+    last_result: string | null;
+  } | null>(null);
+  const schedRunning = sched?.running ?? false;
 
   useEffect(() => {
     getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
@@ -90,14 +105,16 @@ export default function PipelineMonitor() {
       try {
         const s = await getDriveSchedule();
         if (!alive) return;
-        setSchedRunning(s.running);
+        setSched({ running: s.running, last_run_at: s.last_run_at, last_result: s.last_result });
         if (s.running && pollRef.current === null) startPolling();
       } catch {
         /* ignore */
       }
     }
     checkSchedule();
-    const id = window.setInterval(checkSchedule, 10_000);
+    // Poll fairly often so a run that fires at the scheduled minute is reflected
+    // promptly — and so the "last run" stamp updates within a few seconds.
+    const id = window.setInterval(checkSchedule, 5_000);
     return () => {
       alive = false;
       clearInterval(id);
@@ -196,6 +213,16 @@ export default function PipelineMonitor() {
               </li>
             ))}
           </ul>
+        )}
+
+        {sched?.last_run_at && (
+          <p className="text-[11px] pt-1" style={{ color: "#9a8a6a", borderTop: "1px solid rgba(197,160,89,0.12)" }}>
+            <span className="inline-block mt-1">
+              Last scheduled run:{" "}
+              <span className="text-charcoal font-medium">{fmtSchedTime(sched.last_run_at)}</span>
+              {sched.last_result ? ` · ${sched.last_result}` : ""}
+            </span>
+          </p>
         )}
       </div>
     </div>

@@ -71,7 +71,7 @@ export default function DriveScheduleCard() {
       .catch(() => {});
     const id = window.setInterval(() => {
       getDriveSchedule().then((s) => active && applyLive(s)).catch(() => {});
-    }, 10_000);
+    }, 5_000);
     return () => {
       active = false;
       clearInterval(id);
