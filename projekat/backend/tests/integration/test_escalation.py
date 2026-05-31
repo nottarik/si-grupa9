@@ -396,7 +396,7 @@ async def test_resolve_escalation():
 
                 resolve_resp = await client.post(
                     f"/api/v1/escalation/{eskal_id}/resolve",
-                    json={"napomena": "Završeno", "submit_to_kb": False},
+                    json={"submit_to_kb": False},
                     headers={"Authorization": f"Bearer {token}"},
                 )
 
@@ -410,7 +410,7 @@ async def test_resolve_nonexistent_escalation():
         token = await _get_admin_token(client)
         resp = await client.post(
             "/api/v1/escalation/999999/resolve",
-            json={"napomena": ""},
+            json={},
             headers={"Authorization": f"Bearer {token}"},
         )
     assert resp.status_code == 404

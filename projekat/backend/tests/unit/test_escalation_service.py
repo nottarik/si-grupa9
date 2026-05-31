@@ -247,11 +247,10 @@ async def test_resolve_escalation_sets_status_rijesena():
         await db.flush()
         await svc.accept_escalation(db, eskal.id, agent.id)
         await db.flush()
-        result = await svc.resolve_escalation(db, eskal.id, agent.id, napomena="Riješeno")
+        result = await svc.resolve_escalation(db, eskal.id, agent.id)
         await db.commit()
 
     assert result.status == "Rijesena"
-    assert result.napomena_rjesavanja == "Riješeno"
     assert result.datum_rjesavanja is not None
 
 

@@ -65,6 +65,11 @@ async def lifespan(app: FastAPI):
         )
     # Keep a reference so the background task isn't garbage-collected mid-run.
     app.state.heal_task = asyncio.create_task(_startup_self_heal())
+
+    # Admin-controlled Drive auto-import: one in-process loop (single replica → no
+    # double-firing). Reads its schedule from the DB each tick.
+    from app.services.schedule.scheduler import scheduler_loop
+    app.state.scheduler_task = asyncio.create_task(scheduler_loop())
     yield
 
 

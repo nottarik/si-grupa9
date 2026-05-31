@@ -23,6 +23,7 @@ async def setup_test_db():
     import app.db.models.knowledge    # noqa: F401
     import app.db.models.escalation   # noqa: F401
     import app.db.models.announcement # noqa: F401
+    import app.db.models.schedule     # noqa: F401
 
     from app.db.session import engine, AsyncSessionLocal, Base
 

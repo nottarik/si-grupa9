@@ -145,7 +145,6 @@ export default function Issues() {
   }, [filter]);
 
   async function handleDelete(id: number) {
-    if (!window.confirm("Delete this issue?\nThis action cannot be undone.")) return;
     setDeleting(true);
     try {
       await apiClient.delete(`/api/v1/chat/issues/${id}`);

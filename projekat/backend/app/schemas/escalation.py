@@ -37,7 +37,6 @@ class EscalationKBEntry(BaseModel):
 
 
 class EscalationResolve(BaseModel):
-    napomena: str = ""
     submit_to_kb: bool = False
     # Question/answer pairs the agent ticked to import. Each is the customer
     # question paired with the agent's (editable) answer; one KB entry per pair.

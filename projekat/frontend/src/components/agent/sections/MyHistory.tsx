@@ -114,15 +114,6 @@ export default function MyHistory() {
                         style={{ background: "rgba(249,245,239,0.5)" }}
                       >
                         <div className="space-y-3 py-3">
-                          {e.napomena_rjesavanja && (
-                            <div>
-                              <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-1">
-                                Resolution Note
-                              </div>
-                              <p className="text-sm text-charcoal">{e.napomena_rjesavanja}</p>
-                            </div>
-                          )}
-
                           {e.sesija_feedback && (
                             <div>
                               <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">

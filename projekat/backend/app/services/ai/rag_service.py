@@ -97,9 +97,13 @@ class RagService:
 
         # --- Classify intent ---
         prefetched_vector: list[float] | None = None
+        # Prompt-injection is a hard block: never search the KB for it. A merely
+        # off-topic classifier verdict is soft — the KB is still consulted below.
+        injection_detected = False
 
         if _INJECTION_RE.search(question):
             intent = "out_of_scope"
+            injection_detected = True
             logger.info("Prompt injection detected, short-circuiting: %r", question[:100])
         elif _ESCALATION_REQUEST_RE.search(question):
             intent = "escalation_request"
@@ -131,7 +135,7 @@ class RagService:
             needs_escalation = True
             logger.info("Explicit escalation: routing to agent queue")
 
-        elif intent == "out_of_scope":
+        elif intent == "out_of_scope" and injection_detected:
             answer_text = _OUT_OF_SCOPE_MSG
             metoda = "Fallback"
             logger.info("Out-of-scope message rejected: %r", question[:100])
@@ -150,7 +154,9 @@ class RagService:
                 metoda = "Fallback"
 
         else:
-            # Domain question — attempt RAG retrieval
+            # Domain question — or one the classifier flagged out_of_scope. The KB is
+            # authoritative, so we still search it: an admin may have added an entry
+            # (e.g. hardware specs) the narrow telecom classifier wouldn't recognize.
 
             # Query rewriting — only when history exists AND question references prior context
             search_query = question
@@ -191,10 +197,25 @@ class RagService:
                 settings.RAG_CONFIDENCE_THRESHOLD_LOW,
             )
 
-            if not hits or confidence < settings.RAG_CONFIDENCE_THRESHOLD_LOW:
-                answer_text = _CONNECT_AGENT_MSG
-                metoda = "Fallback"
-                needs_escalation = True
+            # Classify first, then retrieve. Domain questions answer on any decent KB
+            # match (low floor). An off-topic-flagged question must clear a *higher*
+            # floor to override the classifier — so a real KB entry (near-exact match)
+            # still answers, but a weak coincidental hit doesn't pull this Telemach
+            # agent off topic. Below the floor we trust the label: off-topic falls back
+            # to the scope message (no agent); a real domain miss escalates as before.
+            floor = (
+                settings.RAG_OFFTOPIC_THRESHOLD
+                if intent == "out_of_scope"
+                else settings.RAG_CONFIDENCE_THRESHOLD_LOW
+            )
+            if not hits or confidence < floor:
+                if intent == "out_of_scope":
+                    answer_text = _OUT_OF_SCOPE_MSG
+                    metoda = "Fallback"
+                else:
+                    answer_text = _CONNECT_AGENT_MSG
+                    metoda = "Fallback"
+                    needs_escalation = True
 
             else:
                 context_parts = []

@@ -112,7 +112,7 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
         files = drive.list_files(folder_id)
     except Exception:
         logger.exception("Failed to list Drive folder folder_id=%s", folder_id)
-        return
+        return {"queued": 0, "skipped": 0, "errors": 0}
 
     queued = skipped = errors = 0
 
@@ -215,6 +215,7 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
         "Drive import done folder_id=%s queued=%d skipped=%d errors=%d",
         folder_id, queued, skipped, errors,
     )
+    return {"queued": queued, "skipped": skipped, "errors": errors}
 
 
 async def process_transcript(transcript_id: int, language: str | None = "bs") -> None:

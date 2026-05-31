@@ -51,7 +51,10 @@ const TODAY = new Date().toLocaleDateString("en-US", {
 
 export default function AdminShell() {
   const [active, setActive] = useState<NavId>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Open by default on desktop, closed on phones (where it's an overlay drawer).
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 768
+  );
   const [transcriptKey, setTranscriptKey] = useState(0);
   const [agentOnline, setAgentOnline] = useState(false);
   const { user, logout } = useAuth();
@@ -97,6 +100,7 @@ export default function AdminShell() {
   function handleNavClick(id: NavId) {
     if (id === "transcripts") setTranscriptKey((k) => k + 1);
     setActive(id);
+    if (window.innerWidth < 768) setSidebarOpen(false); // close the drawer on mobile
   }
 
   const sections: Record<NavId, JSX.Element> = {
@@ -132,12 +136,23 @@ export default function AdminShell() {
       className="admin-bg"
       style={{ height: "100vh", display: "flex", overflow: "hidden" }}
     >
-      {/* ── Sidebar ── */}
+      {/* Mobile backdrop — tap to close the drawer */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ background: "rgba(0,0,0,0.3)" }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar (overlay drawer on mobile, inline on desktop) ── */}
       <aside
-        className="flex-shrink-0 flex flex-col transition-all duration-200"
+        className={`z-50 flex flex-col overflow-hidden fixed inset-y-0 left-0 w-60 transform transition-transform duration-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:static md:z-auto md:flex-shrink-0 md:translate-x-0 md:transition-all ${
+          sidebarOpen ? "md:w-56" : "md:w-0"
+        }`}
         style={{
-          width: sidebarOpen ? 224 : 0,
-          overflow: "hidden",
           background: "rgba(255,255,255,0.7)",
           backdropFilter: "blur(16px)",
           borderRight: "1px solid rgba(197,160,89,0.2)",
@@ -218,7 +233,7 @@ export default function AdminShell() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
         <header
-          className="glass flex-shrink-0 flex items-center gap-4 px-6 py-3"
+          className="glass flex-shrink-0 flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3"
           style={{ borderBottom: "1px solid rgba(197,160,89,0.2)" }}
         >
           {/* Hamburger */}
@@ -252,7 +267,7 @@ export default function AdminShell() {
 
           {/* Right side */}
           <div className="ml-auto flex items-center gap-3">
-            <div className="text-xs text-gray-400">{TODAY}</div>
+            <div className="text-xs text-gray-400 hidden sm:block">{TODAY}</div>
             <Link
               to="/chat"
               className="text-xs transition-colors"
@@ -283,7 +298,7 @@ export default function AdminShell() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">{sections[active]}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{sections[active]}</main>
       </div>
     </div>
   );

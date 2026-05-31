@@ -216,6 +216,11 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
+// Note: the Drive auto-import schedule is admin-controlled from the app UI and run by
+// an in-process scheduler in the backend (single always-warm replica → no double-fire),
+// so there's no separate cron-job resource here. The POST /api/v1/internal/sync-drive
+// endpoint remains available for a manual/external trigger if ever needed.
+
 // Consumed by azd: where to push the built image.
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.properties.loginServer
 // Baked into the frontend build so the SPA calls the right backend.

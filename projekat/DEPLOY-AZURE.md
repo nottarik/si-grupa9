@@ -90,6 +90,19 @@ azd deploy web
 azd down --purge
 ```
 
+## Scheduled Google Drive sync
+
+The Drive sync schedule is **admin-controlled from the app**, not infra. After deploying,
+go to **Admin → Pipeline → Automatic schedule**, enable it, and pick a frequency
+(hourly / daily / weekly) and time (**Bosnian time, Europe/Sarajevo**). It runs
+`GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID`
+through the normal pipeline (idempotent — already-imported files are skipped).
+
+- An in-process scheduler in the backend runs it (safe because the backend is a single
+  always-warm replica). No extra Azure resource, nothing to set in Bicep.
+- The `drive_sync_schedule` table self-creates on first boot, so no manual migration is
+  required — but `alembic upgrade head` against the prod DB is the clean equivalent.
+
 ## After deploying
 
 - **Rotate the Google service-account key** in Google Cloud Console — the previous

@@ -44,6 +44,39 @@ async def reconcile_transcripts(
     return {"requeued": len(stuck)}
 
 
+@router.post("/sync-drive")
+async def sync_drive(
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    _: str = Depends(_require_internal_key),
+):
+    """Scheduled Google Drive sync: import the configured folder, same path as the
+    admin one-click button. Meant to be hit on a cron by an internal-key caller.
+    Idempotent — files already imported (by modifiedTime) are skipped by the task."""
+    from app.db.models.user import Korisnik, UlogaTip
+    from app.tasks.transcript_tasks import import_drive_folder
+
+    if not settings.GOOGLE_SERVICE_ACCOUNT_JSON:
+        raise HTTPException(status_code=503, detail="Google Drive import is not configured.")
+
+    folder_id = settings.GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID
+    if not folder_id:
+        raise HTTPException(status_code=400, detail="GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID is not set.")
+
+    # No logged-in user on a cron run — attribute the import to an administrator so the
+    # not-null id_korisnika_upload FK is satisfied (same column the upload route fills).
+    uploader_id = (
+        await db.execute(
+            select(Korisnik.id).where(Korisnik.uloga == UlogaTip.administrator).limit(1)
+        )
+    ).scalar_one_or_none()
+    if uploader_id is None:
+        raise HTTPException(status_code=500, detail="No administrator user to attribute the import to.")
+
+    background_tasks.add_task(import_drive_folder, folder_id, uploader_id)
+    return {"started": True, "folder_id": folder_id}
+
+
 @router.post("/cleanup-raw-text")
 async def cleanup_raw_text(
     db: AsyncSession = Depends(get_db),

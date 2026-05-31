@@ -24,21 +24,26 @@ Any edit to that file (e.g. adding the two Google deps) invalidated the layer an
 re-downloaded **everything** from scratch.
 
 ### What changed (`backend/Dockerfile`)
-All changes preserve the exact runtime environment — same packages, same spacy
-model, same `apt` packages, same start command.
+The runtime environment is identical (same package versions, same spaCy model, same
+start command) — only the install path and layer structure changed.
 
 | Change | Effect |
 |---|---|
-| **CPU-only torch in its own layer**, installed *before* `requirements.txt` via `--index-url https://download.pytorch.org/whl/cpu` | Skips the multi-GB CUDA download. `sentence-transformers` then sees torch already satisfied and does not pull the CUDA build. Helps even the first build. Layer stays cached across `requirements.txt` edits. |
-| **BuildKit pip cache mount** (`RUN --mount=type=cache,target=/root/.cache/pip ...`) on both pip installs | Downloaded wheels persist between builds. Editing `requirements.txt` then re-downloads only the *changed* packages, not the whole set. |
+| **CPU-only torch in its own layer**, installed *before* the requirements via `--index-url https://download.pytorch.org/whl/cpu` | Skips the multi-GB CUDA download. `sentence-transformers` then sees torch already satisfied and does not pull the CUDA build. Helps even the first build; layer stays cached across requirements edits. |
+| **BuildKit pip cache mount** (`RUN --mount=type=cache,target=/root/.cache/pip ...`) on every pip install | Downloaded wheels persist between builds. Editing requirements then re-downloads only the *changed* packages. |
+| **Dropped the `apt-get install build-essential libpq-dev` layer** | Every dependency ships a CPython-3.12 manylinux **wheel** (`psycopg2-binary`/`asyncpg` bundle libpq; `cryptography`/`bcrypt`/spaCy/torch are prebuilt), so no compiler is needed. Removes a slow `apt-get update`/install and a few hundred MB from every cold build. |
+| **Split heavy ML deps into `requirements-ml.txt`**, installed in a layer *before* `requirements.txt` | `langchain*`, `sentence-transformers`, `spacy` (+ the spaCy model) now sit in a rarely-changing layer. Editing `requirements.txt` (e.g. adding `tzdata`) no longer reinstalls this multi-hundred-MB set. `requirements.txt` includes it via `-r requirements-ml.txt`, so local `pip install -r requirements.txt` is unchanged. |
 | **`# syntax=docker/dockerfile:1`** directive | Enables the cache-mount syntax. |
-| **`backend/.dockerignore`** (new) | Excludes `__pycache__`, caches, `.venv`, `*.db`, `.git`, `.env*` so a smaller context is sent to the daemon each build. |
+| **`backend/.dockerignore`** | Excludes `__pycache__`, caches, `.venv`, `*.db`, `.git`, `.env*` so a smaller context is sent to the daemon each build. |
 
 ### Why it is safe
 - The container has no GPU; `SentenceTransformer` already ran on CPU. CPU torch
   produces an **identical** runtime — only the wasted CUDA payload is removed.
-- `requirements.txt` is unchanged as the single source of truth for packages.
-- `apt` packages, the spacy model download, and the `CMD` are byte-for-byte the same.
+- No package was added or removed or re-pinned — `requirements-ml.txt` just holds four
+  lines lifted verbatim out of `requirements.txt`, which now `-r`-includes it.
+- Dropping the apt toolchain is safe because nothing compiles from source: every pinned
+  package has a cp312 manylinux wheel. (If a future dep lacks one, re-add
+  `RUN apt-get update && apt-get install -y build-essential` before the pip installs.)
 
 ### Expected impact
 - **First build after this change:** still downloads packages once (the pip cache
@@ -123,8 +128,28 @@ clear message and the UI shows it — useful as a quick wiring check.
 - **With Google setup:** set the env var, restart the backend, paste a real folder
   ID, Start Import, then watch the Transcripts list fill in.
 
+### Scheduled sync — built (admin-controlled, in the UI)
+The folder can be synced automatically on a schedule the **admin configures in the app**
+(Admin → Pipeline → *Automatic schedule*), in addition to the manual "Run" button.
+
+- **Config:** singleton row in `drive_sync_schedule` (`enabled`, `frequency`
+  hourly/daily/weekly, `hour`/`minute`/`day_of_week` in **Bosnian time
+  (Europe/Sarajevo)**, plus `last_run_at` / `next_run_at` stored as UTC). Model
+  `app/db/models/schedule.py`; Alembic `005_drive_sync_schedule`.
+  The table also self-creates at startup (`ensure_table`) so prod works without a manual
+  migration step.
+- **API:** `GET`/`PUT /api/v1/schedule/drive` (admin-only), `app/api/v1/routes/schedule.py`.
+- **Runner:** an **in-process asyncio loop** (`app/services/schedule/scheduler.py`,
+  started from the FastAPI lifespan) ticks once a minute, and when `next_run_at` is due
+  runs `import_drive_folder` on `GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID`, attributing the
+  upload to the first administrator. Safe as in-process because the deployment runs a
+  **single always-warm replica** (Container Apps min=max=1) → no double-firing. No extra
+  dependency, no separate cron resource.
+- **Why not an Azure Container Apps cron Job:** a fixed Bicep cron can't read a schedule
+  the admin edits at runtime, and running both would double-fire. The
+  `POST /api/v1/internal/sync-drive` endpoint (internal-key protected) is kept for a
+  manual/external trigger if ever needed.
+
 ### Deliberately deferred (not built)
-- **Scheduled runs:** would reuse the existing `/internal/*` + `INTERNAL_API_KEY`
-  pattern plus a `schedule:` GitHub Actions workflow hitting the tunnel.
 - **Other sources (S3, etc.):** would extract a small `RemoteSource` interface and
   add an `S3Source`; the pipeline stays untouched.

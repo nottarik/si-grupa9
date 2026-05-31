@@ -1,0 +1,13 @@
+# Heavy, rarely-changing ML/AI dependencies.
+#
+# Kept separate from requirements.txt so the Dockerfile installs them in their own
+# layer (before the app-level deps). Editing requirements.txt then does NOT reinstall
+# this multi-hundred-MB set — the cached layer is reused. requirements.txt includes
+# this file via "-r requirements-ml.txt", so a plain `pip install -r requirements.txt`
+# (local dev / CI) still installs everything.
+#
+# torch itself is installed separately in the Dockerfile from the CPU-only index.
+langchain==0.2.1
+langchain-community==0.2.1
+sentence-transformers==3.0.0
+spacy>=3.8.0,<4.0.0

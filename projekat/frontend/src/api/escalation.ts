@@ -14,13 +14,11 @@ export interface EscalationItem {
   razgovor: Array<{ role: string; content: string }>;
   datum_kreiranja: string;
   datum_rjesavanja?: string | null;
-  napomena_rjesavanja?: string | null;
   queue_position?: number | null;
   sesija_feedback?: { rating: number | null; comment: string | null } | null;
 }
 
 export interface EscalationResolvePayload {
-  napomena: string;
   submit_to_kb: boolean;
   kb_unosi?: { pitanje: string; odgovor: string }[];
 }

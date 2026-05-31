@@ -4,12 +4,12 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.models.escalation import Eskalacija, StatusAgenta
-from app.db.models.knowledge import ChatSesija, UnosBazeZnanja
+from app.db.models.knowledge import Anomalija, ChatSesija, Poruka, UnosBazeZnanja
 from app.services.ai.kb_indexing import embed_and_index_item
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,18 @@ async def _close_chat_session(db: AsyncSession, sesija_id: int) -> None:
     if sess and sess.status != "Zatvorena":
         sess.status = "Zatvorena"
         sess.datum_zavrsetka = datetime.now(timezone.utc)
+
+
+async def _clear_session_anomalies(db: AsyncSession, sesija_id: int) -> None:
+    """Delete the Issues (anomalies) raised for a chat session — used once the
+    session's question has been published to the KB, so it no longer needs handling."""
+    await db.execute(
+        sa_delete(Anomalija).where(
+            Anomalija.id_poruke.in_(
+                select(Poruka.id).where(Poruka.id_sesije == sesija_id)
+            )
+        )
+    )
 
 
 def _free_agent(agent_row: Optional[StatusAgenta]) -> None:
@@ -154,7 +166,6 @@ async def resolve_escalation(
     db: AsyncSession,
     escalation_id: int,
     agent_id: UUID,
-    napomena: str = "",
     submit_to_kb: bool = False,
     kb_unosi: Optional[List[tuple[str, str]]] = None,
 ) -> Optional[Eskalacija]:
@@ -165,7 +176,6 @@ async def resolve_escalation(
 
     eskal.status = "Rijesena"
     eskal.datum_rjesavanja = datetime.now(timezone.utc)
-    eskal.napomena_rjesavanja = napomena
     # Close the chat session so the user's history shows it as Closed even if their
     # client wasn't connected to call /close (e.g. they walked away before resolve).
     await _close_chat_session(db, eskal.sesija_id)
@@ -205,6 +215,12 @@ async def resolve_escalation(
                     "Qdrant indexing failed for KB item %s from escalation %s; "
                     "saved without vector.", item.id, escalation_id
                 )
+
+        # The escalation's question is now answerable from the KB, so its originating
+        # Issue (the low-confidence/no-answer anomaly that triggered the handoff) is
+        # resolved — drop it from the issues list.
+        if new_items:
+            await _clear_session_anomalies(db, eskal.sesija_id)
 
     await db.flush()
     await db.refresh(eskal)

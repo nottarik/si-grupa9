@@ -347,23 +347,25 @@ export default function ChatWindow() {
       <div className="flex flex-col h-full w-full">
 
         {/* ── HEADER ── */}
-        <header className="glass-header flex-shrink-0 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1 justify-center">
-              <Laurel size={52} />
-              <div className="text-center">
-                <h1 className="font-cinzel font-bold tracking-[0.2em] text-charcoal" style={{ fontSize: 20 }}>
+        <header className="glass-header flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="grid items-center gap-2" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+            {/* left spacer balances the right actions so the title centers on the page */}
+            <div aria-hidden />
+            <div className="flex items-center gap-2 sm:gap-4 justify-center min-w-0">
+              <span className="hidden sm:block flex-shrink-0"><Laurel size={52} /></span>
+              <div className="text-center min-w-0">
+                <h1 className="font-cinzel font-bold tracking-[0.15em] sm:tracking-[0.2em] text-charcoal text-base sm:text-xl">
                   AMBASSADOR
                 </h1>
-                <p className="font-sans text-[11px] tracking-[0.22em] uppercase mt-0.5" style={{ color: "#C5A059", opacity: 0.85 }}>
+                <p className="font-sans text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.22em] uppercase mt-0.5" style={{ color: "#C5A059", opacity: 0.85 }}>
                   CALL CENTER  CHATBOT
                 </p>
               </div>
-              <Laurel size={52} flip />
+              <span className="hidden sm:block flex-shrink-0"><Laurel size={52} flip /></span>
             </div>
 
             {/* Right actions */}
-            <div className="flex-shrink-0 flex items-center gap-3 ml-4">
+            <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3 justify-self-end">
               {user?.role === "admin" && (
                 <a
                   href="/admin"

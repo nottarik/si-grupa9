@@ -58,7 +58,10 @@ const TODAY = new Date().toLocaleDateString("en-US", {
 
 export default function AgentShell() {
   const [active, setActive] = useState<NavId>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Open by default on desktop, closed on phones (where it's an overlay drawer).
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 768
+  );
   const [agentOnline, setAgentOnline] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -108,6 +111,11 @@ export default function AgentShell() {
 
   const currentLabel = NAV.find((n) => n.id === active)?.label ?? "";
 
+  function selectSection(id: NavId) {
+    setActive(id);
+    if (window.innerWidth < 768) setSidebarOpen(false); // close the drawer on mobile
+  }
+
   function renderSection() {
     switch (active) {
       case "dashboard":
@@ -142,12 +150,23 @@ export default function AgentShell() {
 
   return (
     <div className="admin-bg" style={{ height: "100vh", display: "flex", overflow: "hidden" }}>
-      {/* ── Sidebar ── */}
+      {/* Mobile backdrop — tap to close the drawer */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ background: "rgba(0,0,0,0.3)" }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* ── Sidebar (overlay drawer on mobile, inline on desktop) ── */}
       <aside
-        className="flex-shrink-0 flex flex-col transition-all duration-200"
+        className={`z-50 flex flex-col overflow-hidden fixed inset-y-0 left-0 w-60 transform transition-transform duration-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:static md:z-auto md:flex-shrink-0 md:translate-x-0 md:transition-all ${
+          sidebarOpen ? "md:w-56" : "md:w-0"
+        }`}
         style={{
-          width: sidebarOpen ? 224 : 0,
-          overflow: "hidden",
           background: "rgba(255,255,255,0.7)",
           backdropFilter: "blur(16px)",
           borderRight: "1px solid rgba(197,160,89,0.2)",
@@ -167,7 +186,7 @@ export default function AgentShell() {
             <button
               key={n.id}
               className={`sidebar-item ${active === n.id ? "active" : ""}`}
-              onClick={() => setActive(n.id)}
+              onClick={() => selectSection(n.id)}
             >
               <svg
                 width={15}
@@ -214,7 +233,7 @@ export default function AgentShell() {
       {/* ── Main area ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header
-          className="glass flex-shrink-0 flex items-center gap-4 px-6 py-3"
+          className="glass flex-shrink-0 flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3"
           style={{ borderBottom: "1px solid rgba(197,160,89,0.2)" }}
         >
           <button
@@ -244,12 +263,12 @@ export default function AgentShell() {
             {currentLabel}
           </div>
 
-          <div className="ml-auto flex items-center gap-3">
-            <div className="text-xs text-gray-400">{TODAY}</div>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="text-xs text-gray-400 hidden sm:block">{TODAY}</div>
 
             <Link
               to="/chat"
-              className="text-xs transition-colors"
+              className="text-xs transition-colors hidden sm:block"
               style={{ color: "rgba(197,160,89,0.7)", textDecoration: "none" }}
               onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#C5A059")}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "rgba(197,160,89,0.7)")}
@@ -298,7 +317,7 @@ export default function AgentShell() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">{renderSection()}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{renderSection()}</main>
       </div>
     </div>
   );

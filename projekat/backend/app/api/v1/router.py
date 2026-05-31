@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.routes import announcements, auth, chat, escalation, internal, knowledge, transcripts, users
+from app.api.v1.routes import announcements, auth, chat, escalation, internal, knowledge, schedule, transcripts, users
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -9,5 +9,6 @@ api_router.include_router(escalation.router)
 api_router.include_router(transcripts.router)
 api_router.include_router(knowledge.router)
 api_router.include_router(internal.router)
+api_router.include_router(schedule.router)
 api_router.include_router(users.router)
 api_router.include_router(announcements.router)

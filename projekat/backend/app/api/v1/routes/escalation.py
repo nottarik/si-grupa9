@@ -396,7 +396,6 @@ async def resolve(
         db,
         escalation_id,
         current_user.id,
-        napomena=payload.napomena,
         submit_to_kb=payload.submit_to_kb,
         kb_unosi=[(e.pitanje, e.odgovor) for e in payload.kb_unosi] if payload.kb_unosi else None,
     )

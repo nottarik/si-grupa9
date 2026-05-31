@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { getDriveFolder, importDriveTranscripts, listActiveTranscripts } from "../../../api/transcripts";
+import { getDriveSchedule } from "../../../api/schedule";
 import type { Transcript } from "../../../types";
 import { StageStepper } from "../PipelineStage";
+import DriveScheduleCard from "./DriveScheduleCard";
 
 const RECENT_DRIVE_KEY = "recent_drive_folder";
 
@@ -33,6 +35,7 @@ export default function PipelineMonitor() {
   const [error, setError] = useState("");
   const [active, setActive] = useState<Transcript[]>([]);
   const [folderName, setFolderName] = useState<string | null>(null);
+  const [schedRunning, setSchedRunning] = useState(false);
 
   useEffect(() => {
     getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
@@ -76,6 +79,29 @@ export default function PipelineMonitor() {
   useEffect(() => {
     startPolling();
     return () => stopPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Watch the scheduled runner so a run triggered by the clock (not the button) is
+  // visible: when it's running, surface a banner and keep the live-progress poll going.
+  useEffect(() => {
+    let alive = true;
+    async function checkSchedule() {
+      try {
+        const s = await getDriveSchedule();
+        if (!alive) return;
+        setSchedRunning(s.running);
+        if (s.running && pollRef.current === null) startPolling();
+      } catch {
+        /* ignore */
+      }
+    }
+    checkSchedule();
+    const id = window.setInterval(checkSchedule, 10_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -133,6 +159,21 @@ export default function PipelineMonitor() {
           </div>
         )}
       </div>
+
+      <DriveScheduleCard />
+
+      {schedRunning && (
+        <div
+          className="card p-4 flex items-center gap-3"
+          style={{ borderLeft: "3px solid #C5A059", background: "rgba(197,160,89,0.06)" }}
+        >
+          <span className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
+          <p className="text-sm" style={{ color: "#6b5a3a" }}>
+            Scheduled import is running — checking the Drive folder and processing new files.
+            Progress appears below.
+          </p>
+        </div>
+      )}
 
       <div className="card p-6 space-y-3">
         <p className="text-sm font-semibold text-charcoal">Live progress</p>

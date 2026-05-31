@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 5
     RAG_CONFIDENCE_THRESHOLD: float = 0.55
     RAG_CONFIDENCE_THRESHOLD_LOW: float = 0.35
+    # A question the classifier flags off-topic only overrides that verdict and answers
+    # from the KB above this (stricter) floor — keeps the agent from wandering off topic
+    # on weak coincidental matches, while a real KB entry (near-exact) still answers.
+    RAG_OFFTOPIC_THRESHOLD: float = 0.5
 
     # Google Drive batch import (service account JSON key as a single string)
     GOOGLE_SERVICE_ACCOUNT_JSON: str = ""

@@ -151,6 +151,16 @@ select.input-field { cursor: pointer; }
 .tbl tr:last-child td { border-bottom: none; }
 .tbl tr:hover td { background: rgba(197, 160, 89, 0.03); }
 
+/* On phones, wide data tables scroll horizontally instead of overflowing the screen. */
+@media (max-width: 640px) {
+  .tbl {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* ── Stat card ── */
 .stat-card {
   background: #fff;

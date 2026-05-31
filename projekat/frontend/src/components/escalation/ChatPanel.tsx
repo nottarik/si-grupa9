@@ -80,7 +80,6 @@ interface Props {
   resolveEscalation: (
     id: number,
     payload: {
-      napomena: string;
       submit_to_kb: boolean;
       kb_unosi?: { pitanje: string; odgovor: string }[];
     }
@@ -160,7 +159,6 @@ export default function ChatPanel({
   async function handleResolve() {
     if (kbInvalid) return;
     await resolveEscalation(item.id, {
-      napomena: "",
       submit_to_kb: submitKb,
       kb_unosi: submitKb
         ? selectedPairs.map((p) => ({ pitanje: p.question, odgovor: answerFor(p).trim() }))
