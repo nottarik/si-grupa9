@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEscalation } from "../../hooks/useEscalation";
+import { useNewEscalationAlert } from "../../hooks/useNewEscalationAlert";
+import { escalationApi } from "../../api/escalation";
 import { icons } from "./shared";
 import Dashboard from "./sections/Dashboard";
 import UploadSection from "./sections/UploadSection";
@@ -51,11 +53,27 @@ export default function AdminShell() {
   const [active, setActive] = useState<NavId>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [transcriptKey, setTranscriptKey] = useState(0);
+  const [agentOnline, setAgentOnline] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   // Single WS instance for the entire admin session — prevents reconnect loops
   const eskal = useEscalation();
+
+  // New-call alert fires from any admin section once Online
+  useNewEscalationAlert(eskal.queue, agentOnline);
+
+  const toggleOnline = useCallback(async () => {
+    const next = !agentOnline;
+    try {
+      await escalationApi.updateAgentStatus(next ? "Online" : "Offline");
+      if (next) eskal.connectAgentWs();
+      setAgentOnline(next);
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentOnline]);
 
   useEffect(() => {
     eskal.connectAgentWs();
@@ -88,6 +106,8 @@ export default function AdminShell() {
     transcripts: <TranscriptList key={transcriptKey} />,
     chat:        <ChatLogs />,
     escalation:  <EscalationQueue
+      agentOnline={agentOnline}
+      onToggleOnline={toggleOnline}
       queue={eskal.queue}
       loading={eskal.loading}
       fetchQueue={eskal.fetchQueue}

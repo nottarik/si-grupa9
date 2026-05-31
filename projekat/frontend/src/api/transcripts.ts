@@ -40,6 +40,16 @@ export async function importDriveTranscripts(
   return data;
 }
 
+export interface DriveFolderInfo {
+  folder_id: string | null;
+  name: string | null;
+}
+
+export async function getDriveFolder(): Promise<DriveFolderInfo> {
+  const { data } = await apiClient.get<DriveFolderInfo>("/api/v1/transcripts/drive-folder");
+  return data;
+}
+
 export async function createManualTranscript(
   body: TranscriptManualCreate
 ): Promise<TranscriptManualResponse> {

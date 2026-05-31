@@ -31,11 +31,17 @@ class EscalationRead(BaseModel):
     queue_position: Optional[int] = None
 
 
+class EscalationKBEntry(BaseModel):
+    pitanje: str
+    odgovor: str
+
+
 class EscalationResolve(BaseModel):
     napomena: str = ""
     submit_to_kb: bool = False
-    odgovor_agenta: Optional[str] = None
-    pitanje_korisnika: Optional[str] = None
+    # Question/answer pairs the agent ticked to import. Each is the customer
+    # question paired with the agent's (editable) answer; one KB entry per pair.
+    kb_unosi: Optional[List[EscalationKBEntry]] = None
 
 
 class AgentStatusUpdate(BaseModel):

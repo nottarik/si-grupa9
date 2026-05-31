@@ -8,6 +8,8 @@ export default function KnowledgePendingList() {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["knowledge", "pending"],
     queryFn: listPendingItems,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const approve = useMutation({

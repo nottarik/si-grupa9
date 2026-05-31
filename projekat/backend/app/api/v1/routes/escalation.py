@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
@@ -20,6 +21,49 @@ from app.services.escalation import service as eskal_svc
 from app.services.ws.connection_manager import manager
 
 router = APIRouter(prefix="/escalation", tags=["escalation"])
+logger = logging.getLogger(__name__)
+
+# Grace period before an in-progress chat is auto-ended after the user drops off.
+USER_GRACE_SECONDS = 15
+# session_id → pending auto-end task (cancelled if the user reconnects in time).
+_user_grace_tasks: dict[int, asyncio.Task] = {}
+
+
+async def _grace_end_escalation(session_id: int, escalation_id: int) -> None:
+    """After the grace window, if the user hasn't reconnected, end the escalation:
+    notify the assigned agent, free them, and close the session."""
+    try:
+        await asyncio.sleep(USER_GRACE_SECONDS)
+    except asyncio.CancelledError:
+        return
+    finally:
+        _user_grace_tasks.pop(session_id, None)
+
+    if manager.is_user_connected(session_id):
+        return  # user came back
+
+    try:
+        from app.db.session import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            eskal = await eskal_svc.expire_escalation(db, escalation_id)
+            if not eskal:
+                return
+            await db.commit()
+            if eskal.dodjeljeni_agent_id:
+                await manager.send_to_agent(str(eskal.dodjeljeni_agent_id), {
+                    "type": "user_timeout",
+                    "session_id": session_id,
+                    "escalation_id": eskal.id,
+                })
+            await _broadcast_queue(db)
+    except Exception:
+        logger.warning("Grace auto-end failed for escalation %s", escalation_id)
+
+
+def _cancel_grace(session_id: int) -> None:
+    task = _user_grace_tasks.pop(session_id, None)
+    if task:
+        task.cancel()
 
 
 def _eskal_dict(
@@ -144,6 +188,15 @@ async def request_escalation(
     current_user: Korisnik = Depends(get_current_user),
 ):
     """Any authenticated user can manually request an agent. One active entry per user."""
+    # One live agent chat at a time: if the user already has an active escalation in a
+    # different chat, tell them to finish that one first instead of silently reusing it.
+    existing = await eskal_svc.get_active_for_user(db, current_user.id)
+    if existing and existing.sesija_id != payload.session_id:
+        raise HTTPException(
+            status_code=409,
+            detail="Već razgovarate sa agentom u drugom razgovoru. Završite taj razgovor da biste započeli novi.",
+        )
+
     eskal = await eskal_svc.create_escalation(
         db,
         sesija_id=payload.session_id,
@@ -345,8 +398,7 @@ async def resolve(
         current_user.id,
         napomena=payload.napomena,
         submit_to_kb=payload.submit_to_kb,
-        pitanje=payload.pitanje_korisnika,
-        odgovor=payload.odgovor_agenta,
+        kb_unosi=[(e.pitanje, e.odgovor) for e in payload.kb_unosi] if payload.kb_unosi else None,
     )
     if not eskal:
         raise HTTPException(status_code=404, detail="Not found")
@@ -380,19 +432,23 @@ async def ws_user_chat(
 
     await manager.connect_user(session_id, websocket)
 
-    # Race condition fix: agent may have accepted before this WS completed handshake.
-    # Re-send agent_connected so the user sees the agent name immediately.
+    # On (re)connect, reconcile the user against the latest escalation for this session:
+    #  - still live (UToku)  → re-send agent_connected + tell the agent the user re-entered
+    #  - already ended by the agent (Rijesena/Napustena) while the user was away
+    #                          → tell the user the session ended so a new request starts fresh
     try:
         from app.db.session import AsyncSessionLocal
         async with AsyncSessionLocal() as fresh_db:
             r = await fresh_db.execute(
-                select(Eskalacija).where(
-                    Eskalacija.sesija_id == session_id,
-                    Eskalacija.status == "UToku",
-                )
+                select(Eskalacija)
+                .where(Eskalacija.sesija_id == session_id)
+                .order_by(Eskalacija.id.desc())
+                .limit(1)
             )
             eskal = r.scalar_one_or_none()
-            if eskal and eskal.dodjeljeni_agent_id:
+            if eskal and eskal.status == "UToku" and eskal.dodjeljeni_agent_id:
+                # User came back in time — cancel any pending auto-end.
+                _cancel_grace(session_id)
                 ar = await fresh_db.execute(
                     select(Korisnik).where(Korisnik.id == eskal.dodjeljeni_agent_id)
                 )
@@ -402,6 +458,19 @@ async def ws_user_chat(
                     "type": "agent_connected",
                     "agent_name": agent_name,
                     "escalation_id": eskal.id,
+                }))
+                # Presence: live agent chat + a fresh connect = the user came back.
+                await manager.send_to_agent(str(eskal.dodjeljeni_agent_id), {
+                    "type": "user_entered",
+                    "session_id": session_id,
+                    "escalation_id": eskal.id,
+                })
+            elif eskal and eskal.status in ("Rijesena", "Napustena"):
+                # The agent left the chat (resolve) while the user was away. Clear the
+                # user's stale "connected" state — a later request is a brand-new call.
+                await websocket.send_text(json.dumps({
+                    "type": "session_ended",
+                    "message": "Vaša sesija sa agentom je završena. Hvala što ste koristili naš servis.",
                 }))
     except Exception:
         pass
@@ -423,6 +492,34 @@ async def ws_user_chat(
     finally:
         keepalive_task.cancel()
         manager.disconnect_user(session_id)
+        # Presence: if the escalation is still live (UToku), the user only dropped
+        # the chat view (Home / refresh / network) rather than ending it — tell the
+        # assigned agent the user left. Resolved/abandoned cases (Rijesena/Napustena)
+        # have their own messaging, so they're skipped by the status check.
+        try:
+            from app.db.session import AsyncSessionLocal
+            async with AsyncSessionLocal() as fresh_db:
+                r = await fresh_db.execute(
+                    select(Eskalacija).where(
+                        Eskalacija.sesija_id == session_id,
+                        Eskalacija.status == "UToku",
+                    )
+                )
+                eskal = r.scalar_one_or_none()
+                if eskal and eskal.dodjeljeni_agent_id:
+                    await manager.send_to_agent(str(eskal.dodjeljeni_agent_id), {
+                        "type": "user_left",
+                        "session_id": session_id,
+                        "escalation_id": eskal.id,
+                    })
+                    # Start the grace countdown: if the user doesn't reconnect, the
+                    # chat is auto-ended and the agent is freed.
+                    _cancel_grace(session_id)
+                    _user_grace_tasks[session_id] = asyncio.create_task(
+                        _grace_end_escalation(session_id, eskal.id)
+                    )
+        except Exception:
+            pass
 
 
 # ── WebSocket: agents receive queue updates and chat with users ────────────

@@ -78,6 +78,16 @@ class GoogleDriveService:
                 break
         return files
 
+    def get_folder_name(self, folder_id: str) -> str:
+        """Return the human-readable name of a Drive folder ('' if unavailable)."""
+        service = self._client()
+        meta = (
+            service.files()
+            .get(fileId=folder_id, fields="name", supportsAllDrives=True)
+            .execute()
+        )
+        return meta.get("name", "")
+
     def download_file(self, file_id: str) -> bytes:
         """Download a Drive file's raw bytes."""
         from googleapiclient.http import MediaIoBaseDownload

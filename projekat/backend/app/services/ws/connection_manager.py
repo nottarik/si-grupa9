@@ -32,6 +32,9 @@ class ConnectionManager:
     def disconnect_user(self, session_id: int) -> None:
         self._user_connections.pop(session_id, None)
 
+    def is_user_connected(self, session_id: int) -> bool:
+        return session_id in self._user_connections
+
     def disconnect_agent(self, agent_id: str, ws: WebSocket) -> None:
         if self._agent_connections.get(agent_id) is ws:
             self._agent_connections.pop(agent_id, None)

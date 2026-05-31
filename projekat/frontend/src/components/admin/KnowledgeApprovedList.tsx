@@ -210,6 +210,10 @@ export default function KnowledgeApprovedList() {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["knowledge", "approved"],
     queryFn: listApprovedItems,
+    // Entries can be added from the escalation queue (a different page/session),
+    // so always refetch on view — otherwise the global 5-min cache hides them.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   if (isLoading)

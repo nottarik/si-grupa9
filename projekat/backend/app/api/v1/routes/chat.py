@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -24,9 +25,11 @@ async def ask(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(get_current_user),
 ):
-    # If this user has an active agent session, bypass RAG entirely
+    # If this user has an active agent session *for this chat*, bypass RAG entirely.
+    # Messages typed in a different/new chat are NOT hijacked into the agent chat —
+    # they go to the bot, and an explicit agent request there is rejected (409).
     active = await eskal_svc.get_active_for_user(db, current_user.id)
-    if active and active.status == "UToku":
+    if active and active.status == "UToku" and active.sesija_id == payload.session_id:
         msg_payload = {
             "type": "user_message",
             "session_id": active.sesija_id,
@@ -219,14 +222,37 @@ async def ratings_stats(
         for day, scores in sorted(day_scores.items())
     ]
 
+    # Top rated must count BOTH per-response ratings (thumbs on an answer) and the
+    # end-of-conversation session rating, otherwise it's empty when users only rate
+    # the whole session. Coalesce them per Q&A, same as the chat logs.
+    from sqlalchemy.orm import aliased
+
+    SessFb = aliased(Feedback)
+    session_rating_sq = (
+        select(func.avg(SessFb.ocjena))
+        .where(SessFb.id_sesije == Poruka.id_sesije, SessFb.ocjena.isnot(None))
+        .correlate(Poruka)
+        .scalar_subquery()
+    )
+    rating_expr = func.coalesce(func.avg(Feedback.ocjena), session_rating_sq)
     top_rows = (
         await db.execute(
-            select(Poruka.tekst, Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti, Feedback.ocjena, Feedback.timestamp)
-            .join(Odgovor, Feedback.id_odgovora == Odgovor.id)
-            .join(Poruka, Odgovor.id_poruke == Poruka.id)
-            .where(rated, Feedback.id_odgovora.isnot(None))
-            .order_by(Feedback.ocjena.desc(), Feedback.timestamp.desc())
-            .limit(10)
+            select(
+                Poruka.tekst,
+                Odgovor.tekst_odgovora,
+                Odgovor.skor_pouzdanosti,
+                Poruka.timestamp_msg,
+                rating_expr.label("rating"),
+            )
+            .join(Odgovor, Poruka.id_odgovora == Odgovor.id)
+            .outerjoin(Feedback, Feedback.id_odgovora == Odgovor.id)
+            .group_by(
+                Poruka.id, Poruka.id_sesije, Poruka.tekst, Poruka.timestamp_msg,
+                Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti,
+            )
+            .having(rating_expr.isnot(None))
+            .order_by(rating_expr.desc(), Poruka.timestamp_msg.desc())
+            .limit(5)
         )
     ).all()
     top_rated = [
@@ -234,8 +260,8 @@ async def ratings_stats(
             "question": row.tekst,
             "answer": row.tekst_odgovora,
             "confidence": round(float(row.skor_pouzdanosti), 2) if row.skor_pouzdanosti is not None else None,
-            "rating": int(row.ocjena),
-            "date": row.timestamp.strftime("%Y-%m-%d") if row.timestamp else "",
+            "rating": int(round(float(row.rating))),
+            "date": row.timestamp_msg.strftime("%Y-%m-%d") if row.timestamp_msg else "",
         }
         for row in top_rows
     ]
@@ -279,6 +305,52 @@ async def ratings_stats(
     }
 
 
+# Words that, on their own, mark a message as smalltalk: greetings + "connect me to
+# an agent" requests + fillers (Bosnian + English). A message made up entirely of
+# these is skipped when looking for the real question.
+_SMALLTALK_WORDS = {
+    "zdravo", "cao", "ćao", "hej", "pozdrav", "hello", "hi", "hey", "yo",
+    "dobar", "dobro", "jutro", "dan", "vece", "veče", "noc", "noć",
+    "good", "morning", "afternoon", "evening", "night", "thanks", "hvala",
+    "agent", "agenta", "agentom", "agentu", "operater", "operatera", "operator",
+    "predstavnik", "predstavnika", "ljudski", "covjek", "čovjek", "human", "person",
+    "molim", "please", "te", "vas", "bih", "bi", "da", "sa", "se", "mogu", "mogli",
+    "want", "need", "trebam", "treba", "zelim", "želim", "htio", "htjela",
+    "razgovarati", "razgovor", "spojite", "spoji", "prebacite", "talk", "speak", "to",
+    "can", "could", "with", "i", "a", "the", "me", "for", "real", "live", "you",
+}
+
+
+def _is_smalltalk(text: str) -> bool:
+    tokens = re.findall(r"\w+", (text or "").lower())
+    if not tokens:
+        return True
+    return all(t in _SMALLTALK_WORDS for t in tokens)
+
+
+def _extract_agent_question(razgovor: list) -> tuple[Optional[str], Optional[str]]:
+    """The real question is usually asked to the agent after connecting. Return the
+    first substantive user message in the escalation transcript and the agent reply
+    that follows it (question, answer)."""
+    msgs = [m for m in (razgovor or []) if isinstance(m, dict)]
+    for i, m in enumerate(msgs):
+        if m.get("role") != "user":
+            continue
+        content = (m.get("content") or "").strip()
+        if not content or _is_smalltalk(content):
+            continue
+        answer = None
+        for j in range(i + 1, len(msgs)):
+            role = msgs[j].get("role")
+            if role == "user":
+                break
+            if role == "agent":
+                answer = (msgs[j].get("content") or "").strip() or None
+                break
+        return content, answer
+    return None, None
+
+
 @router.get("/logs")
 async def chat_logs(
     db: AsyncSession = Depends(get_db),
@@ -318,14 +390,7 @@ async def chat_logs(
         .group_by(Poruka.id, Poruka.id_sesije, Poruka.tekst, Poruka.timestamp_msg, Odgovor.tekst_odgovora, Odgovor.skor_pouzdanosti, Odgovor.metoda_generisanja)
     )
 
-    # Hide non-substantive turns: greetings/smalltalk ("Generativno") and
-    # explicit "talk to an agent" requests. We want the real questions asked.
     from app.services.ai.rag_service import _EXPLICIT_ESCALATION_MSG
-
-    query = query.where(
-        func.coalesce(Odgovor.metoda_generisanja, "") != "Generativno",
-        func.coalesce(Odgovor.tekst_odgovora, "") != _EXPLICIT_ESCALATION_MSG,
-    )
 
     if search:
         pattern = f"%{search}%"
@@ -341,26 +406,81 @@ async def chat_logs(
         except ValueError:
             pass
 
-    if min_rating is not None:
-        query = query.having(func.coalesce(func.avg(Feedback.ocjena), session_rating_sq) >= min_rating)
-
-    query = query.order_by(Poruka.timestamp_msg.desc()).limit(limit)
+    # Fetch recent turns newest-first, then fold them into ONE entry per conversation
+    # so every conversation shows once. The title is the first *real* question asked —
+    # greetings/smalltalk ("Generativno") and "talk to an agent" requests are skipped
+    # as titles (but the conversation still appears).
+    query = query.order_by(Poruka.timestamp_msg.desc()).limit(1000)
     rows = (await db.execute(query)).all()
 
-    return [
-        {
-            "id": row.id,
-            "session_id": row.id_sesije,
-            "question": row.tekst,
-            "answer": row.tekst_odgovora,
-            "time": row.timestamp_msg.strftime("%H:%M") if row.timestamp_msg else None,
-            "date": row.timestamp_msg.strftime("%Y-%m-%d") if row.timestamp_msg else None,
-            "confidence": round(float(row.skor_pouzdanosti or 0), 2),
-            "method": row.metoda_generisanja,
-            "rating": round(float(row.avg_rating), 1) if row.avg_rating else None,
-        }
-        for row in rows
-    ]
+    def _is_real(row) -> bool:
+        return (
+            (row.metoda_generisanja or "") != "Generativno"
+            and (row.tekst_odgovora or "") != _EXPLICIT_ESCALATION_MSG
+        )
+
+    grouped: dict = {}
+    order: list = []
+    for row in rows:
+        key = row.id_sesije if row.id_sesije is not None else f"_msg{row.id}"
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(row)
+
+    _epoch = datetime.min.replace(tzinfo=timezone.utc)
+    results = []
+    for key in order:
+        group = grouped[key]
+        real = [r for r in group if _is_real(r)]
+        rep = min(real or group, key=lambda r: r.timestamp_msg or _epoch)
+        ratings = [float(r.avg_rating) for r in group if r.avg_rating is not None]
+        rating = round(sum(ratings) / len(ratings), 1) if ratings else None
+        if min_rating is not None and (rating is None or rating < min_rating):
+            continue
+        latest = max((r.timestamp_msg for r in group if r.timestamp_msg), default=rep.timestamp_msg)
+        results.append({
+            "id": rep.id,
+            "session_id": rep.id_sesije,
+            "question": rep.tekst,
+            "answer": rep.tekst_odgovora,
+            "time": latest.strftime("%H:%M") if latest else None,
+            "date": latest.strftime("%Y-%m-%d") if latest else None,
+            "confidence": round(float(rep.skor_pouzdanosti or 0), 2),
+            "method": rep.metoda_generisanja,
+            "rating": rating,
+        })
+        if len(results) >= limit:
+            break
+
+    # For escalated conversations the bot turn is often just "talk to an agent"; the
+    # real question is asked to the agent. Pull it from the escalation transcript and
+    # use it as the title (and the agent's reply as the answer).
+    from app.db.models.escalation import Eskalacija
+
+    session_ids = [r["session_id"] for r in results if r["session_id"] is not None]
+    if session_ids:
+        esk_rows = (await db.execute(
+            select(Eskalacija.sesija_id, Eskalacija.razgovor)
+            .where(Eskalacija.sesija_id.in_(session_ids))
+            .order_by(Eskalacija.id.desc())
+        )).all()
+        real_by_session: dict = {}
+        for sid, razgovor in esk_rows:
+            if sid in real_by_session:
+                continue  # keep the most recent escalation (id desc)
+            q, a = _extract_agent_question(razgovor)
+            if q:
+                real_by_session[sid] = (q, a)
+        for r in results:
+            pair = real_by_session.get(r["session_id"])
+            if pair:
+                r["question"] = pair[0]
+                if pair[1]:
+                    r["answer"] = pair[1]
+                    r["method"] = "Agent"
+
+    return results
 
 
 @router.get("/sessions")

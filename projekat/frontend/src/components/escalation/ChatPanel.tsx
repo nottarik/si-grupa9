@@ -3,11 +3,78 @@ import { EscalationItem } from "../../api/escalation";
 import { UserMsg } from "../../hooks/useEscalation";
 import { TRIGGER_LABELS } from "./EscalationCard";
 
+interface ChatMsg {
+  role: string;
+  content: string;
+}
+
+interface QaPair {
+  /** Index of the user question within the messages array (stable selection key). */
+  qIndex: number;
+  question: string;
+  /** The agent's reply that came right after the question — the proposed KB answer. */
+  answer: string;
+}
+
+// Chatter that shouldn't become a KB question: pure greetings and "connect me to
+// an agent" requests. A message is skipped only when it consists *entirely* of these
+// words (so a real question that merely mentions "agent" is kept). Lists are
+// best-effort Bosnian + English — extend as needed.
+const SKIP_WORDS = new Set([
+  // greetings
+  "zdravo", "cao", "ćao", "hej", "pozdrav", "hello", "hi", "hey", "yo",
+  "dobar", "dobro", "jutro", "dan", "vece", "veče", "noc", "noć",
+  "good", "morning", "afternoon", "evening", "night",
+  // agent / human requests
+  "agent", "agenta", "agentom", "agentu", "operater", "operatera", "operator",
+  "predstavnik", "predstavnika", "ljudski", "covjek", "čovjek", "covjeka", "čovjeka",
+  "human", "person", "representative", "live", "pravi", "prava", "stvarni", "ziv", "živ",
+  // request fillers
+  "molim", "please", "te", "vas", "vás", "bih", "bi", "da", "sa", "se", "mogu",
+  "mogli", "want", "need", "trebam", "treba", "zelim", "želim", "htio", "htjela",
+  "razgovarati", "razgovor", "spojite", "spoji", "prebacite", "talk", "speak", "to",
+  "can", "could", "with", "i", "a", "the", "me", "for", "real",
+]);
+
+function isGreetingOrAgentRequest(text: string): boolean {
+  const tokens = text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return true;
+  return tokens.every((t) => SKIP_WORDS.has(t));
+}
+
+/** Pair each customer question with the agent's reply that followed it.
+ * Questions only answered by the bot have no agent reply before the next user
+ * turn, and pure greetings / "call agent" requests are filtered out — neither
+ * makes a useful KB entry. */
+function buildQaPairs(messages: ChatMsg[]): QaPair[] {
+  const pairs: QaPair[] = [];
+  for (let i = 0; i < messages.length; i++) {
+    if (messages[i].role !== "user") continue;
+    if (isGreetingOrAgentRequest(messages[i].content)) continue;
+    for (let j = i + 1; j < messages.length; j++) {
+      if (messages[j].role === "user") break; // next question — this one went unanswered by an agent
+      if (messages[j].role === "agent") {
+        pairs.push({ qIndex: i, question: messages[i].content, answer: messages[j].content });
+        break;
+      }
+    }
+  }
+  return pairs;
+}
+
 interface Props {
   item: EscalationItem;
   isOwner: boolean;
+  /** The user left/timed out: the chat is over but the panel stays open so the
+   * agent can still resolve (submit to KB) or dismiss it on their own terms. */
+  ended?: boolean;
   onResolve: () => void;
   onRelease: () => void;
+  onClose: () => void;
   sendAgentMessage: (session_id: number, content: string) => void;
   sendTypingSignal: (session_id: number, is_typing: boolean) => void;
   resolveEscalation: (
@@ -15,8 +82,7 @@ interface Props {
     payload: {
       napomena: string;
       submit_to_kb: boolean;
-      odgovor_agenta?: string;
-      pitanje_korisnika?: string;
+      kb_unosi?: { pitanje: string; odgovor: string }[];
     }
   ) => Promise<void>;
   releaseEscalation: (id: number) => Promise<void>;
@@ -26,17 +92,17 @@ interface Props {
 export default function ChatPanel({
   item,
   isOwner,
+  ended = false,
   onResolve,
   onRelease,
+  onClose,
   sendAgentMessage,
   sendTypingSignal,
   resolveEscalation,
   releaseEscalation,
   registerUserMsgHandler,
 }: Props) {
-  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>(
-    item.razgovor ?? []
-  );
+  const [messages, setMessages] = useState<ChatMsg[]>(item.razgovor ?? []);
   const [userIsTyping, setUserIsTyping] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -54,8 +120,9 @@ export default function ChatPanel({
   const [input, setInput] = useState("");
   const [resolveForm, setResolveForm] = useState(false);
   const [submitKb, setSubmitKb] = useState(false);
-  const [agentAnswer, setAgentAnswer] = useState("");
-  const [note, setNote] = useState("");
+  // qIndex of each ticked question, plus per-question edited answers (keyed by qIndex).
+  const [selectedQ, setSelectedQ] = useState<Set<number>>(new Set());
+  const [editedAnswers, setEditedAnswers] = useState<Record<number, string>>({});
   const [releasing, setReleasing] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -71,13 +138,32 @@ export default function ChatPanel({
     setInput("");
   }
 
+  const qaPairs = buildQaPairs(messages);
+  const answerFor = (p: QaPair) => editedAnswers[p.qIndex] ?? p.answer;
+  const selectedPairs = qaPairs.filter((p) => selectedQ.has(p.qIndex));
+
+  // Guard the silent no-op: when submitting to the KB, require at least one ticked
+  // question and a non-empty answer for each before Confirm Resolve is allowed.
+  const kbInvalid =
+    submitKb &&
+    (selectedPairs.length === 0 || selectedPairs.some((p) => !answerFor(p).trim()));
+
+  function toggleQuestion(qIndex: number) {
+    setSelectedQ((prev) => {
+      const next = new Set(prev);
+      if (next.has(qIndex)) next.delete(qIndex);
+      else next.add(qIndex);
+      return next;
+    });
+  }
+
   async function handleResolve() {
+    if (kbInvalid) return;
     await resolveEscalation(item.id, {
-      napomena: note,
+      napomena: "",
       submit_to_kb: submitKb,
-      odgovor_agenta: submitKb ? agentAnswer : undefined,
-      pitanje_korisnika: submitKb
-        ? item.razgovor?.find((m) => m.role === "user")?.content
+      kb_unosi: submitKb
+        ? selectedPairs.map((p) => ({ pitanje: p.question, odgovor: answerFor(p).trim() }))
         : undefined,
     });
     onResolve();
@@ -110,14 +196,16 @@ export default function ChatPanel({
         </div>
         {isOwner && (
           <div className="flex items-center gap-2">
-            <button
-              className="outline-btn text-xs"
-              style={{ padding: "5px 12px" }}
-              onClick={handleRelease}
-              disabled={releasing}
-            >
-              {releasing ? "…" : "Release"}
-            </button>
+            {!ended && (
+              <button
+                className="outline-btn text-xs"
+                style={{ padding: "5px 12px" }}
+                onClick={handleRelease}
+                disabled={releasing}
+              >
+                {releasing ? "…" : "Release"}
+              </button>
+            )}
             <button className="gold-btn text-xs" onClick={() => setResolveForm((v) => !v)}>
               {resolveForm ? "Cancel" : "Resolve"}
             </button>
@@ -153,22 +241,16 @@ export default function ChatPanel({
         </div>
       )}
 
-      {/* Resolve form */}
+      {/* Resolve form — bounded + scrollable so it never covers the chat below */}
       {resolveForm && isOwner && (
         <div
-          className="px-5 py-4 space-y-3 flex-shrink-0"
+          className="px-5 py-4 space-y-3 flex-shrink-0 overflow-y-auto"
           style={{
+            maxHeight: 280,
             borderBottom: "1px solid rgba(197,160,89,0.15)",
             background: "rgba(249,245,239,0.5)",
           }}
         >
-          <textarea
-            className="input-field"
-            rows={2}
-            placeholder="Resolution note (optional)…"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
           <label className="flex items-center gap-2 text-sm text-charcoal cursor-pointer">
             <input
               type="checkbox"
@@ -176,19 +258,72 @@ export default function ChatPanel({
               onChange={(e) => setSubmitKb(e.target.checked)}
               className="accent-gold"
             />
-            Submit agent answer to Knowledge Base (pending approval)
+            Add to Knowledge Base (auto-published)
           </label>
           {submitKb && (
-            <textarea
-              className="input-field"
-              rows={3}
-              placeholder="Agent answer to submit to KB…"
-              value={agentAnswer}
-              onChange={(e) => setAgentAnswer(e.target.value)}
-            />
+            <div className="space-y-2">
+              <p className="text-xs text-charcoal font-medium">
+                Tick the question(s) to import — the agent's reply is pre-filled and editable:
+              </p>
+              {qaPairs.length > 0 ? (
+                qaPairs.map((p) => {
+                  const checked = selectedQ.has(p.qIndex);
+                  return (
+                    <div
+                      key={p.qIndex}
+                      className="rounded-lg p-2.5 space-y-2"
+                      style={{
+                        border: checked
+                          ? "1px solid rgba(197,160,89,0.55)"
+                          : "1px solid rgba(197,160,89,0.2)",
+                        background: checked
+                          ? "rgba(197,160,89,0.06)"
+                          : "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      <label className="flex items-start gap-2 text-xs text-charcoal cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleQuestion(p.qIndex)}
+                          className="accent-gold mt-0.5 flex-shrink-0"
+                        />
+                        <span className="leading-relaxed font-medium">{p.question}</span>
+                      </label>
+                      {checked && (
+                        <textarea
+                          className="input-field text-xs"
+                          rows={3}
+                          placeholder="Answer to save with this question…"
+                          value={answerFor(p)}
+                          onChange={(e) =>
+                            setEditedAnswers((prev) => ({ ...prev, [p.qIndex]: e.target.value }))
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-gray-400 italic">
+                  No answered customer questions to import yet.
+                </p>
+              )}
+            </div>
           )}
-          <div className="flex justify-end">
-            <button className="gold-btn text-xs" onClick={handleResolve}>
+          <div className="flex items-center justify-end gap-3">
+            {kbInvalid && (
+              <span className="text-xs italic" style={{ color: "#8a6d1f" }}>
+                {selectedPairs.length === 0
+                  ? "Tick at least one question to import"
+                  : "Each selected question needs an answer"}
+              </span>
+            )}
+            <button
+              className="gold-btn text-xs"
+              onClick={handleResolve}
+              disabled={kbInvalid}
+            >
               Confirm Resolve
             </button>
           </div>
@@ -255,8 +390,28 @@ export default function ChatPanel({
         </div>
       )}
 
-      {/* Input — only shown for the assigned agent */}
-      {isOwner ? (
+      {/* Input — only shown for the assigned agent while the chat is live */}
+      {ended ? (
+        <div
+          className="px-5 py-3 flex items-center justify-between gap-3 flex-shrink-0"
+          style={{
+            borderTop: "1px solid rgba(197,160,89,0.2)",
+            background: "rgba(249,245,239,0.5)",
+          }}
+        >
+          <span className="text-xs" style={{ color: "#8a6d1f" }}>
+            This chat has ended — the user is no longer connected. Resolve to save it to
+            the knowledge base, or close it.
+          </span>
+          <button
+            className="outline-btn text-xs flex-shrink-0"
+            style={{ padding: "5px 14px" }}
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      ) : isOwner ? (
         <div
           className="px-5 py-3 flex gap-2 flex-shrink-0"
           style={{ borderTop: "1px solid rgba(197,160,89,0.2)" }}

@@ -1,7 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { importDriveTranscripts, listActiveTranscripts } from "../../../api/transcripts";
+import { getDriveFolder, importDriveTranscripts, listActiveTranscripts } from "../../../api/transcripts";
 import type { Transcript } from "../../../types";
 import { StageStepper } from "../PipelineStage";
+
+const RECENT_DRIVE_KEY = "recent_drive_folder";
+
+// Accept a bare folder ID or a pasted Drive URL and return the ID.
+function extractDriveId(input: string): string {
+  const s = (input || "").trim();
+  const patterns = [/\/folders\/([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) return m[1];
+  }
+  return s;
+}
 
 function extractError(e: unknown): string {
   if (e && typeof e === "object" && "response" in e) {
@@ -19,6 +32,11 @@ export default function PipelineMonitor() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [active, setActive] = useState<Transcript[]>([]);
+  const [folderName, setFolderName] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
+  }, []);
 
   const pollRef = useRef<number | null>(null);
   const attemptsRef = useRef(0);
@@ -66,7 +84,12 @@ export default function PipelineMonitor() {
     setError("");
     setMessage("");
     try {
-      const res = await importDriveTranscripts(null, "bs");
+      // Prefer the configured default folder; fall back to the last folder the admin
+      // imported from (Upload → Drive) so Run works even without the env var set.
+      let recent = "";
+      try { recent = localStorage.getItem(RECENT_DRIVE_KEY) || ""; } catch { /* ignore */ }
+      const folder = folderName ? null : recent ? extractDriveId(recent) : null;
+      const res = await importDriveTranscripts(folder, "bs");
       setMessage(res.message);
       startPolling();
     } catch (e: unknown) {
@@ -85,6 +108,14 @@ export default function PipelineMonitor() {
             Scans the configured Google Drive folder for new files and runs the full pipeline
             (transcription → cleaning → knowledge base) on each. Files already imported are skipped.
           </p>
+          {folderName && (
+            <p className="text-xs mt-2 flex items-center gap-1.5" style={{ color: "#8a6d1f" }}>
+              <span aria-hidden>📁</span>
+              <span>
+                Folder: <span className="font-semibold">{folderName}</span>
+              </span>
+            </p>
+          )}
         </div>
 
         <button className="gold-btn" onClick={handleRun} disabled={running}>

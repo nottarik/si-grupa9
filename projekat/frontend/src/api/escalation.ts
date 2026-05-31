@@ -22,8 +22,7 @@ export interface EscalationItem {
 export interface EscalationResolvePayload {
   napomena: string;
   submit_to_kb: boolean;
-  odgovor_agenta?: string;
-  pitanje_korisnika?: string;
+  kb_unosi?: { pitanje: string; odgovor: string }[];
 }
 
 import type { EscalationInfo } from "../types";

@@ -53,7 +53,7 @@ function SignIn({ onSwitch, onSuccess }: FormProps) {
           <label className="text-xs font-semibold tracking-widest uppercase" style={{ color: "#5a4a30" }}>
             Password
           </label>
-          <button type="button" className="link-btn text-xs">Forgot password?</button>
+          <button type="button" className="link-btn" style={{ fontSize: 10 }}>Forgot password?</button>
         </div>
         <div className="relative">
           <input

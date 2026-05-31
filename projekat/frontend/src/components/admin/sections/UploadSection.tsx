@@ -622,8 +622,13 @@ function extractDriveId(input: string): string {
   return s;
 }
 
+const RECENT_DRIVE_KEY = "recent_drive_folder";
+
 function DriveImport() {
   const [folderId, setFolderId] = useState("");
+  const [recent, setRecent] = useState<string>(() => {
+    try { return localStorage.getItem(RECENT_DRIVE_KEY) ?? ""; } catch { return ""; }
+  });
   const [language, setLanguage] = useState("bs");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
@@ -696,6 +701,9 @@ function DriveImport() {
       setMessage(res.message);
       setFiles(res.files);
       setStatus("success");
+      const used = folderId.trim();
+      try { localStorage.setItem(RECENT_DRIVE_KEY, used); } catch { /* ignore */ }
+      setRecent(used);
       if (res.files.some((f) => f.status === "queued")) startPolling(id);
     } catch (e: unknown) {
       setMessage(extractError(e));
@@ -728,6 +736,29 @@ function DriveImport() {
           }
         }}
       />
+
+      {recent && recent !== folderId.trim() && (
+        <div className="flex items-center gap-2 text-xs" style={{ color: "#6b5a3a" }}>
+          <span>Recently used:</span>
+          <button
+            type="button"
+            className="truncate text-left"
+            style={{
+              maxWidth: 320,
+              color: "#8a6d1f",
+              background: "rgba(197,160,89,0.1)",
+              border: "1px solid rgba(197,160,89,0.3)",
+              borderRadius: 999,
+              padding: "2px 10px",
+              cursor: "pointer",
+            }}
+            title={recent}
+            onClick={() => setFolderId(recent)}
+          >
+            {recent}
+          </button>
+        </div>
+      )}
 
       <select
         className="input-field"

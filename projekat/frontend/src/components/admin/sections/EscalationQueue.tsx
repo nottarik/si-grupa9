@@ -1,31 +1,14 @@
-import { useEffect, useRef, useState } from "react";
-import { escalationApi, EscalationItem, EscalationResolvePayload } from "../../../api/escalation";
+import { useEffect, useState } from "react";
+import { EscalationItem, EscalationResolvePayload } from "../../../api/escalation";
 import { UserMsg } from "../../../hooks/useEscalation";
 import { useAuth } from "../../../hooks/useAuth";
 import { Ic, icons } from "../shared";
 import EscalationCard from "../../escalation/EscalationCard";
 import ChatPanel from "../../escalation/ChatPanel";
-import { getNotifPrefs } from "../../escalation/notifPrefs";
-
-function playNotificationTone() {
-  try {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.3);
-  } catch {
-    /* audio not available */
-  }
-}
 
 interface Props {
+  agentOnline: boolean;
+  onToggleOnline: () => void;
   queue: EscalationItem[];
   loading: boolean;
   fetchQueue: () => void;
@@ -37,6 +20,8 @@ interface Props {
 }
 
 export default function EscalationQueue({
+  agentOnline,
+  onToggleOnline,
   queue,
   loading,
   fetchQueue,
@@ -49,56 +34,66 @@ export default function EscalationQueue({
   const { user } = useAuth();
   const currentAgentId = user?.id ?? "";
   const [activeEskal, setActiveEskal] = useState<EscalationItem | null>(null);
-  const [agentOnline, setAgentOnline] = useState(false);
-  const prevPendingCountRef = useRef(0);
+  // The user left/timed out the active chat: keep the panel open but mark it ended.
+  const [activeEnded, setActiveEnded] = useState(false);
 
+  // Opening a chat implies the admin is available — flip them Online if needed.
   useEffect(() => {
-    const pendingCount = queue.filter((e) => e.status === "Cekanje").length;
-    if (pendingCount > prevPendingCountRef.current && prevPendingCountRef.current >= 0) {
-      if (getNotifPrefs().sound) playNotificationTone();
-      if (getNotifPrefs().browser && Notification.permission === "granted") {
-        new Notification("New escalation in queue");
+    if (activeEskal && !agentOnline) onToggleOnline();
+  }, [activeEskal, agentOnline, onToggleOnline]);
+
+  // Keep activeEskal in sync with queue updates. Deps intentionally exclude
+  // activeEskal/activeEnded: we only reconcile when the queue changes (each run sees
+  // the latest activeEskal from that render), so a just-accepted chat isn't briefly
+  // flagged "ended" before its queue_update arrives.
+  useEffect(() => {
+    if (!activeEskal) return;
+    const fresh = queue.find((e) => e.id === activeEskal.id);
+
+    if (!fresh) {
+      // Escalation left the queue. If it's the owner's own active chat, the user left
+      // or timed out — keep the panel open and mark it ended so the agent can still
+      // resolve (e.g. submit to KB) and close it on their own terms. A non-owner who
+      // was only viewing has nothing to do, so drop it.
+      const isOwnerOfActive = activeEskal.dodjeljeni_agent_id === currentAgentId;
+      if (isOwnerOfActive && activeEskal.status === "UToku") {
+        setActiveEnded(true);
+      } else {
+        setActiveEskal(null);
+        setActiveEnded(false);
       }
+      return;
     }
-    prevPendingCountRef.current = pendingCount;
-  }, [queue]);
 
-  useEffect(() => {
-    if (activeEskal && !agentOnline) {
-      escalationApi.updateAgentStatus("Online").catch(() => {});
-      setAgentOnline(true);
+    setActiveEnded(false);
+    const wasNotOwner = activeEskal.dodjeljeni_agent_id !== currentAgentId;
+    if (wasNotOwner && fresh.status !== "UToku") {
+      setActiveEskal(null);
+      return;
     }
-  }, [activeEskal, agentOnline]);
-
-  // Keep activeEskal in sync with queue updates
-  useEffect(() => {
-    setActiveEskal((prev) => {
-      if (!prev) return prev;
-      const fresh = queue.find((e) => e.id === prev.id);
-      if (!fresh) return prev;
-      const wasNotOwner = prev.dodjeljeni_agent_id !== currentAgentId;
-      if (wasNotOwner && fresh.status !== "UToku") return null;
-      return {
-        ...prev,
+    if (
+      activeEskal.status !== fresh.status ||
+      activeEskal.dodjeljeni_agent_id !== fresh.dodjeljeni_agent_id ||
+      activeEskal.agent_name !== fresh.agent_name
+    ) {
+      setActiveEskal({
+        ...activeEskal,
         status: fresh.status,
         dodjeljeni_agent_id: fresh.dodjeljeni_agent_id,
         agent_name: fresh.agent_name,
-      };
-    });
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue, currentAgentId]);
 
-  function toggleOnline() {
-    const next = !agentOnline;
-    escalationApi.updateAgentStatus(next ? "Online" : "Offline").catch(() => {});
-    setAgentOnline(next);
-  }
-
   function handleAccepted(item: EscalationItem) {
+    setActiveEnded(false);
     setActiveEskal({ ...item, status: "UToku", dodjeljeni_agent_id: currentAgentId });
     fetchQueue();
   }
 
   function handleClosed() {
+    setActiveEnded(false);
     setActiveEskal(null);
     fetchQueue();
   }
@@ -128,7 +123,7 @@ export default function EscalationQueue({
           </button>
           <button
             className={agentOnline ? "gold-btn text-xs" : "outline-btn text-xs"}
-            onClick={toggleOnline}
+            onClick={onToggleOnline}
           >
             <span
               className="inline-block w-2 h-2 rounded-full mr-1.5"
@@ -142,11 +137,12 @@ export default function EscalationQueue({
       {activeEskal && (
         <div>
           <div className="text-xs font-semibold tracking-widest text-gold uppercase mb-2">
-            {isOwner ? "Active Chat" : "Viewing Chat"}
+            {activeEnded ? "Chat Ended" : isOwner ? "Active Chat" : "Viewing Chat"}
           </div>
           <ChatPanel
             item={activeEskal}
             isOwner={isOwner}
+            ended={activeEnded}
             sendAgentMessage={sendAgentMessage}
             sendTypingSignal={sendTypingSignal}
             resolveEscalation={resolveEscalation}
@@ -154,6 +150,7 @@ export default function EscalationQueue({
             registerUserMsgHandler={registerUserMsgHandler}
             onResolve={handleClosed}
             onRelease={handleClosed}
+            onClose={handleClosed}
           />
         </div>
       )}
@@ -166,7 +163,7 @@ export default function EscalationQueue({
             </div>
             <div className="space-y-3">
               {inProgress.map((e) => (
-                <div key={e.id} onClick={() => setActiveEskal(e)} className="cursor-pointer">
+                <div key={e.id} onClick={() => { setActiveEnded(false); setActiveEskal(e); }} className="cursor-pointer">
                   <EscalationCard
                     item={e}
                     currentAgentId={currentAgentId}

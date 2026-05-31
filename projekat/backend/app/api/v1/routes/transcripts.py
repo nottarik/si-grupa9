@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import tempfile
@@ -270,6 +271,23 @@ async def import_drive_transcripts(
         )
 
     return DriveImportResponse(folder_id=folder_id, message=message, files=files)
+
+
+@router.get("/drive-folder")
+async def drive_folder_info(
+    _: Korisnik = Depends(require_role(UlogaTip.administrator)),
+):
+    """Name of the configured default Drive folder, shown in the Pipeline view."""
+    folder_id = settings.GOOGLE_DRIVE_TRANSCRIPTS_FOLDER_ID
+    if not folder_id or not settings.GOOGLE_SERVICE_ACCOUNT_JSON:
+        return {"folder_id": folder_id or None, "name": None}
+    from app.services.storage.google_drive_service import GoogleDriveService
+
+    try:
+        name = await asyncio.to_thread(GoogleDriveService().get_folder_name, folder_id)
+    except Exception:
+        name = None
+    return {"folder_id": folder_id, "name": name}
 
 
 @router.post("/manual", response_model=TranscriptManualResponse)

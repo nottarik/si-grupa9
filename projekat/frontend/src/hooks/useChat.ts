@@ -5,6 +5,7 @@ import type { ChatMessage, EscalationInfo } from "../types";
 
 const CHAT_HISTORY_KEY = "chat_history";
 const CHAT_SESSION_KEY = "chat_session_id";
+const CHAT_ESCALATION_KEY = "chat_escalation";
 const INACTIVITY_MS = 12 * 60 * 1000;
 
 interface WsFrame {
@@ -42,7 +43,14 @@ export function useChat() {
       return null;
     }
   });
-  const [escalation, setEscalation] = useState<EscalationInfo | null>(null);
+  const [escalation, setEscalation] = useState<EscalationInfo | null>(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_ESCALATION_KEY);
+      return saved ? (JSON.parse(saved) as EscalationInfo) : null;
+    } catch {
+      return null;
+    }
+  });
   const [agentName, setAgentName] = useState<string | null>(null);
   const [agentTyping, setAgentTyping] = useState(false);
   const [isSessionClosed, setIsSessionClosed] = useState(false);
@@ -65,6 +73,16 @@ export function useChat() {
       localStorage.setItem(CHAT_SESSION_KEY, String(sessionId));
     }
   }, [sessionId]);
+
+  // Persist the active escalation so returning from Home can restore the banner
+  // and reconnect the agent chat.
+  useEffect(() => {
+    if (escalation) {
+      localStorage.setItem(CHAT_ESCALATION_KEY, JSON.stringify(escalation));
+    } else {
+      localStorage.removeItem(CHAT_ESCALATION_KEY);
+    }
+  }, [escalation]);
 
   // Inactivity timer: resets on every message change
   useEffect(() => {
@@ -180,6 +198,21 @@ export function useChat() {
     };
   }, []);
 
+  // On (re)mount — e.g. coming back from Home — reconnect to an active escalation
+  // so live agent messages resume and the agent is notified the user re-entered.
+  useEffect(() => {
+    if (
+      sessionId &&
+      !isSessionClosed &&
+      escalation &&
+      (escalation.status === "UToku" || escalation.status === "Cekanje")
+    ) {
+      connectUserWs(sessionId);
+    }
+    // mount-only: restore the connection using the localStorage-seeded state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const ask = useCallback(
     async (question: string) => {
       setError(null);
@@ -282,8 +315,21 @@ export function useChat() {
         { role: "assistant", content: "Ok, connecting you with an agent now. Please hold on." },
       ]);
       connectUserWs(sessionId);
-    } catch {
-      // ignore — user can try again
+    } catch (e) {
+      // 409 = the user already has a live agent chat in another conversation.
+      const err = e as { response?: { status?: number; data?: { detail?: string } } };
+      if (err.response?.status === 409) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              err.response?.data?.detail ||
+              "You're already talking to an agent in another chat. End that chat to start a new one.",
+          },
+        ]);
+      }
+      // otherwise ignore — user can try again
     }
   }, [sessionId, escalation, messages, connectUserWs]);
 
@@ -309,6 +355,7 @@ export function useChat() {
     wsRef.current = null;
     localStorage.removeItem(CHAT_HISTORY_KEY);
     localStorage.removeItem(CHAT_SESSION_KEY);
+    localStorage.removeItem(CHAT_ESCALATION_KEY);
   }, [escalation]);
 
   const cancelEscalation = useCallback(async () => {

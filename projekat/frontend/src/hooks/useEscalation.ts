@@ -110,6 +110,33 @@ export function useEscalation() {
             is_system: true,
           });
         }
+        // Presence: user temporarily left (Home/refresh) or came back, without
+        // ending the escalation.
+        if (
+          (msg.type === "user_left" || msg.type === "user_entered") &&
+          msg.session_id !== undefined &&
+          msg.escalation_id !== undefined
+        ) {
+          userMsgHandlerRef.current?.({
+            session_id: msg.session_id,
+            content: msg.type === "user_left" ? "User left the chat." : "User entered the chat again.",
+            escalation_id: msg.escalation_id,
+            is_system: true,
+          });
+        }
+        // User didn't return within the grace window — the chat was auto-ended.
+        if (
+          msg.type === "user_timeout" &&
+          msg.session_id !== undefined &&
+          msg.escalation_id !== undefined
+        ) {
+          userMsgHandlerRef.current?.({
+            session_id: msg.session_id,
+            content: "Chat ended — the user did not return.",
+            escalation_id: msg.escalation_id,
+            is_system: true,
+          });
+        }
       } catch {
         // ignore malformed frames
       }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEscalation } from "../../hooks/useEscalation";
+import { useNewEscalationAlert } from "../../hooks/useNewEscalationAlert";
 import { escalationApi } from "../../api/escalation";
 import NotificationPrefs from "./NotificationPrefs";
 import AgentDashboard from "./sections/AgentDashboard";
@@ -64,6 +65,9 @@ export default function AgentShell() {
 
   // Single hook instance — owns the WebSocket for the entire agent session
   const eskal = useEscalation();
+
+  // New-call alert fires anywhere in the console once the agent is Online
+  useNewEscalationAlert(eskal.queue, agentOnline);
 
   // Connect agent WS on mount so it's open before any chat is accepted
   useEffect(() => {
