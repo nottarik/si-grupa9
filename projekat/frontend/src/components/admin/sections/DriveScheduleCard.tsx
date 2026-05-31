@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  DriveFileProgress,
-  DriveFileStatus,
   DriveSchedule,
   Frequency,
   cancelDriveImport,
@@ -10,14 +8,6 @@ import {
 } from "../../../api/schedule";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-const FILE_STATUS: Record<DriveFileStatus, { label: string; color: string }> = {
-  pending: { label: "Waiting…", color: "#9ca3af" },
-  importing: { label: "Importing…", color: "#8a6d1f" },
-  imported: { label: "✓ Imported", color: "#15803d" },
-  skipped: { label: "Already imported", color: "#9ca3af" },
-  failed: { label: "✗ Failed", color: "#dc2626" },
-};
 
 interface FormState {
   enabled: boolean;
@@ -33,7 +23,6 @@ interface LiveState {
   last_result: string | null;
   last_run_at: string | null;
   next_run_at: string | null;
-  files: DriveFileProgress[];
 }
 
 function pad(n: number): string {
@@ -64,7 +53,6 @@ export default function DriveScheduleCard() {
       last_result: s.last_result,
       last_run_at: s.last_run_at,
       next_run_at: s.next_run_at,
-      files: s.files ?? [],
     });
   }
 
@@ -154,37 +142,6 @@ export default function DriveScheduleCard() {
           </div>
         )}
       </div>
-
-      {/* Live per-file progress — titles appear as soon as the run lists the folder. */}
-      {live?.running && live.files.length > 0 && (
-        <div
-          className="rounded-lg border"
-          style={{ borderColor: "rgba(197,160,89,0.2)", background: "rgba(249,245,239,0.5)" }}
-        >
-          <div
-            className="px-3 py-2 text-xs font-semibold tracking-widest text-gold uppercase"
-            style={{ borderBottom: "1px solid rgba(197,160,89,0.15)" }}
-          >
-            Importing {live.files.length} file{live.files.length > 1 ? "s" : ""}
-          </div>
-          <ul className="divide-y divide-gray-100" style={{ maxHeight: 200, overflowY: "auto" }}>
-            {live.files.map((f) => {
-              const s = FILE_STATUS[f.status] ?? FILE_STATUS.pending;
-              return (
-                <li
-                  key={f.name}
-                  className="flex items-center justify-between gap-3 px-3 py-1.5 text-sm"
-                >
-                  <span className="text-charcoal truncate">{f.name}</span>
-                  <span className="text-xs shrink-0" style={{ color: s.color }}>
-                    {s.label}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
 
       <label className="flex items-center gap-2 text-sm text-charcoal cursor-pointer">
         <input

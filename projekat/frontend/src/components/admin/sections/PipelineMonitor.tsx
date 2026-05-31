@@ -73,6 +73,10 @@ export default function PipelineMonitor() {
   } | null>(null);
   const importRunning = sched?.running ?? false;
   const schedFiles = sched?.files ?? [];
+  // Show the seeded Drive file list while a run is in progress AND for the most-recent run
+  // when nothing else is mid-pipeline — so titles still appear if a fast/all-skipped run
+  // finished between polls. A fresh non-Drive upload (active rows) takes priority when idle.
+  const showSchedFiles = schedFiles.length > 0 && (importRunning || active.length === 0);
 
   useEffect(() => {
     getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
@@ -225,7 +229,7 @@ export default function PipelineMonitor() {
             </span>
           )}
         </div>
-        {importRunning && schedFiles.length > 0 ? (
+        {showSchedFiles ? (
           // The run seeds the file titles the moment it lists the folder — show them right
           // away. For the file currently importing, overlay its live pipeline stage (matched
           // against /active by filename); others show a simple status label.
