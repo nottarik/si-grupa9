@@ -39,6 +39,15 @@ function fmtSchedTime(iso: string): string {
   });
 }
 
+// Drive imports are stored as "gdrive:<folder>:<filename>" — show just the filename.
+function displayName(naziv: string): string {
+  if (naziv.startsWith("gdrive:")) {
+    const second = naziv.indexOf(":", naziv.indexOf(":") + 1);
+    if (second >= 0) return naziv.slice(second + 1);
+  }
+  return naziv;
+}
+
 export default function PipelineMonitor() {
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
@@ -50,7 +59,7 @@ export default function PipelineMonitor() {
     last_run_at: string | null;
     last_result: string | null;
   } | null>(null);
-  const schedRunning = sched?.running ?? false;
+  const importRunning = sched?.running ?? false;
 
   useEffect(() => {
     getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
@@ -59,6 +68,9 @@ export default function PipelineMonitor() {
   const pollRef = useRef<number | null>(null);
   const attemptsRef = useRef(0);
   const emptyStreakRef = useRef(0);
+  // Mirrors sched.running for the poll loop: while an import is running we keep polling
+  // even through empty gaps, so the file list stays live the whole time.
+  const runningRef = useRef(false);
 
   function stopPolling() {
     if (pollRef.current !== null) {
@@ -75,7 +87,8 @@ export default function PipelineMonitor() {
       // import-drive returns before rows exist, and files process sequentially, so /active
       // is briefly empty mid-run. Only stop after a run of empties, not the first one.
       emptyStreakRef.current = list.length === 0 ? emptyStreakRef.current + 1 : 0;
-      if (emptyStreakRef.current >= 6) stopPolling(); // ~15s idle → stop
+      // Stop only when idle AND no import is running — never abandon an in-progress run.
+      if (emptyStreakRef.current >= 6 && !runningRef.current) stopPolling(); // ~15s idle
     } catch {
       // transient — keep trying
     }
@@ -106,6 +119,7 @@ export default function PipelineMonitor() {
         const s = await getDriveSchedule();
         if (!alive) return;
         setSched({ running: s.running, last_run_at: s.last_run_at, last_result: s.last_result });
+        runningRef.current = s.running;
         if (s.running && pollRef.current === null) startPolling();
       } catch {
         /* ignore */
@@ -182,21 +196,27 @@ export default function PipelineMonitor() {
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-charcoal">Live progress</p>
-          {schedRunning && (
+          {(active.length > 0 || importRunning) && (
+            <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle cx="12" cy="12" r="9" stroke="rgba(197,160,89,0.25)" strokeWidth="3" />
+              <path d="M21 12a9 9 0 0 0-9-9" stroke="#C5A059" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          )}
+          {importRunning && (
             <span
               className="flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full"
               style={{ background: "rgba(197,160,89,0.12)", color: "#8a6d1f", border: "1px solid rgba(197,160,89,0.35)" }}
             >
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#C5A059" }} />
-              Scheduled
+              Importing
             </span>
           )}
         </div>
         {active.length === 0 ? (
-          schedRunning ? (
+          importRunning ? (
             <p className="text-xs flex items-center gap-2" style={{ color: "#8a6d1f" }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
-              Scheduled import running — checking the folder for new files…
+              Import running — checking the folder for new files…
             </p>
           ) : (
             <p className="text-xs text-gray-400">No transcripts are currently processing.</p>
@@ -208,7 +228,13 @@ export default function PipelineMonitor() {
                 key={t.id}
                 className="flex items-center justify-between px-3 py-2 text-sm gap-3"
               >
-                <span className="text-charcoal truncate mr-3">{t.naziv}</span>
+                <span className="flex items-center gap-2 min-w-0 mr-3">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+                    style={{ background: "#C5A059" }}
+                  />
+                  <span className="text-charcoal truncate">{displayName(t.naziv)}</span>
+                </span>
                 <StageStepper status={t.status} stage={t.pipeline_stage} />
               </li>
             ))}

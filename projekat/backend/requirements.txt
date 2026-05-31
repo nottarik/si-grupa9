@@ -1,6 +1,3 @@
-# Heavy ML/AI deps live in a separate file so Docker caches them in their own layer.
--r requirements-ml.txt
-
 # Web framework
 fastapi==0.111.0
 uvicorn[standard]==0.29.0
@@ -26,8 +23,18 @@ psycopg2-binary==2.9.9
 # Redis (optional — Upstash cache, rate limiting)
 redis==5.0.4
 
-# AI / RAG  (langchain, langchain-community, sentence-transformers → requirements-ml.txt)
+# AI / RAG
+langchain==0.2.1
+langchain-community==0.2.1
+# Pin langchain's transitive deps to the versions that resolve cleanly with our
+# pydantic/httpx pins. Without these, pip installs the latest (e.g. langchain-core
+# 0.2.43, langsmith 0.1.147) and then backtracks/downgrades to satisfy the pins —
+# slow ("still looking at multiple versions of langsmith…") and wasteful.
+langchain-core==0.2.8
+langchain-text-splitters==0.2.1
+langsmith==0.1.81
 groq==0.8.0
+sentence-transformers==3.0.0
 qdrant-client==1.9.1
 
 # Cloud Storage
@@ -45,7 +52,8 @@ python-dotenv==1.0.1
 aiofiles==23.2.1
 pdfplumber==0.11.4
 
-# Preprocessing / PII masking  (spacy → requirements-ml.txt)
+# Preprocessing / PII masking
+spacy>=3.8.0,<4.0.0
 cryptography==42.0.8
 
 # Testing

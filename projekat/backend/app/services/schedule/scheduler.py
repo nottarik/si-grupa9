@@ -22,13 +22,12 @@ logger = logging.getLogger(__name__)
 
 _TICK_SECONDS = 60
 
-# Live state of the scheduled runner, surfaced to the admin UI so a run is visible while
-# it happens. In-memory is fine: the scheduler and the API share one process (single replica).
-_RUNTIME: dict = {"running": False, "last_result": None}
-
 
 def get_runtime_state() -> dict:
-    return dict(_RUNTIME)
+    """Snapshot of the importer's live state (running flag + last result), shared with
+    the manual import path so the UI shows both the same way."""
+    from app.services.schedule import runtime_state
+    return runtime_state.snapshot()
 
 # The admin picks times in Bosnian local time; we store/compare in UTC. ZoneInfo
 # handles CET/CEST DST, so "daily at 02:00" stays 02:00 Sarajevo year-round.
@@ -136,20 +135,12 @@ async def _tick() -> None:
     from app.tasks.transcript_tasks import import_drive_folder
 
     logger.info("Scheduled Drive import starting (folder=%s)", folder_id)
-    _RUNTIME["running"] = True
     try:
-        summary = await import_drive_folder(folder_id, uploader_id)
-        if isinstance(summary, dict):
-            _RUNTIME["last_result"] = (
-                f"Imported {summary.get('queued', 0)}, "
-                f"skipped {summary.get('skipped', 0)}, "
-                f"errors {summary.get('errors', 0)}"
-            )
+        # import_drive_folder manages the running flag + last_result itself, so a manual
+        # run surfaces the same live state in the UI as a scheduled one.
+        await import_drive_folder(folder_id, uploader_id)
     except Exception:
         logger.exception("Scheduled Drive import failed")
-        _RUNTIME["last_result"] = "Last run failed — see server logs"
-    finally:
-        _RUNTIME["running"] = False
 
 
 async def scheduler_loop() -> None:

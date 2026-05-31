@@ -85,7 +85,25 @@ async def set_stage(transcript_id: int, stage: str | None) -> None:
         await db.commit()
 
 
-async def import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> None:
+async def import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> dict:
+    """Public entry point. Flags the importer as running so the admin UI shows live
+    state (for manual *and* scheduled runs), then delegates. The flag is always cleared,
+    even on error. Returns the {queued, skipped, errors} summary."""
+    from app.services.schedule.runtime_state import mark_done, mark_running
+
+    mark_running()
+    result = {"queued": 0, "skipped": 0, "errors": 0}
+    try:
+        result = await _import_drive_folder(folder_id, uploader_id, language)
+        return result
+    finally:
+        mark_done(
+            f"Imported {result['queued']}, skipped {result['skipped']}, "
+            f"errors {result['errors']}"
+        )
+
+
+async def _import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> dict:
     """
     Import all supported files from a Google Drive folder, reusing the same path
     as the manual `/transcripts/upload` route. Idempotent: files already imported

@@ -32,15 +32,17 @@ start command) — only the install path and layer structure changed.
 | **CPU-only torch in its own layer**, installed *before* the requirements via `--index-url https://download.pytorch.org/whl/cpu` | Skips the multi-GB CUDA download. `sentence-transformers` then sees torch already satisfied and does not pull the CUDA build. Helps even the first build; layer stays cached across requirements edits. |
 | **BuildKit pip cache mount** (`RUN --mount=type=cache,target=/root/.cache/pip ...`) on every pip install | Downloaded wheels persist between builds. Editing requirements then re-downloads only the *changed* packages. |
 | **Dropped the `apt-get install build-essential libpq-dev` layer** | Every dependency ships a CPython-3.12 manylinux **wheel** (`psycopg2-binary`/`asyncpg` bundle libpq; `cryptography`/`bcrypt`/spaCy/torch are prebuilt), so no compiler is needed. Removes a slow `apt-get update`/install and a few hundred MB from every cold build. |
-| **Split heavy ML deps into `requirements-ml.txt`**, installed in a layer *before* `requirements.txt` | `langchain*`, `sentence-transformers`, `spacy` (+ the spaCy model) now sit in a rarely-changing layer. Editing `requirements.txt` (e.g. adding `tzdata`) no longer reinstalls this multi-hundred-MB set. `requirements.txt` includes it via `-r requirements-ml.txt`, so local `pip install -r requirements.txt` is unchanged. |
+| **Single `pip install -r requirements.txt`** (not split into layers) | An earlier attempt split heavy ML deps into their own layer, but that layer installed the *latest* unpinned transitive deps (SQLAlchemy 2.0.50, pydantic 2.13.4, langsmith 0.1.147 …) which the second install then **uninstalled and downgraded** to the pins — pure wasted work, plus pip backtracking. One resolve picks the pinned versions directly: each package installs **once**. |
+| **Pinned langchain's transitive deps** (`langchain-core==0.2.8`, `langchain-text-splitters==0.2.1`, `langsmith==0.1.81`) | Stops pip's resolver from chasing the latest langsmith/langchain-core and backtracking ("still looking at multiple versions of langsmith… this could take a while") to stay compatible with the pinned `pydantic`/`httpx`. These are exactly the versions that resolve with those pins. |
 | **`# syntax=docker/dockerfile:1`** directive | Enables the cache-mount syntax. |
 | **`backend/.dockerignore`** | Excludes `__pycache__`, caches, `.venv`, `*.db`, `.git`, `.env*` so a smaller context is sent to the daemon each build. |
 
 ### Why it is safe
 - The container has no GPU; `SentenceTransformer` already ran on CPU. CPU torch
   produces an **identical** runtime — only the wasted CUDA payload is removed.
-- No package was added or removed or re-pinned — `requirements-ml.txt` just holds four
-  lines lifted verbatim out of `requirements.txt`, which now `-r`-includes it.
+- The langchain transitive pins are the *same versions pip already resolved to* (read
+  off the build log's final "Successfully installed" line) — they just record that
+  resolution so it isn't recomputed each build. No runtime behaviour changes.
 - Dropping the apt toolchain is safe because nothing compiles from source: every pinned
   package has a cp312 manylinux wheel. (If a future dep lacks one, re-add
   `RUN apt-get update && apt-get install -y build-essential` before the pip installs.)
