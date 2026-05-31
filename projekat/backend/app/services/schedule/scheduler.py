@@ -145,10 +145,14 @@ async def _tick() -> None:
 
 async def scheduler_loop() -> None:
     await ensure_table()
-    logger.info("Drive sync scheduler started (tick=%ds)", _TICK_SECONDS)
+    logger.info("Drive sync scheduler started (tick aligned to minute boundary)")
     while True:
         try:
             await _tick()
         except Exception:
             logger.exception("Drive sync scheduler tick failed")
-        await asyncio.sleep(_TICK_SECONDS)
+        # Sleep to the top of the next minute (not a flat 60s) so a run scheduled for
+        # HH:MM fires at HH:MM:00 instead of up to a minute late, depending on when the
+        # loop happened to start. compute_next_run already targets second 0.
+        now = datetime.now(timezone.utc)
+        await asyncio.sleep(_TICK_SECONDS - (now.second + now.microsecond / 1_000_000))

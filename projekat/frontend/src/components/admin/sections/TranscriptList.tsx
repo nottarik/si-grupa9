@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  bulkDeleteTranscripts,
   deleteTranscript,
   getTranscript,
   listTranscripts,
@@ -283,6 +284,8 @@ export default function TranscriptList() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selected, setSelected] = useState<Transcript | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useSubViewBack(viewMode !== "list", () => setViewMode("list"));
 
@@ -300,26 +303,49 @@ export default function TranscriptList() {
       date_from: dateFrom || undefined,
       date_to: dateTo || undefined,
     })
-      .then(setTranscripts)
+      .then((data) => {
+        setTranscripts(data);
+        setChecked(new Set());
+      })
       .catch(() => setError("Error loading transcripts."))
       .finally(() => setLoading(false));
   }, [debouncedSearch, dateFrom, dateTo]);
 
+  function unselect(id: string) {
+    setChecked((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
   async function handleDelete(t: Transcript) {
-    if (
-      !window.confirm(
-        `Delete transcript "${t.naziv}"?\nThis action cannot be undone.`
-      )
-    )
-      return;
     setDeleting(String(t.id));
     try {
       await deleteTranscript(String(t.id));
       setTranscripts((prev) => prev.filter((x) => String(x.id) !== String(t.id)));
+      unselect(String(t.id));
     } catch {
       setError(`Error deleting transcript "${t.naziv}".`);
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function handleDeleteSelected() {
+    const ids = [...checked];
+    if (ids.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      await bulkDeleteTranscripts(ids);
+      const removed = new Set(ids);
+      setTranscripts((prev) => prev.filter((x) => !removed.has(String(x.id))));
+      setChecked(new Set());
+    } catch {
+      setError("Error deleting selected transcripts.");
+    } finally {
+      setBulkDeleting(false);
     }
   }
 
@@ -332,6 +358,30 @@ export default function TranscriptList() {
 
   // Status is client-side (server already filtered by keyword/date)
   const filtered = transcripts.filter((t) => !statusFilter || t.status === statusFilter);
+
+  const allSelected = filtered.length > 0 && filtered.every((t) => checked.has(String(t.id)));
+
+  function toggleOne(id: string) {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setChecked((prev) => {
+      if (filtered.every((t) => prev.has(String(t.id)))) {
+        const next = new Set(prev);
+        filtered.forEach((t) => next.delete(String(t.id)));
+        return next;
+      }
+      const next = new Set(prev);
+      filtered.forEach((t) => next.add(String(t.id)));
+      return next;
+    });
+  }
 
   if (viewMode === "detail" && selected) {
     return <DetailView summary={selected} onBack={() => setViewMode("list")} />;
@@ -396,6 +446,22 @@ export default function TranscriptList() {
               <option value="Obradjeno">Processed</option>
               <option value="Odbacen">Rejected</option>
             </select>
+            {isAdmin && checked.size > 0 && (
+              <button
+                className="px-3 py-1 rounded text-xs flex items-center gap-1.5"
+                onClick={handleDeleteSelected}
+                disabled={bulkDeleting}
+                style={{
+                  border: "1px solid rgba(220,38,38,0.3)",
+                  background: "rgba(220,38,38,0.05)",
+                  color: "#dc2626",
+                  cursor: bulkDeleting ? "default" : "pointer",
+                }}
+              >
+                <Ic d={icons.trash} size={13} />
+                {bulkDeleting ? "Deleting…" : `Delete selected (${checked.size})`}
+              </button>
+            )}
           </div>
 
           {/* Date range */}
@@ -437,6 +503,16 @@ export default function TranscriptList() {
           <table className="tbl">
             <thead>
               <tr>
+                {isAdmin && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleAll}
+                      aria-label="Select all"
+                    />
+                  </th>
+                )}
                 <th>Name</th>
                 <th>Date</th>
                 <th>Format</th>
@@ -447,13 +523,23 @@ export default function TranscriptList() {
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-gray-400 py-8 text-sm">
+                  <td colSpan={isAdmin ? 6 : 5} className="text-center text-gray-400 py-8 text-sm">
                     No transcripts match your search.
                   </td>
                 </tr>
               )}
               {filtered.map((t) => (
                 <tr key={t.id}>
+                  {isAdmin && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={checked.has(String(t.id))}
+                        onChange={() => toggleOne(String(t.id))}
+                        aria-label={`Select transcript ${t.naziv || t.id}`}
+                      />
+                    </td>
+                  )}
                   <td className="font-medium text-charcoal">{t.naziv || "—"}</td>
                   <td className="text-gray-400">
                     {t.datum_uploada

@@ -99,6 +99,14 @@ export async function deleteTranscript(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/transcripts/${id}`);
 }
 
+export async function bulkDeleteTranscripts(ids: string[]): Promise<{ deleted: number }> {
+  const { data } = await apiClient.post<{ deleted: number }>(
+    "/api/v1/transcripts/bulk-delete",
+    { ids: ids.map(Number) }
+  );
+  return data;
+}
+
 export async function transcribeAudioPreview(
   file: File,
   language: string

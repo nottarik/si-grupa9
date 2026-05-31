@@ -117,6 +117,7 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
 
     from app.db.session import AsyncSessionLocal
     from app.db.models.transcript import FormatTip, Transkript, TranskStatusTip
+    from app.services.schedule.runtime_state import is_cancelling, set_files, update_file
     from app.services.storage.google_drive_service import GoogleDriveService
     from app.services.storage.storage_service import StorageService
     from app.services.transcript.file_utils import (
@@ -131,6 +132,10 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
     except Exception:
         logger.exception("Failed to list Drive folder folder_id=%s", folder_id)
         return {"queued": 0, "skipped": 0, "errors": 0}
+
+    # Publish the titles right away so the live progress shows what's being imported
+    # the moment the run starts, before any file is processed.
+    set_files([f["name"] for f in files])
 
     queued = skipped = errors = 0
 
@@ -148,6 +153,13 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
                 recorded[parsed[0]] = (tid, parsed[1])
 
         for f in files:
+            # Cancel point: an admin-requested cancel stops the batch after the
+            # current file. Files already queued+processed stay; the rest are left
+            # for a future run (they'll be picked up as new, since they're unrecorded).
+            if is_cancelling():
+                logger.info("Drive import cancelled folder_id=%s after queued=%d", folder_id, queued)
+                break
+
             name = f["name"]
             mtime = f.get("modifiedTime")
             naziv = _drive_naziv(folder_id, name, mtime)
@@ -158,27 +170,38 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
                 rec_id, rec_mtime = rec
                 if rec_mtime is not None and rec_mtime == mtime:
                     skipped += 1  # already imported this exact version
+                    update_file(name, "skipped")
                     continue
                 # Changed file (newer modifiedTime) or a legacy import with no
                 # recorded version — replace the old transcript. Deferred until the
                 # new file is validated below so a failed re-import keeps the old one.
                 replace_id = rec_id
 
+            update_file(name, "importing")
             try:
                 content = drive.download_file(f["id"])
             except Exception:
                 logger.exception("Failed to download Drive file id=%s", f.get("id"))
                 errors += 1
+                update_file(name, "failed")
                 continue
+
+            # Re-check after the (possibly slow) download so a cancel that arrived mid-file
+            # skips this file's processing too — nothing is persisted for it yet.
+            if is_cancelling():
+                logger.info("Drive import cancelled folder_id=%s after queued=%d (during download)", folder_id, queued)
+                break
 
             if len(content) > MAX_FILE_SIZE:
                 logger.warning("Skipping oversized Drive file %s (%d bytes)", naziv, len(content))
                 skipped += 1
+                update_file(name, "skipped")
                 continue
 
             is_audio, is_text, is_pdf = classify_file(f.get("mimeType", ""), f["name"])
             if not (is_audio or is_text or is_pdf):
                 skipped += 1
+                update_file(name, "skipped")
                 continue
 
             raw_text: str | None = None
@@ -200,6 +223,7 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
             except Exception:
                 logger.exception("Failed to prepare Drive file %s", naziv)
                 errors += 1
+                update_file(name, "failed")
                 continue
 
             # New version validated — now drop the superseded import (same transaction).
@@ -224,10 +248,12 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
 
             try:
                 await process_transcript(transkript.id, language)
+                update_file(name, "imported")
             except Exception:
                 # process_transcript already logged and marked the row Odbacen;
                 # keep going so one bad file doesn't abort the batch.
                 errors += 1
+                update_file(name, "failed")
 
     logger.info(
         "Drive import done folder_id=%s queued=%d skipped=%d errors=%d",

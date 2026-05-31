@@ -2,6 +2,13 @@ import apiClient from "./client";
 
 export type Frequency = "hourly" | "daily" | "weekly";
 
+export type DriveFileStatus = "pending" | "importing" | "imported" | "skipped" | "failed";
+
+export interface DriveFileProgress {
+  name: string;
+  status: DriveFileStatus;
+}
+
 export interface DriveSchedule {
   enabled: boolean;
   frequency: Frequency;
@@ -11,7 +18,9 @@ export interface DriveSchedule {
   last_run_at: string | null;
   next_run_at: string | null;
   running: boolean;
+  cancelling: boolean;
   last_result: string | null;
+  files: DriveFileProgress[];
 }
 
 export type DriveScheduleUpdate = Pick<
@@ -28,5 +37,10 @@ export async function updateDriveSchedule(
   body: DriveScheduleUpdate
 ): Promise<DriveSchedule> {
   const { data } = await apiClient.put<DriveSchedule>("/api/v1/schedule/drive", body);
+  return data;
+}
+
+export async function cancelDriveImport(): Promise<DriveSchedule> {
+  const { data } = await apiClient.post<DriveSchedule>("/api/v1/schedule/drive/cancel");
   return data;
 }

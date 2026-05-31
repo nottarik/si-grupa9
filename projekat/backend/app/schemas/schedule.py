@@ -8,6 +8,12 @@ from pydantic import BaseModel, ConfigDict, Field
 Frequency = Literal["hourly", "daily", "weekly"]
 
 
+class DriveFileProgress(BaseModel):
+    name: str
+    # pending | importing | imported | skipped | failed
+    status: str
+
+
 class DriveScheduleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -20,7 +26,9 @@ class DriveScheduleRead(BaseModel):
     next_run_at: Optional[datetime] = None
     # Live runner state (not persisted) — lets the UI show a run in progress.
     running: bool = False
+    cancelling: bool = False
     last_result: Optional[str] = None
+    files: list[DriveFileProgress] = []
 
 
 class DriveScheduleUpdate(BaseModel):

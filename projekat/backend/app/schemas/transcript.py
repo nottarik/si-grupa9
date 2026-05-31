@@ -73,6 +73,10 @@ class TranscriptUploadResponse(BaseModel):
     message: str
 
 
+class TranscriptBulkDelete(BaseModel):
+    ids: list[int] = []
+
+
 class TranscriptManualCreate(BaseModel):
     date: date
     content: str

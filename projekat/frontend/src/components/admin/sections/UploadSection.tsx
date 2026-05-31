@@ -8,6 +8,7 @@ import {
   uploadTranscript,
 } from "../../../api/transcripts";
 import { StageStepper } from "../PipelineStage";
+import { cancelDriveImport } from "../../../api/schedule";
 
 // Extract a human-readable message from an Axios/fetch error response
 function extractError(e: unknown): string {
@@ -607,7 +608,7 @@ function AudioUpload() {
 
 type DriveFile = {
   name: string;
-  status: "queued" | "skipped" | "imported" | "failed";
+  status: "queued" | "skipped" | "imported" | "failed" | "cancelled";
   stage?: string | null; // live pipeline_stage while status === "queued"
 };
 
@@ -635,6 +636,9 @@ function DriveImport() {
   );
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState<DriveFile[]>([]);
+  // True for the whole active import (Start clicked → all files settled / cancelled),
+  // so the Cancel button stays visible the entire time, not just between poll ticks.
+  const [importing, setImporting] = useState(false);
 
   // Keep a live mirror of files so the polling interval reads current state.
   const filesRef = useRef<DriveFile[]>(files);
@@ -665,6 +669,7 @@ function DriveImport() {
       const current = filesRef.current;
       if (!current.some((f) => f.status === "queued")) {
         stopPolling();
+        setImporting(false);
         return;
       }
       try {
@@ -680,19 +685,41 @@ function DriveImport() {
           return { ...f, stage: t?.pipeline_stage ?? null };
         });
         setFiles(next);
-        if (!next.some((f) => f.status === "queued")) stopPolling();
+        if (!next.some((f) => f.status === "queued")) {
+          stopPolling();
+          setImporting(false);
+        }
       } catch {
         // transient error — keep trying
       }
       // Give up after ~3 minutes so the interval doesn't run forever.
-      if (attemptsRef.current >= 72) stopPolling();
+      if (attemptsRef.current >= 72) {
+        stopPolling();
+        setImporting(false);
+      }
     }, 2500);
+  }
+
+  async function handleCancel() {
+    // Update the UI immediately so the button reacts instantly; the cancel request
+    // is fired afterwards (and not awaited for the UI to settle). Files still in flight
+    // on the server may finish — the Transcripts list reflects the true final state.
+    stopPolling();
+    setImporting(false);
+    setFiles((prev) =>
+      prev.map((f) => (f.status === "queued" ? { ...f, status: "cancelled" } : f))
+    );
+    setMessage("Import cancelled. Files that had already started may still finish processing.");
+    cancelDriveImport().catch(() => {
+      // best-effort: the UI is already cancelled regardless
+    });
   }
 
   async function handleImport() {
     const id = extractDriveId(folderId);
     if (!id) return;
     stopPolling();
+    setImporting(true);
     setStatus("loading");
     setMessage("");
     setFiles([]);
@@ -705,9 +732,11 @@ function DriveImport() {
       try { localStorage.setItem(RECENT_DRIVE_KEY, used); } catch { /* ignore */ }
       setRecent(used);
       if (res.files.some((f) => f.status === "queued")) startPolling(id);
+      else setImporting(false); // nothing queued (all skipped) — nothing to cancel
     } catch (e: unknown) {
       setMessage(extractError(e));
       setStatus("error");
+      setImporting(false);
     }
   }
 
@@ -733,6 +762,7 @@ function DriveImport() {
             setStatus("idle");
             setMessage("");
             setFiles([]);
+            setImporting(false);
           }
         }}
       />
@@ -771,13 +801,24 @@ function DriveImport() {
         <option value="auto">Auto / Mixed (detect per file)</option>
       </select>
 
-      <button
-        className="gold-btn"
-        onClick={handleImport}
-        disabled={!folderId.trim() || status === "loading"}
-      >
-        {status === "loading" ? "Starting…" : "Start Import"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          className="gold-btn"
+          onClick={handleImport}
+          disabled={!folderId.trim() || status === "loading"}
+        >
+          {status === "loading" ? "Starting…" : "Start Import"}
+        </button>
+        {importing && (
+          <button
+            className="outline-btn"
+            onClick={handleCancel}
+            disabled={status === "loading"}
+          >
+            Cancel Import
+          </button>
+        )}
+      </div>
 
       {status === "success" && (
         <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
@@ -809,6 +850,9 @@ function DriveImport() {
               )}
               {f.status === "skipped" && (
                 <span className="text-xs text-gray-400 shrink-0">Already imported</span>
+              )}
+              {f.status === "cancelled" && (
+                <span className="text-xs text-gray-400 shrink-0">Cancelled</span>
               )}
             </li>
           ))}

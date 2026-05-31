@@ -417,6 +417,7 @@ async def chat_logs(
         return (
             (row.metoda_generisanja or "") != "Generativno"
             and (row.tekst_odgovora or "") != _EXPLICIT_ESCALATION_MSG
+            and not _is_smalltalk(row.tekst or "")
         )
 
     grouped: dict = {}

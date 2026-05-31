@@ -22,6 +22,7 @@ from app.schemas.transcript import (
     DriveImportResponse,
     TranscribePreviewResponse,
     TranscriptDetail,
+    TranscriptBulkDelete,
     TranscriptManualCreate,
     TranscriptManualResponse,
     TranscriptRead,
@@ -34,7 +35,7 @@ from app.services.transcript.file_utils import (
     classify_file,
     extract_pdf_text,
 )
-from app.tasks.transcript_tasks import import_drive_folder, process_transcript, _parse_drive_naziv
+from app.tasks.transcript_tasks import import_drive_folder, process_transcript, purge_transcript, _parse_drive_naziv
 
 logger = logging.getLogger(__name__)
 
@@ -417,6 +418,26 @@ async def update_transcript(
     await db.commit()
     await db.refresh(transkript)
     return transkript
+
+
+@router.post("/bulk-delete")
+async def bulk_delete_transcripts(
+    payload: TranscriptBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_role(UlogaTip.administrator)),
+):
+    """Delete the given transcripts (and all derived segments / KB entries / vectors)
+    in one request. Mirrors the single DELETE cleanup via purge_transcript."""
+    if not payload.ids:
+        return {"ok": True, "deleted": 0}
+
+    existing = (
+        await db.execute(select(Transkript.id).where(Transkript.id.in_(payload.ids)))
+    ).scalars().all()
+    for tid in existing:
+        await purge_transcript(db, tid)
+    await db.commit()
+    return {"ok": True, "deleted": len(existing)}
 
 
 @router.delete("/{transcript_id}", status_code=status.HTTP_204_NO_CONTENT)

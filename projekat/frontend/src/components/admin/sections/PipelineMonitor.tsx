@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { getDriveFolder, importDriveTranscripts, listActiveTranscripts } from "../../../api/transcripts";
-import { getDriveSchedule } from "../../../api/schedule";
+import { getDriveSchedule, type DriveFileProgress } from "../../../api/schedule";
 import type { Transcript } from "../../../types";
 import { StageStepper } from "../PipelineStage";
 import DriveScheduleCard from "./DriveScheduleCard";
 
 const RECENT_DRIVE_KEY = "recent_drive_folder";
+
+const FILE_STATUS: Record<string, { label: string; color: string }> = {
+  pending: { label: "Waiting…", color: "#9ca3af" },
+  importing: { label: "Importing…", color: "#8a6d1f" },
+  imported: { label: "✓ Imported", color: "#15803d" },
+  skipped: { label: "Already imported", color: "#9ca3af" },
+  failed: { label: "✗ Failed", color: "#dc2626" },
+};
 
 // Accept a bare folder ID or a pasted Drive URL and return the ID.
 function extractDriveId(input: string): string {
@@ -39,13 +47,16 @@ function fmtSchedTime(iso: string): string {
   });
 }
 
-// Drive imports are stored as "gdrive:<folder>:<filename>" — show just the filename.
+// Drive imports are stored as "gdrive:<folder>:<filename>::v::<mtime>" — show just the
+// filename (strip the folder prefix and the version suffix used for change detection).
 function displayName(naziv: string): string {
-  if (naziv.startsWith("gdrive:")) {
-    const second = naziv.indexOf(":", naziv.indexOf(":") + 1);
-    if (second >= 0) return naziv.slice(second + 1);
+  let n = naziv;
+  if (n.startsWith("gdrive:")) {
+    const second = n.indexOf(":", n.indexOf(":") + 1);
+    if (second >= 0) n = n.slice(second + 1);
   }
-  return naziv;
+  const v = n.indexOf("::v::");
+  return v >= 0 ? n.slice(0, v) : n;
 }
 
 export default function PipelineMonitor() {
@@ -58,8 +69,10 @@ export default function PipelineMonitor() {
     running: boolean;
     last_run_at: string | null;
     last_result: string | null;
+    files: DriveFileProgress[];
   } | null>(null);
   const importRunning = sched?.running ?? false;
+  const schedFiles = sched?.files ?? [];
 
   useEffect(() => {
     getDriveFolder().then((f) => setFolderName(f.name)).catch(() => {});
@@ -118,7 +131,7 @@ export default function PipelineMonitor() {
       try {
         const s = await getDriveSchedule();
         if (!alive) return;
-        setSched({ running: s.running, last_run_at: s.last_run_at, last_result: s.last_result });
+        setSched({ running: s.running, last_run_at: s.last_run_at, last_result: s.last_result, files: s.files ?? [] });
         runningRef.current = s.running;
         if (s.running && pollRef.current === null) startPolling();
       } catch {
@@ -127,8 +140,8 @@ export default function PipelineMonitor() {
     }
     checkSchedule();
     // Poll fairly often so a run that fires at the scheduled minute is reflected
-    // promptly — and so the "last run" stamp updates within a few seconds.
-    const id = window.setInterval(checkSchedule, 5_000);
+    // promptly — titles + "last run" stamp update within a couple seconds.
+    const id = window.setInterval(checkSchedule, 2_500);
     return () => {
       alive = false;
       clearInterval(id);
@@ -212,16 +225,44 @@ export default function PipelineMonitor() {
             </span>
           )}
         </div>
-        {active.length === 0 ? (
-          importRunning ? (
-            <p className="text-xs flex items-center gap-2" style={{ color: "#8a6d1f" }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
-              Import running — checking the folder for new files…
-            </p>
-          ) : (
-            <p className="text-xs text-gray-400">No transcripts are currently processing.</p>
-          )
-        ) : (
+        {importRunning && schedFiles.length > 0 ? (
+          // The run seeds the file titles the moment it lists the folder — show them right
+          // away. For the file currently importing, overlay its live pipeline stage (matched
+          // against /active by filename); others show a simple status label.
+          (() => {
+            const activeByName = new Map(active.map((t) => [displayName(t.naziv), t]));
+            return (
+              <ul className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                {schedFiles.map((f) => {
+                  const t = activeByName.get(f.name);
+                  const s = FILE_STATUS[f.status] ?? FILE_STATUS.pending;
+                  const active_ = f.status === "importing" || f.status === "pending";
+                  return (
+                    <li
+                      key={f.name}
+                      className="flex items-center justify-between px-3 py-2 text-sm gap-3"
+                    >
+                      <span className="flex items-center gap-2 min-w-0 mr-3">
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${active_ ? "animate-pulse" : ""}`}
+                          style={{ background: active_ ? "#C5A059" : s.color }}
+                        />
+                        <span className="text-charcoal truncate">{f.name}</span>
+                      </span>
+                      {t ? (
+                        <StageStepper status={t.status} stage={t.pipeline_stage} />
+                      ) : (
+                        <span className="text-xs shrink-0" style={{ color: s.color }}>
+                          {s.label}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          })()
+        ) : active.length > 0 ? (
           <ul className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
             {active.map((t) => (
               <li
@@ -239,6 +280,13 @@ export default function PipelineMonitor() {
               </li>
             ))}
           </ul>
+        ) : importRunning ? (
+          <p className="text-xs flex items-center gap-2" style={{ color: "#8a6d1f" }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
+            Import running — checking the folder for new files…
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400">No transcripts are currently processing.</p>
         )}
 
         {sched?.last_run_at && (
