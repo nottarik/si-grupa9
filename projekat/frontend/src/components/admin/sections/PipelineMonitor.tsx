@@ -162,23 +162,28 @@ export default function PipelineMonitor() {
 
       <DriveScheduleCard />
 
-      {schedRunning && (
-        <div
-          className="card p-4 flex items-center gap-3"
-          style={{ borderLeft: "3px solid #C5A059", background: "rgba(197,160,89,0.06)" }}
-        >
-          <span className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
-          <p className="text-sm" style={{ color: "#6b5a3a" }}>
-            Scheduled import is running — checking the Drive folder and processing new files.
-            Progress appears below.
-          </p>
-        </div>
-      )}
-
       <div className="card p-6 space-y-3">
-        <p className="text-sm font-semibold text-charcoal">Live progress</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-charcoal">Live progress</p>
+          {schedRunning && (
+            <span
+              className="flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(197,160,89,0.12)", color: "#8a6d1f", border: "1px solid rgba(197,160,89,0.35)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#C5A059" }} />
+              Scheduled
+            </span>
+          )}
+        </div>
         {active.length === 0 ? (
-          <p className="text-xs text-gray-400">No transcripts are currently processing.</p>
+          schedRunning ? (
+            <p className="text-xs flex items-center gap-2" style={{ color: "#8a6d1f" }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "#C5A059" }} />
+              Scheduled import running — checking the folder for new files…
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400">No transcripts are currently processing.</p>
+          )
         ) : (
           <ul className="divide-y divide-gray-100 border border-gray-100 rounded-lg">
             {active.map((t) => (
