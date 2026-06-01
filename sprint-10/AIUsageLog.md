@@ -2080,3 +2080,186 @@ Claude Code je korišten za sažimanje sesijskih promjena u pratećim dokumentim
 - ako se service-account key već dijelio u plaintextu, potrebno ga je rotirati prije produkcijske upotrebe
 
 ---
+## AI Usage Log – Zapis 48
+
+**Datum:** 31/05/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri doradi RAG ponašanja i povezivanju rješavanja eskalacija sa bazom znanja i Issue zapisima.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za analizu slučajeva u kojima je chatbot imao relevantan odgovor u bazi znanja, ali ga nije vratio jer je intent klasifikator prerano označio pitanje kao `out_of_scope`. U istom toku analizirana je dorada resolving procesa, tako da se pri slanju odgovora u bazu znanja povezani Issue/Anomalija zapisi očiste i da admin ili agent može kontrolisati koji sadržaj se dodaje u knowledge base, umjesto da sistem automatski uzima samo prvi dostupni odgovor.
+
+**Šta je AI predložio ili generisao:**
+- promjenu toka tako da `out_of_scope` klasifikacija više ne prekida automatski RAG pretragu
+- pravilo da se baza znanja i Qdrant ipak pretraže prije konačne odluke o odgovoru
+- poseban `RAG_OFFTOPIC_THRESHOLD` prag za off-topic odgovore, odvojen od domenskog praga
+- zadržavanje prompt-injection slučajeva kao hard block bez prolaska kroz standardni odgovor
+- uklanjanje `napomena` polja iz resolve toka jer nije bilo potrebno za krajnji workflow
+- čišćenje Anomalija/Issue zapisa nakon što se relevantan Q&A uspješno pošalje u bazu znanja
+- smjernicu da zaposleni kontrolišu koji agent/admin odgovor ide u bazu znanja, umjesto automatskog uzimanja samo prve poruke
+
+**Šta je tim prihvatio:**
+- princip da je knowledge base autoritativan izvor i da ga treba provjeriti čak i kada klasifikator pogriješi
+- odvojeni prag za off-topic odgovore kako chatbot ne bi preširoko odgovarao van domene
+- uklanjanje nepotrebne resolution napomene iz UI/API toka
+- čišćenje povezanih Issue zapisa nakon publishovanja Q&A para u bazu znanja
+- poboljšanje toka za zaposlene: admin/agent bira koji sadržaj se šalje u knowledge base
+
+**Šta je tim izmijenio:**
+- pragovi su prilagođeni Telemach/call-centar kontekstu
+- resolving tok je pojednostavljen tako da status ostaje dovoljan signal bez dodatne ručne napomene
+- ponašanje kod publishovanja u KB usklađeno je s postojećim issue/anomaly modelom
+
+**Šta je tim odbacio:**
+- potpuno oslanjanje na intent klasifikator prije RAG pretrage
+- automatsko dodavanje prve poruke u bazu znanja bez kontrole zaposlenika
+- zadržavanje JS `confirm` dijaloga za akcije gdje je dogovoren direktniji tok
+
+**Rizici, problemi ili greške koje su uočene:**
+- preširok off-topic prag može dovesti do odgovora na pitanja koja nisu dovoljno vezana za domenu
+- korisnik može očekivati odgovor ako KB sadrži sličan, ali ne i stvarno relevantan sadržaj
+- izbor poruka za KB mora ostati pažljiv jer pogrešan unos odmah utiče na buduće RAG odgovore
+
+---
+
+## AI Usage Log – Zapis 49
+
+**Datum:** 31/05/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri implementaciji scheduled Google Drive sync-a i prikaza live progressa za batch procesiranje.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za dopunu ranije implementiranog Google Drive batch importa tako da se import može pokretati i automatski prema rasporedu iz admin panela. Poseban fokus je bio da se scheduled dio tretira kao stvarno implementirana funkcionalnost u okviru batch procesiranja, a ne samo kao buduće proširenje. Dodatno je uveden prikaz napretka koji administratoru pokazuje da se manualni ili scheduled import stvarno izvršava.
+
+**Šta je AI predložio ili generisao:**
+- admin UI sekciju `Automatic schedule` u Pipeline dijelu aplikacije
+- opcije za uključivanje/isključivanje rasporeda, frekvenciju `hourly`, `daily` ili `weekly` i vrijeme pokretanja
+- korištenje vremenske zone `Europe/Sarajevo` uz DST korekciju
+- singleton konfiguraciju `drive_sync_schedule` i Alembic migraciju za čuvanje rasporeda
+- admin-only `GET/PUT /api/v1/schedule/drive` endpoint
+- in-process scheduler koji se pokreće iz lifespan toka backend aplikacije i provjerava raspored svake minute
+- zajednički `running` flag za manualni i scheduled import
+- live progress prikaz sa spinnerom, `Importing` oznakom, realnim nazivima fajlova, stepperima i informacijom o zadnjem scheduled run-u
+
+**Šta je tim prihvatio:**
+- scheduled Drive sync kao implementiranu Sprint 10 funkcionalnost
+- admin-controlled raspored umjesto hardkodiranog cron vremena
+- in-process scheduler jer sistem radi kao jedna uvijek aktivna backend instanca
+- uklanjanje fiksnog Bicep cron Job-a kako ne bi došlo do duplog pokretanja importa
+- zadržavanje `POST /internal/sync-drive` rute za ručne ili eksterne trigger-e
+- live progress prikaz za manualne i automatske import procese
+
+**Šta je tim izmijenio:**
+- progress prikaz je vezan za postojeći Pipeline/Admin ekran umjesto posebne stranice
+- tehnički `gdrive:` prefiks se skida iz prikaza naziva fajla
+- polling se nastavlja tokom cijelog importa i ne zahtijeva ručno osvježavanje stranice
+
+**Šta je tim odbacio:**
+- predstavljanje scheduled importa kao neimplementiranog budućeg proširenja
+- fiksni cloud cron koji bi radio paralelno s in-process schedulerom
+- prikaz samo statične poruke bez stvarnog stanja importa
+
+**Rizici, problemi ili greške koje su uočene:**
+- in-process scheduler je pogodan za jednu repliku, ali bi kod više instanci mogao pokrenuti duple import procese
+- pogrešno podešena vremenska zona ili DST može pomjeriti očekivano vrijeme importa
+- progress indikator zavisi od konzistentnog runtime state-a tokom trajanja importa
+
+---
+
+## AI Usage Log – Zapis 50
+
+**Datum:** 31/05/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri doradi responsivnosti admin/agent interfejsa i uklanjanju nepotrebnih sitnih UI detalja iz dokumentacije.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri grupisanju UX i responsivnih dorada u jednu smislenu dokumentacijsku stavku, bez nabrajanja svake sitne promjene poput pomjeranja headera ili favicon izmjene. Fokus je bio na tome da Admin i Agent dashboardi budu upotrebljivi na manjim ekranima i da dokumentacija naglasi poslovno relevantan efekat: manji kognitivni teret za zaposlenike i brži rad kroz admin/agent panele.
+
+**Šta je AI predložio ili generisao:**
+- opis responsive poboljšanja kroz jednu objedinjenu stavku
+- pretvaranje sidebar navigacije u overlay drawer na mobilnim ekranima
+- zatvaranje mobilnog drawer-a nakon navigacije
+- kondenzovanje headera i horizontalni scroll za široke tabele
+- izdvajanje važnih UX efekata od sitnih vizuelnih detalja koji ne moraju ulaziti u log
+
+**Šta je tim prihvatio:**
+- objedinjeno dokumentovanje responsivnosti za Admin i Agent dashboard
+- naglasak da su poboljšanja namijenjena zaposlenicima koji svakodnevno rade u panelima
+- izostavljanje sitnica kao što su pojedinačne header i branding izmjene iz glavnih AI/Decision zapisa
+- zadržavanje samo onih UI promjena koje imaju jasan uticaj na upotrebljivost
+
+**Šta je tim izmijenio:**
+- formulacije su napisane kao sprint-level poboljšanje, a ne kao lista manjih CSS izmjena
+- responsivnost je vezana za konkretne panele: admin, agent i tabele s većom širinom
+
+**Šta je tim odbacio:**
+- dokumentovanje svake male vizuelne izmjene pojedinačno
+- dodavanje posebnih zapisa samo za promjenu favicon-a, title-a ili centriranja naslova
+- tretiranje responsivnosti kao estetske promjene bez povezivanja s radom zaposlenika
+
+**Rizici, problemi ili greške koje su uočene:**
+- responsive drawer mora biti testiran na realnim mobilnim širinama
+- horizontalni scroll tabela rješava prikaz, ali ne smije sakriti važne akcije
+- previše detaljna dokumentacija o UI sitnicama može otežati pregled glavnih sprint isporuka
+
+---
+
+## AI Usage Log – Zapis 51
+
+**Datum:** 31/05/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri dodatnoj optimizaciji backend build procesa i dokumentovanju stvarnog efekta na rad tima.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za analizu dodatnih usporenja u Docker build procesu nakon prethodne optimizacije. Fokus je bio na tome da se backend build dodatno skrati uklanjanjem nepotrebnih build paketa, smanjenjem resolver backtracking-a i pojednostavljenjem pip install toka, uz jasno objašnjenje da prvi build može trajati duže, dok naredni buildovi koriste cache i traju znatno kraće.
+
+**Šta je AI predložio ili generisao:**
+- uklanjanje `apt build-essential/libpq-dev` sloja jer korištene biblioteke imaju CPython 3.12 wheel-ove
+- zadržavanje CPU-only Torch sloja i pip cache mount pristupa
+- vraćanje na jedan `pip install` tok umjesto ML-layer split-a koji je uzrokovao uninstall/downgrade ponašanje
+- pinovanje langchain transitive dependency-ja radi smanjenja resolver backtracking-a
+- dokumentovanje očekivanog ponašanja: prvi build puni cache, naredni buildovi ne skidaju biblioteke ponovo
+
+**Šta je tim prihvatio:**
+- pojednostavljen Dockerfile build tok uz zadržavanje istog runtime ponašanja
+- uklanjanje nepotrebnih build dependency-ja
+- pinovanje problematičnih transitive dependency-ja
+- naglasak u dokumentaciji da je build smanjen sa preko 25 minuta na približno 10–15 sekundi u ponovljenim buildovima kada je cache već popunjen
+- objašnjenje da prvi build može trajati duže, ali da su svi naredni buildovi značajno brži
+
+**Šta je tim izmijenio:**
+- dokumentacija je dopunjena praktičnim objašnjenjem zašto se dependency-ji ne skidaju svaki put
+- optimizacija je opisana kao ubrzanje rada na projektu, a ne samo kao Dockerfile refaktoring
+- naglašeno je da promjena ne mijenja model, retrieval ni runtime funkcionalnost
+
+**Šta je tim odbacio:**
+- promjenu embedding modela radi build brzine
+- zavisnost od slučajnih najnovijih transitive dependency verzija
+- build pristup koji prvo instalira pa zatim masovno downgrade-a dependency-je
+
+**Rizici, problemi ili greške koje su uočene:**
+- build cache se može izgubiti na novom računaru ili čistom CI runneru
+- pinovane verzije treba povremeno provjeriti zbog sigurnosnih i kompatibilnih update-a
+- različite Docker/Pip verzije mogu pokazati različito ponašanje resolvera
+
+---
