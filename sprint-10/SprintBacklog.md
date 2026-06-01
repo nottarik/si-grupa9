@@ -11,6 +11,9 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 - live prikaz napretka pipeline obrade u admin panelu — pregled statusa svih faza u realnom vremenu
 - single-click cloud deployment — automatsko deployanje kompletnog sistema na Azure/AWS infrastrukturu jednim komandnim pozivom
 - optimizaciju build procesa i CI/CD performansi — dramatično skraćivanje Docker rebuild vremena kroz cache mehanizme i CPU-only ML dependency layere
+- prevenciju duplih unosa u bazu znanja — provjera duplikata na svim putanjama unosa s automatskim preskakanjem ili porukom administratoru
+- bulk brisanje razgovora iz Chat Logs — checkbox selekcija i grupno brisanje s kaskadnim uklanjanjem svih pridruženih podataka
+- razumljive i korisnički prilagođene poruke o greškama — eliminacija sirovih tehničkih poruka kroz cijelu aplikaciju
 
 ---
 
@@ -22,6 +25,9 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 | PB-67 | Scheduled pipeline obrada i automatsko ažuriranje baze znanja | Autonomno pokretanje kompletnog pipeline-a prema konfiguriranom rasporedu uz live prikaz statusa (US-67.1, US-67.2) | Feature | High | 13 | Završeno |
 | PB-68 | Single-click cloud deployment | Automatski deploy kompletnog sistema na cloud infrastrukturu jednim komandnim pozivom (US-68.1) | DevOps | High | 8 | Završeno |
 | PB-69 | Optimizacija build procesa i CI/CD performansi | Optimizacija Docker build procesa kroz cache mehanizme i CPU-only ML dependency layer (US-69.1) | Technical Task | High | 8 | Završeno |
+| PB-70 | Prevencija duplih unosa u bazu znanja | Provjera duplikata na svim mjestima unosa u bazu znanja — ručni unos, obrada transkripata, batch import i spašavanje Q&A pri eskalaciji (US-70.1) | Technical Task | High | 5 | Završeno |
+| PB-71 | Bulk brisanje razgovora iz Chat Logs | Checkbox selekcija i dugme za grupno brisanje označenih razgovora u Chat Logs pregledu, dostupno samo adminu (US-71.1) | Feature | Medium | 5 | Završeno |
+| PB-72 | Razumljive i korisnički prilagođene poruke o greškama | Nijedna poruka o grešci ne smije prikazivati sirove tehničke poruke; jasne korisnički razumljive poruke za sve akcije (US-72.1) | Feature | High | 5 | Završeno |
 
 ---
 
@@ -222,3 +228,130 @@ Preduvjet za US-68.1 Single-click deploy sistema. Utiče na sve CI/CD workflowe 
 - Optimizacija ne smije promijeniti runtime ponašanje aplikacije niti uticati na produkcijsku funkcionalnost
 - CI/CD pipeline mora koristiti optimizovanu build konfiguraciju i time smanjiti ukupno trajanje pipeline izvršavanja
 - Dockerfile mora biti organizovan tako da se slojevi koji se rijetko mijenjaju (zavisnosti) nalaze ispred slojeva koji se često mijenjaju (aplikacijski kod)
+
+---
+
+### PB-70 — Prevencija duplih unosa u bazu znanja
+
+**Prioritet:** High
+
+**Poslovna vrijednost:** Osigurava konzistentnost baze znanja eliminacijom dupliranih unosa koji bi degradirali kvalitet retrieval-a i zbunjivali chatbot pri odgovaranju — provjera se primjenjuje na svim putanjama unosa bez izuzetka.
+
+**Pretpostavke:** Provjera duplikata primjenjuje se na sve putanje unosa u KB. Poređenje se vrši na nivou teksta pitanja.
+
+**Veze i zavisnosti:** Zavisi od PB-59 Ručni unos Q&A parova, PB-60 Kuriranje KB, PB-66 Batch import. Vezano za PB-48 Escalation queue i PB-56 Ekstrakcija Q&A parova.
+
+---
+
+#### US-70.1 — Sprječavanje duplikata pitanja u bazi znanja
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 70.1 |
+| **Naziv** | Sprječavanje duplikata pitanja u bazi znanja |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava konzistentnost baze znanja eliminacijom dupliranih unosa koji bi degradirali kvalitet retrieval-a i zbunjivali chatbot pri odgovaranju |
+
+**Uloga:**
+Kao administrator, želim spriječiti dodavanje identičnih pitanja u bazu znanja kako bi podaci ostali konzistentni i bez dupliranih unosa.
+
+**Pretpostavke i otvorena pitanja:**
+Provjera duplikata primjenjuje se na sve putanje unosa u KB. Otvoreno pitanje: Da li se duplikat detektuje egzaktnim podudaranjem teksta ili semantičkom sličnošću?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-59 Ručni unos Q&A parova. Zavisi od PB-60 Kuriranje KB. Zavisi od PB-66 Batch import.
+
+**Acceptance Criteria:**
+- Sistem ne smije dozvoliti dodavanje identičnog pitanja više puta u bazu znanja
+- Provjera duplikata mora raditi kod ručnog unosa Q&A parova
+- Provjera duplikata mora raditi tokom obrade transkripata
+- Provjera duplikata mora raditi tokom batch importa fajlova
+- Provjera duplikata mora raditi prilikom spašavanja Q&A parova iz eskalacija
+- Kod batch importa duplikati se moraju automatski preskočiti bez prekida obrade ostalih fajlova
+- Administrator mora dobiti poruku da pitanje već postoji prilikom ručnog unosa duplikata
+
+---
+
+### PB-71 — Bulk brisanje razgovora iz Chat Logs
+
+**Prioritet:** Medium
+
+**Poslovna vrijednost:** Administratoru omogućava efikasno čišćenje historije razgovora bez potrebe za pojedinačnim brisanjem, što štedi vrijeme pri upravljanju velikim brojem zapisa.
+
+**Pretpostavke:** Brisanje je trajno i kaskadira na sve povezane podatke. Funkcionalnost dostupna isključivo administratoru.
+
+**Veze i zavisnosti:** Nadograđuje PB-49 Historija razgovora korisnika i PB-55 Resolving chatova. Zavisi od PB-36 Sign In (provjera admin uloge).
+
+---
+
+#### US-71.1 — Brisanje više razgovora odjednom
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 71.1 |
+| **Naziv** | Brisanje više razgovora odjednom |
+| **Sprint** | 10 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Administratoru omogućava efikasno čišćenje historije razgovora bez potrebe za pojedinačnim brisanjem, što štedi vrijeme pri upravljanju velikim brojem zapisa |
+
+**Uloga:**
+Kao administrator, želim označiti i obrisati više razgovora odjednom kako bih efikasnije upravljao historijom razgovora.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje je trajno i kaskadira na sve povezane podatke. Otvoreno pitanje: Da li dodati soft delete s mogućnošću oporavka ili isključivo trajno brisanje?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od PB-34 Pregled postavljenih pitanja i odgovora.
+
+**Acceptance Criteria:**
+- Sistem mora prikazivati checkbox za svaki razgovor u Chat Logs tabeli
+- Sistem mora podržavati "Select All" opciju koja označava sve vidljive razgovore
+- Dugme "Delete selected (N)" mora prikazivati trenutni broj označenih razgovora
+- Kada administrator potvrdi brisanje, sistem mora obrisati razgovore zajedno sa svim povezanim porukama, odgovorima, ocjenama i eskalacijama
+- Samo administrator mora imati mogućnost bulk brisanja razgovora
+- Sistem ne smije obrisati razgovore bez eksplicitne potvrde administratora
+
+---
+
+### PB-72 — Razumljive i korisnički prilagođene poruke o greškama
+
+**Prioritet:** High
+
+**Poslovna vrijednost:** Poboljšava korisničko iskustvo i smanjuje konfuziju prikazivanjem jasnih, kontekstualnih poruka umjesto tehničkih grešaka sistema — korisnik uvijek zna šta je pošlo po zlu i kako može nastaviti rad.
+
+**Pretpostavke:** Backend vraća standardizovan format grešaka. Primjenjuje se na sve korisničke uloge — administrator, agent i krajnji korisnik.
+
+**Veze i zavisnosti:** Zavisi od svih funkcionalnosti koje uključuju API pozive i obradu podataka — posebno PB-18 Upload transkripata, PB-27 Izgradnja baze znanja, PB-46 Status pipeline obrade i PB-59 Ručni unos Q&A parova.
+
+---
+
+#### US-72.1 — Prikaz razumljivih poruka o greškama
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 72.1 |
+| **Naziv** | Prikaz razumljivih poruka o greškama |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Poboljšava korisničko iskustvo i smanjuje konfuziju prikazivanjem jasnih poruka umjesto tehničkih grešaka sistema |
+
+**Uloga:**
+Kao korisnik sistema (administrator, agent ili krajnji korisnik), želim vidjeti jasne i razumljive poruke o greškama kako bih znao šta je pošlo po zlu i kako mogu nastaviti korištenje sistema.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da backend vraća standardizovan format grešaka. Otvoreno pitanje: Da li sistem treba podržati internacionalizaciju poruka o greškama u budućnosti?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od svih funkcionalnosti koje uključuju API pozive i obradu podataka. Posebno vezano za PB-18 Upload transkripata, PB-27 Izgradnja baze znanja, PB-46 Status pipeline obrade i PB-59 Ručni unos Q&A parova.
+
+**Acceptance Criteria:**
+- Nijedna poruka o grešci ne smije prikazivati sirove tehničke poruke poput "Request failed with status code 500" ili HTTP status kodove
+- Kada backend vrati korisnički razumljivo objašnjenje greške, tada sistem mora prikazati upravo tu poruku
+- Kada backend ne vrati objašnjenje greške, tada sistem mora prikazati fallback poruku prilagođenu konkretnoj akciji
+- Upload transkripata mora prikazati jasnu poruku kada upload ne uspije
+- Pipeline obrada mora prikazati razumljive greške umjesto stack trace informacija
+- Ručni unos i uređivanje baze znanja moraju prikazivati validacione poruke za neispravne podatke
+- Brisanje i izmjena unosa moraju prikazati poruku kada akcija nije uspješna
+- Sistem ne smije prikazati stack trace, SQL greške niti interne detalje servera krajnjem korisniku
+- Sve poruke o greškama moraju biti konzistentnog vizualnog prikaza kroz cijelu aplikaciju
