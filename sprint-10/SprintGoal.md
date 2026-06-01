@@ -10,7 +10,7 @@ Paralelno s automatizacijom podataka, sprint uvodi produkcijsku deployment infra
 
 Na strani administratorskog iskustva, sprint donosi pregled live napretka pipeline obrade u realnom vremenu, čime administrator dobija pun uvid u status automatskih operacija bez potrebe za ručnom provjerom logova.
 
-Sprint 10 zaokružuje sistem kao cjelinu — ne dodaje nove korisničke funkcionalnosti, već osigurava da sistem koji je izgrađen kroz prethodnih devet sprintova može biti efikasno isporučen, automatski održavan i trajno skaliran u produkcijskom okruženju.
+Uz infrastrukturne isporuke, sprint donosi i tri funkcionalnosti koje direktno unapređuju integritet podataka, administratorsku kontrolu i korisničko iskustvo. Uvodi se prevencija duplih unosa u bazu znanja na svim mjestima unosa, bulk brisanje razgovora iz Chat Logs pregleda, te sistemski konzistentne i korisnički razumljive poruke o greškama koje zamjenjuju sirove tehničke poruke kroz cijelu aplikaciju.
 
 ---
 
@@ -26,6 +26,12 @@ Sprint 10 zaokružuje sistem kao cjelinu — ne dodaje nove korisničke funkcion
 
 **Optimizacija build procesa i CI/CD performansi** dramatično skraćuje trajanje Docker rebuildova uvođenjem cache mehanizama za dependency pakete i CPU-only ML dependency layera. Rebuild koji je prethodno trajao više od 25 minuta sada se izvršava za 10–15 sekundi na cached rebuildovima, čime se ubrzava razvojni ciklus i CI/CD pipeline bez ikakvih promjena u runtime ponašanju aplikacije.
 
+**Prevencija duplih unosa u bazu znanja** štiti integritet baze znanja na svim mjestima unosa — ručni unos Q&A para, obrada transkripata, batch import iz eksternih izvora i spašavanje Q&A pri rješavanju eskalacije. Kod batch importa i obrade transkripata duplikati se automatski preskaču bez prekida obrade, dok kod ručnog unosa administrator dobija eksplicitnu poruku da pitanje već postoji u bazi znanja.
+
+**Bulk brisanje razgovora iz Chat Logs** daje administratoru efikasnu kontrolu nad historijom razgovora. Dodat je checkbox po svakom redu u Chat Logs tabeli uz "select all" u zaglavlju. Dugme "Delete selected (N)" trajno briše sve označene razgovore zajedno s porukama, odgovorima, ocjenama i eskalacijama. Akcija je dostupna isključivo administratoru.
+
+**Razumljive i korisnički prilagođene poruke o greškama** osiguravaju da nijedna akcija u sistemu ne prikazuje sirove tehničke poruke poput HTTP status kodova ili stack trace informacija. Sistem prikazuje jasne, kontekstualne poruke prilagođene konkretnoj akciji — upload transkripata, pipeline obrada, unos i izmjena baze znanja, brisanje — konzistentnog vizualnog prikaza kroz cijelu aplikaciju.
+
 ---
 
 ## Stavke uključene u sprint
@@ -36,6 +42,10 @@ Sprint 10 zaokružuje sistem kao cjelinu — ne dodaje nove korisničke funkcion
 | PB-67 | Scheduled pipeline obrada i automatsko ažuriranje baze znanja | High |
 | PB-68 | Single-click cloud deployment | High |
 | PB-69 | Optimizacija build procesa i CI/CD performansi | High |
+| PB-70 | Prevencija duplih unosa u bazu znanja | High |
+| PB-71 | Bulk brisanje razgovora iz Chat Logs | Medium |
+| PB-72 | Razumljive i korisnički prilagođene poruke o greškama | High |
+
 
 ---
 
@@ -53,3 +63,10 @@ Sprint se smatra uspješnim ako:
 - deploy automatski provisionira infrastrukturu i generiše trajne HTTPS endpointe
 - cached Docker rebuild traje značajno kraće u odnosu na prethodnu implementaciju (ciljno 10–15 sekundi)
 - optimizacija build procesa ne mijenja runtime ponašanje niti produkcijsku funkcionalnost aplikacije
+- sistem sprječava dodavanje identičnih pitanja u bazu znanja na svim mjestima unosa
+- kod batch importa i obrade transkripata duplikati se automatski preskaču bez prekida procesa
+- kod ručnog unosa administrator dobija eksplicitnu poruku o već postojećem pitanju
+- administrator može označiti više razgovora u Chat Logs i obrisati ih jednom akcijom
+- brisanje razgovora uklanja sve pridružene poruke, ocjene i eskalacije iz sistema
+- nijedna akcija u sistemu ne prikazuje sirove tehničke poruke niti HTTP status kodove krajnjem korisniku
+- sve poruke o greškama su konzistentnog vizualnog prikaza kroz cijelu aplikaciju
