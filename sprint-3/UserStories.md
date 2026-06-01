@@ -1879,6 +1879,261 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 
 ---
 
+### PB-66 — Batch procesiranje fajlova iz eksternih izvora
+
+#### User Story 66.1 — Batch import transkripata iz eksternih izvora
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 66.1 |
+| **Naziv** | Batch import transkripata iz eksternih izvora |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Eliminira ručno preuzimanje i upload fajlova — administrator jednom unosi URL ili ID foldera i sistem automatski preuzme, obradi i integrira sve podržane fajlove u pipeline |
+
+**Uloga:**
+Kao administrator, želim importovati više fajlova iz Google Drive-a i sličnih eksternih izvora unosom folder URL-a ili ID-a kako bih automatizovao unos transkripata u sistem.
+
+**Pretpostavke i otvorena pitanja:**
+Podržani formati: `.mp3`, `.wav`, `.m4a`, `.ogg`, `.txt`, `.pdf`. Service account mora imati Viewer pristup na folder. S3 je arhitekturalno predviđen ali nije implementiran u ovom sprintu.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-13 Konvertovanje audio. Zavisi od PB-27 Izgradnja baze znanja. Preduvjet za US-67.1.
+
+**Acceptance Criteria:**
+- Administrator mora moći unijeti i punu URL adresu Google Drive foldera i bare folder ID — oba formata moraju dati isti rezultat
+- Kada administrator pokrene import, sistem mora odmah potvrditi prihvatanje i pokrenuti obradu u pozadini
+- Svaki fajl mora biti obrađen kroz isti pipeline kao ručno uploadani fajl
+- Fajl koji već postoji u sistemu s istim imenom i istim `modifiedTime` mora biti preskočen (idempotentni re-run)
+- Fajl koji postoji s istim imenom ali novijim `modifiedTime` mora zamijeniti staru verziju — stari transkript, segmenti, KB unosi i Qdrant vektori se brišu, nova verzija se uvozi
+- Greška na jednom fajlu ne smije prekinuti obradu ostalih fajlova u batchu
+- Ako Google Drive nije konfigurisan, sistem mora prikazati jasnu poruku greške
+- Sistem ne smije prikazati grešku pri uspješnom importu validnih fajlova
+
+---
+
+### PB-67 — Scheduled pipeline obrada i automatsko ažuriranje baze znanja
+
+#### User Story 67.1 — Scheduled pokretanje kompletnog pipeline-a
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 67.1 |
+| **Naziv** | Scheduled pokretanje kompletnog pipeline-a |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Administrator jednom podesi raspored i sistem samostalno održava KB ažurnim bez ikakvog manualnog pokretanja |
+
+**Uloga:**
+Kao administrator, želim definisati raspored automatskog pokretanja pipeline-a kako bi sistem samostalno obrađivao nove transkripte i ažurirao bazu znanja.
+
+**Pretpostavke i otvorena pitanja:**
+Raspored se čuva u bazi (`drive_sync_schedule`, singleton). In-process scheduler — ne zahtijeva Celery, cron niti GitHub Actions. Scheduler tick: svaka minuta.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-66.1. Preduvjet za US-67.2.
+
+**Acceptance Criteria:**
+- Administrator mora moći uključiti ili isključiti scheduled obradu iz admin panela
+- Administrator mora moći definisati frekvenciju (hourly / daily / weekly) i tačno vrijeme pokretanja
+- Kada administrator sačuva raspored, sistem mora odmah primijeniti novu konfiguraciju bez restarta servisa
+- Sistem ne smije pokrenuti dva paralelna scheduled runa istovremeno — ako je prethodni run još aktivan, novi se preskače (singleton zaštita)
+- Kada administrator isključi raspored, sistem ne smije pokretati automatske sinhronizacije dok ga administrator ponovo ne uključi
+- Sistem mora evidentirati svaki run s početnim i završnim vremenom te rezultatom (broj uvezenih, preskočenih, neuspjelih fajlova)
+
+---
+
+#### User Story 67.2 — Live prikaz napretka pipeline obrade
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 67.2 |
+| **Naziv** | Live prikaz napretka pipeline obrade |
+| **Sprint** | 10 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Administrator dobiva povratnu informaciju o toku importa bez manualnog osvježenja, što smanjuje neizvjesnost pri obradi velikih foldera |
+
+**Uloga:**
+Kao administrator, želim pratiti napredak pipeline obrade u realnom vremenu kako bih imao pregled trenutnog statusa sistema.
+
+**Pretpostavke i otvorena pitanja:**
+Napredak se prikazuje u Admin → Pipeline sekciji. Dijeli isti `running` flag između manualnog i scheduled importa.
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od US-67.1. Zavisi od US-66.1.
+
+**Acceptance Criteria:**
+- Dok import traje, Admin → Pipeline mora prikazivati spinner i "Importing" indikator
+- Za svaki fajl koji se trenutno obrađuje mora biti vidljiv naziv fajla i pulsing indikator
+- Stranica ne smije zahtijevati manuelni refresh — polling mora biti automatski (~5 s)
+- Po završetku mora biti prikazana linija "Zadnji zakazani run: <datum/vrijeme> · <rezultat>" s brojem uvezenih, preskočenih i neuspjelih fajlova
+- Prikaz napretka mora raditi jednako i za manualni i za scheduled import
+
+---
+
+### PB-68 — Single-click cloud deployment
+
+#### User Story 68.1 — Single-click deploy sistema
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 68.1 |
+| **Naziv** | Single-click deploy sistema |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Cijeli tim može deployati aplikaciju jednom komandom, a produkcijsko okruženje je uvijek dostupno na trajnoj HTTPS adresi bez potrebe za cloudflared tunelom |
+
+**Uloga:**
+Kao razvojni tim, želimo deployati kompletan sistem jednim komandnim pozivom kako bismo eliminisali kompleksne manualne procedure i imali reproducibilno produkcijsko okruženje.
+
+**Pretpostavke i otvorena pitanja:**
+Backend: Azure Container Apps (1 vCPU / 2 GiB, uvijek aktivan). Frontend: Azure Static Web Apps (Free tier). Infra definisana u `infra/main.bicep`. Docker Desktop mora biti instaliran (ACR cloud buildovi blokirani na Free Trial supskripciji).
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-69 Docker build optimizacija.
+
+**Acceptance Criteria:**
+- Komanda `azd up` mora uspješno provizionirati infrastrukturu, buildati backend image lokalno i pushati u Azure Container Registry, buildati Vite frontend s ispravnom `VITE_API_URL` i deployati oba servisa
+- `curl <BACKEND_URI>/health` mora vratiti HTTP 200 nakon deploya
+- API i WebSocket pozivi u browseru moraju ići na `*.azurecontainerapps.io`, ne na `onrender.com` niti localhost
+- Redeploy nakon izmjene koda mora biti moguć komandom `azd deploy`, bez ponovnog provisioniranja infrastrukture
+- Oba servisa moraju imati trajne HTTPS URL-ove koji se ne mijenjaju pri redeplovima
+- Secrets ne smiju biti commitani u repozitorij niti hardkodirani u kodu — konfigurišu se jednom kroz `azd env set`
+- `azd down --purge` mora ukloniti sve Azure resurse
+
+---
+
+### PB-69 — Optimizacija build procesa i CI/CD performansi
+
+#### User Story 69.1 — Optimizacija build vremena backend sistema
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 69.1 |
+| **Naziv** | Optimizacija build vremena backend sistema |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Svaka izmjena koda može biti testirana za 10–15 sekundi umjesto čekanja >25 minuta — direktno ubrzava development ciklus i omogućava brže iteracije |
+
+**Uloga:**
+Kao razvojni tim, želimo optimizovati Docker build proces kako bi rebuild sistema trajao sekunde umjesto desetina minuta.
+
+**Pretpostavke i otvorena pitanja:**
+Uzrok sporog builda bio je CUDA build PyTorcha (~2.5 GB) koji se preuzimao čak i na CPU-only okruženju, plus nedostatak layer cachinga za pip pakete. BuildKit mora biti aktivan (default u Docker Compose v2).
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Preduvjet za efikasan rad na svim stavkama koje zahtijevaju deploy (PB-68).
+
+**Acceptance Criteria:**
+- CPU-only torch mora biti instaliran u zasebnom Dockerfile layeru koji se kešuje između buildova — eliminacija ~2.5 GB CUDA downloada
+- PyPI wheels moraju biti keširani BuildKit cache mountom — izmjena `requirements.txt` smije uzrokovati samo preuzimanje izmijenjenih paketa
+- `apt` paketi koji imaju Python wheels (`build-essential`, `libpq-dev`) moraju biti uklonjeni iz Dockerfilea
+- Langchain transitivne zavisnosti moraju biti pinovane kako bi se eliminisao resolver backtracking pri svakom buildu
+- `.dockerignore` mora isključiti `__pycache__`, `.venv`, `*.db`, `.git`, `.env*`
+- Prvi rebuild (prazni cache) mora preuzeti CPU torch (~190 MB) umjesto CUDA torch (~2.5 GB)
+- Svaki naredni rebuild koji mijenja samo Python kod mora završiti za 10–15 sekundi
+- Runtime ponašanje (embeddinzi, RAG, transkripcija) mora biti identično kao prije optimizacije
+- Build mora raditi komandom `docker compose up --build` bez dodatnih env varijabli
+
+---
+
+### PB-70 — Prevencija duplih unosa u bazu znanja
+
+#### User Story 70.1 — Sprječavanje duplikata pitanja u bazi znanja
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 70.1 |
+| **Naziv** | Sprječavanje duplikata pitanja u bazi znanja |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Osigurava konzistentnost baze znanja eliminacijom dupliranih unosa koji bi degradirali kvalitet retrieval-a i zbunjivali chatbot pri odgovaranju |
+
+**Uloga:**
+Kao administrator, želim spriječiti dodavanje identičnih pitanja u bazu znanja kako bi podaci ostali konzistentni i bez dupliranih unosa.
+
+**Pretpostavke i otvorena pitanja:**
+Provjera duplikata primjenjuje se na sve putanje unosa u KB. Otvoreno pitanje: Da li se duplikat detektuje egzaktnim podudaranjem teksta ili semantičkom sličnošću?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od PB-59 Ručni unos Q&A parova. Zavisi od PB-60 Kuriranje KB. Zavisi od PB-66 Batch import.
+
+**Acceptance Criteria:**
+- Sistem ne smije dozvoliti dodavanje identičnog pitanja više puta u bazu znanja
+- Provjera duplikata mora raditi kod ručnog unosa Q&A parova
+- Provjera duplikata mora raditi tokom obrade transkripata
+- Provjera duplikata mora raditi tokom batch importa fajlova
+- Provjera duplikata mora raditi prilikom spašavanja Q&A parova iz eskalacija
+- Kod batch importa duplikati se moraju automatski preskočiti bez prekida obrade ostalih fajlova
+- Administrator mora dobiti poruku da pitanje već postoji prilikom ručnog unosa duplikata
+
+---
+
+### PB-71 — Bulk brisanje razgovora iz Chat Logs
+
+#### User Story 71.1 — Brisanje više razgovora odjednom
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 71.1 |
+| **Naziv** | Brisanje više razgovora odjednom |
+| **Sprint** | 10 |
+| **Prioritet** | Medium |
+| **Poslovna vrijednost** | Administratoru omogućava efikasno čišćenje historije razgovora bez potrebe za pojedinačnim brisanjem, što štedi vrijeme pri upravljanju velikim brojem zapisa |
+
+**Uloga:**
+Kao administrator, želim označiti i obrisati više razgovora odjednom kako bih efikasnije upravljao historijom razgovora.
+
+**Pretpostavke i otvorena pitanja:**
+Brisanje je trajno i kaskadira na sve povezane podatke. Otvoreno pitanje: Da li dodati soft delete s mogućnošću oporavka ili isključivo trajno brisanje?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od Sign In (PB-36). Zavisi od PB-34 Pregled postavljenih pitanja i odgovora.
+
+**Acceptance Criteria:**
+- Sistem mora prikazivati checkbox za svaki razgovor u Chat Logs tabeli
+- Sistem mora podržavati "Select All" opciju koja označava sve vidljive razgovore
+- Dugme "Delete selected (N)" mora prikazivati trenutni broj označenih razgovora
+- Kada administrator potvrdi brisanje, sistem mora obrisati razgovore zajedno sa svim povezanim porukama, odgovorima, ocjenama i eskalacijama
+- Samo administrator mora imati mogućnost bulk brisanja razgovora
+- Sistem ne smije obrisati razgovore bez eksplicitne potvrde administratora
+
+---
+
+### PB-72 — Razumljive i korisnički prilagođene poruke o greškama
+
+#### User Story 72.1 — Prikaz razumljivih poruka o greškama
+
+| Polje | Vrijednost |
+|---|---|
+| **ID** | 72.1 |
+| **Naziv** | Prikaz razumljivih poruka o greškama |
+| **Sprint** | 10 |
+| **Prioritet** | High |
+| **Poslovna vrijednost** | Poboljšava korisničko iskustvo i smanjuje konfuziju prikazivanjem jasnih poruka umjesto tehničkih grešaka sistema |
+
+**Uloga:**
+Kao korisnik sistema (administrator, agent ili krajnji korisnik), želim vidjeti jasne i razumljive poruke o greškama kako bih znao šta je pošlo po zlu i kako mogu nastaviti korištenje sistema.
+
+**Pretpostavke i otvorena pitanja:**
+Pretpostavlja se da backend vraća standardizovan format grešaka. Otvoreno pitanje: Da li sistem treba podržati internacionalizaciju poruka o greškama u budućnosti?
+
+**Veze sa drugim storyjima ili zavisnostima:**
+Zavisi od svih funkcionalnosti koje uključuju API pozive i obradu podataka. Posebno vezano za PB-18 Upload transkripata, PB-27 Izgradnja baze znanja, PB-46 Status pipeline obrade i PB-59 Ručni unos Q&A parova.
+
+**Acceptance Criteria:**
+- Nijedna poruka o grešci ne smije prikazivati sirove tehničke poruke poput "Request failed with status code 500" ili HTTP status kodove
+- Kada backend vrati korisnički razumljivo objašnjenje greške, tada sistem mora prikazati upravo tu poruku
+- Kada backend ne vrati objašnjenje greške, tada sistem mora prikazati fallback poruku prilagođenu konkretnoj akciji
+- Upload transkripata mora prikazati jasnu poruku kada upload ne uspije
+- Pipeline obrada mora prikazati razumljive greške umjesto stack trace informacija
+- Ručni unos i uređivanje baze znanja moraju prikazivati validacione poruke za neispravne podatke
+- Brisanje i izmjena unosa moraju prikazati poruku kada akcija nije uspješna
+- Sistem ne smije prikazati stack trace, SQL greške niti interne detalje servera krajnjem korisniku
+- Sve poruke o greškama moraju biti konzistentnog vizualnog prikaza kroz cijelu aplikaciju
+
+---
+
 ## Sprint 11
 
 ---
@@ -2086,115 +2341,3 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 
 ---
 
-# PB-66 — Batch procesiranje fajlova iz eksternih izvora
-
-## User Story 66.1 — Batch import transkripata iz eksternih izvora
-
-| Polje         | Vrijednost |
-| ------------- | ---------- |
-| **ID**        | 66.1       |
-| **Sprint**    | 10         |
-| **Prioritet** | High       |
-
-### User Story
-
-Kao administrator, želim importovati više fajlova iz Google Drive-a, S3 storage-a i sličnih eksternih izvora kako bih automatizovao unos transkripata u sistem.
-
-### Acceptance Criteria
-
-- Administrator mora moći pokrenuti import unosom folder URL-a ili ID-a
-- Sistem mora automatski preuzeti podržane fajlove
-- Sistem mora preskočiti već obrađene fajlove
-- Kada se fajl izmijeni, sistem mora re-importovati novu verziju
-- Greška jednog fajla ne smije prekinuti obradu ostalih fajlova
-
----
-
-# PB-67 — Scheduled pipeline obrada i automatsko ažuriranje baze znanja
-
-## User Story 67.1 — Scheduled pokretanje kompletnog pipeline-a
-
-| Polje         | Vrijednost |
-| ------------- | ---------- |
-| **ID**        | 67.1       |
-| **Sprint**    | 10         |
-| **Prioritet** | High       |
-
-### User Story
-
-Kao administrator, želim definisati raspored automatskog pokretanja pipeline-a kako bi sistem samostalno obrađivao nove transkripte i ažurirao bazu znanja.
-
-### Acceptance Criteria
-
-- Administrator mora moći uključiti ili isključiti scheduled obradu
-- Administrator mora moći definisati frekvenciju izvršavanja (hourly/daily/weekly)
-- Sistem mora automatski pokrenuti import, transkripciju, ekstrakciju Q&A i generisanje embeddinga
-- Pipeline status mora biti vidljiv u admin panelu
-- Sistem mora prikazati posljednje vrijeme izvršavanja i rezultat obrade
-
----
-
-## User Story 67.2 — Live prikaz napretka pipeline obrade
-
-| Polje         | Vrijednost |
-| ------------- | ---------- |
-| **ID**        | 67.2       |
-| **Sprint**    | 10         |
-| **Prioritet** | Medium     |
-
-### User Story
-
-Kao administrator, želim pratiti napredak pipeline obrade u realnom vremenu kako bih imao pregled trenutnog statusa sistema.
-
-### Acceptance Criteria
-
-- Sistem mora prikazivati trenutno obrađivani fajl
-- Sistem mora prikazivati status pipeline faza u realnom vremenu
-- UI mora automatski osvježavati status bez reload-a
-- Administrator mora vidjeti posljednji uspješan scheduled run
-
----
-
-# PB-68 — Single-click cloud deployment
-
-## User Story 68.1 — Single-click deploy sistema
-
-| Polje         | Vrijednost |
-| ------------- | ---------- |
-| **ID**        | 68.1       |
-| **Sprint**    | 10         |
-| **Prioritet** | High       |
-
-### User Story
-
-Kao razvojni tim, želimo deployati kompletan sistem jednim komandnim pozivom kako bismo pojednostavili postavljanje produkcijskog okruženja.
-
-### Acceptance Criteria
-
-- Sistem mora podržavati deploy jednim komandnim pozivom
-- Backend i frontend moraju biti automatski deployani
-- Cloud infrastruktura mora biti automatski provisionirana
-- Deploy mora generisati trajne HTTPS endpoint-e
-
----
-
-# PB-69 — Optimizacija build procesa i CI/CD performansi
-
-## User Story 69.1 — Optimizacija build vremena backend sistema
-
-| Polje         | Vrijednost |
-| ------------- | ---------- |
-| **ID**        | 69.1       |
-| **Sprint**    | 10         |
-| **Prioritet** | High       |
-
-### User Story
-
-Kao razvojni tim, želimo optimizovati Docker build proces kako bi rebuild sistema trajao značajno kraće.
-
-### Acceptance Criteria
-
-- Build proces mora koristiti cache mehanizme za dependency pakete
-- Sistem mora koristiti CPU-only ML dependency layer
-- Vrijeme rebuildanja mora biti značajno smanjeno u odnosu na prethodnu implementaciju
-- Optimizacija ne smije promijeniti runtime ponašanje aplikacije
