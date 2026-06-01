@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createManualQA, listCategories } from "../../api/knowledge";
+import { readableError } from "../../api/errors";
 import { Ic, icons } from "./shared";
 
 const MIN_LEN = 10;
@@ -129,7 +130,7 @@ export default function KnowledgeManualEntry() {
 
           {create.isError && (
             <p className="text-xs text-red-500">
-              Error: {(create.error as Error)?.message ?? "Unexpected error"}
+              {readableError(create.error, "This question is already in the knowledge base.")}
             </p>
           )}
 

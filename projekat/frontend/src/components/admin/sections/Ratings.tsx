@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getRatingsStats, adminGetSessionMessages, type RatingsStats } from "../../../api/chat";
+import { readableError } from "../../../api/errors";
 import { Stars } from "../shared";
 
 interface SessionMessage {
@@ -32,10 +33,8 @@ export default function Ratings() {
     getRatingsStats()
       .then(setData)
       .catch((err) => {
-        const status = err?.response?.status;
-        const detail = err?.response?.data?.detail || err?.message || "";
         console.error("Ratings fetch failed:", err);
-        setError(`Error (HTTP ${status ?? "network"})${detail ? `: ${detail}` : ""}`);
+        setError(readableError(err, "Couldn't load ratings. Please try again."));
       })
       .finally(() => setLoading(false));
   }, []);

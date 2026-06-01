@@ -4,6 +4,7 @@ import { getDriveSchedule, type DriveFileProgress } from "../../../api/schedule"
 import type { Transcript } from "../../../types";
 import { StageStepper } from "../PipelineStage";
 import DriveScheduleCard from "./DriveScheduleCard";
+import { readableError } from "../../../api/errors";
 
 const RECENT_DRIVE_KEY = "recent_drive_folder";
 
@@ -26,16 +27,7 @@ function extractDriveId(input: string): string {
   return s;
 }
 
-function extractError(e: unknown): string {
-  if (e && typeof e === "object" && "response" in e) {
-    const resp = (e as { response?: { data?: { detail?: unknown } } }).response;
-    const detail = resp?.data?.detail;
-    if (typeof detail === "string") return detail;
-    if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg as string;
-  }
-  if (e instanceof Error) return e.message;
-  return "An unexpected error occurred. Please try again.";
-}
+const extractError = (e: unknown) => readableError(e, "An unexpected error occurred. Please try again.");
 
 function fmtSchedTime(iso: string): string {
   return new Date(iso).toLocaleString("en-GB", {

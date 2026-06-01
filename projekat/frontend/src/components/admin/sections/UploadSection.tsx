@@ -9,18 +9,10 @@ import {
 } from "../../../api/transcripts";
 import { StageStepper } from "../PipelineStage";
 import { cancelDriveImport } from "../../../api/schedule";
+import { readableError } from "../../../api/errors";
 
-// Extract a human-readable message from an Axios/fetch error response
-function extractError(e: unknown): string {
-  if (e && typeof e === "object" && "response" in e) {
-    const resp = (e as { response?: { data?: { detail?: unknown } } }).response;
-    const detail = resp?.data?.detail;
-    if (typeof detail === "string") return detail;
-    if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg as string;
-  }
-  if (e instanceof Error) return e.message;
-  return "An unexpected error occurred. Please try again.";
-}
+// Human-readable message from an Axios/fetch error response.
+const extractError = (e: unknown) => readableError(e, "An unexpected error occurred. Please try again.");
 
 type UploadType = "text" | "audio" | "drive";
 type TextTab = "file" | "manual";

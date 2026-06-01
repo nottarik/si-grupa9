@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listApprovedItems, updateKnowledgeItem, deleteKnowledgeItem, listCategories } from "../../api/knowledge";
+import { readableError } from "../../api/errors";
 import type { KnowledgeApprovedItem } from "../../types";
 import { Ic, icons } from "./shared";
 
@@ -121,7 +122,9 @@ function ItemCard({ item }: { item: KnowledgeApprovedItem }) {
           )}
 
           {update.isError && (
-            <p className="text-xs text-red-500">Update failed. Please try again.</p>
+            <p className="text-xs text-red-500">
+              {readableError(update.error, "Couldn't save changes. Please try again.")}
+            </p>
           )}
 
           <div className="flex gap-2 pt-1">
@@ -190,6 +193,12 @@ function ItemCard({ item }: { item: KnowledgeApprovedItem }) {
           )}
         </div>
       </div>
+
+      {remove.isError && (
+        <p className="text-xs text-red-500">
+          {readableError(remove.error, "Couldn't delete this entry. Please try again.")}
+        </p>
+      )}
 
       <div>
         <div className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: "rgba(197,160,89,0.9)" }}>Question</div>

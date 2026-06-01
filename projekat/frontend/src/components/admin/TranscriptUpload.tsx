@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { uploadTranscript } from "../../api/transcripts";
+import { readableError } from "../../api/errors";
 import type { TranscriptUploadResponse } from "../../types";
 
 export default function TranscriptUpload() {
@@ -21,9 +22,7 @@ export default function TranscriptUpload() {
       setResult(res);
       setStatus("success");
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Error uploading file.";
-      setErrorMsg(msg);
+      setErrorMsg(readableError(err, "Couldn't upload the file. Please try again."));
       setStatus("error");
     } finally {
       if (inputRef.current) inputRef.current.value = "";
