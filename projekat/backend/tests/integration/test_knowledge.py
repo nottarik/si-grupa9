@@ -26,10 +26,12 @@ async def _user_token(client: AsyncClient) -> str:
 
 
 async def _create_manual_qa(client: AsyncClient, token: str) -> int:
+    import uuid
+    # Unique question per call — the KB rejects duplicate questions with 409.
     resp = await client.post(
         "/api/v1/knowledge/manual",
         json={
-            "pitanje": "Kako se aktivira internet banking?",
+            "pitanje": f"Kako se aktivira internet banking? ({uuid.uuid4().hex[:8]})",
             "odgovor": "Internet banking se aktivira posjetom najbliže poslovnice ili putem mobilne aplikacije.",
         },
         headers={"Authorization": f"Bearer {token}"},
