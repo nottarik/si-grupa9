@@ -1551,3 +1551,240 @@ Google Drive on-demand pokriva najkonkretniji dio potrebe i može se demonstrira
 Aktivna
 
 ---
+## **ID:** DL-40
+
+**Datum:** 31/05/2026
+
+**Naziv:** KB-authoritative RAG tok koji ne prekida pretragu nakon `out_of_scope` klasifikacije
+
+**Opis:**
+Uočeno je da intent klasifikator može pogrešno označiti pitanje kao `out_of_scope` i time spriječiti pretragu baze znanja, iako Qdrant/KB sadrži relevantan odgovor. Bilo je potrebno odlučiti da li klasifikator ostaje prvi i odlučujući filter ili se baza znanja ipak mora provjeriti prije konačnog odgovora.
+
+**Razmatrane opcije:**
+- Zadržati dosadašnji tok gdje `out_of_scope` odmah prekida RAG
+- Potpuno ukloniti intent klasifikaciju
+- Uvijek pretražiti KB i nakon toga primijeniti strožiji prag za off-topic odgovore
+- Sva `out_of_scope` pitanja odmah eskalirati agentu
+
+**Odabrana opcija:**
+KB-authoritative tok: `out_of_scope` više ne prekida automatski RAG pretragu, nego se baza znanja ipak pretražuje, uz poseban strožiji prag `RAG_OFFTOPIC_THRESHOLD` za nedovoljno domenske rezultate. Prompt-injection ostaje hard block.
+
+**Razlog izbora:**
+Baza znanja je primarni izvor istine za domenske odgovore, pa pogrešna klasifikacija ne smije spriječiti pronalazak validnog odgovora. Odvojeni off-topic prag zadržava zaštitu od preširokog odgovaranja van domene, a istovremeno čuva mogućnost da se validni KB odgovori vrate korisniku.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- smanjuje se broj slučajeva gdje chatbot ne odgovori iako odgovor postoji u KB-u
+- RAG retrieval dobija prednost nad nepouzdanom ranom klasifikacijom
+- off-topic odgovori i dalje moraju proći strožiji prag
+- prompt-injection slučajevi ostaju blokirani prije generisanja odgovora
+
+**Negativne:**
+- tok odgovaranja je složeniji jer klasifikacija više nije jedini rani filter
+- pragovi zahtijevaju dodatnu kalibraciju nakon realnog korištenja
+- moguće je da se za neka rubna pitanja pokrene dodatna pretraga koja neće dati odgovor
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-41
+
+**Datum:** 31/05/2026
+
+**Naziv:** Implementirani scheduled Google Drive sync kao nastavak batch procesiranja
+
+**Opis:**
+Raniji Drive import omogućavao je on-demand batch procesiranje, ali dodatne upute sprinta naglašavaju da scheduled pokretanje treba tretirati kao implementiranu funkcionalnost odmah uz batch processing. Bilo je potrebno odlučiti kako omogućiti automatski raspored bez duplog pokretanja i bez uvođenja dodatne infrastrukture.
+
+**Razmatrane opcije:**
+- Ostaviti samo ručni/on-demand Drive import
+- Uvesti fiksni Bicep cron Job za scheduled import
+- Uvesti in-process scheduler kontrolisan iz admin UI-a
+- Uvesti vanjski queue/worker sistem samo za scheduled sync
+
+**Odabrana opcija:**
+Admin-controlled in-process scheduler: administrator iz Pipeline ekrana uključuje raspored, bira frekvenciju i vrijeme, a backend svake minute provjerava da li treba pokrenuti `import_drive_folder`.
+
+**Razlog izbora:**
+Sistem se pokreće kao jedna uvijek aktivna backend replika, pa je in-process scheduler dovoljan za trenutni obim i izbjegava dodatne servise. Admin UI omogućava promjenu rasporeda bez deploya, dok uklanjanje fiksnog Bicep cron Joba sprečava duplo pokretanje istog importa.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- scheduled Drive sync je stvarno dostupan iz admin panela
+- administrator može mijenjati frekvenciju i vrijeme bez izmjene koda
+- koristi se ista `import_drive_folder` logika kao za ručni import
+- raspored koristi Europe/Sarajevo vremensku zonu i DST korekciju
+- zadržan je manualni/internal trigger za potrebe testiranja ili eksternog pokretanja
+
+**Negativne:**
+- rješenje zavisi od toga da backend instanca ostane aktivna
+- više backend replika moglo bi izazvati duplo pokretanje ako se ne uvede distribuirano zaključavanje
+- scheduler state treba pažljivo pratiti kod restarta aplikacije
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-42
+
+**Datum:** 31/05/2026
+
+**Naziv:** Live progress prikaz za manualni i scheduled import
+
+**Opis:**
+Batch import može trajati duže, pa administrator mora vidjeti da se proces stvarno izvršava i u kojoj je fazi. Bilo je potrebno odlučiti da li ostaviti statičnu poruku nakon pokretanja importa ili prikazati live stanje procesa.
+
+**Razmatrane opcije:**
+- Prikazati samo statičnu success poruku nakon pokretanja importa
+- Osvježavati stranicu ručno
+- Uvesti shared runtime state i polling za live progress prikaz
+- Koristiti WebSocket samo za progress importa
+
+**Odabrana opcija:**
+Shared runtime state i polling: `import_drive_folder` ažurira zajednički `running` status, a Pipeline ekran automatski polluje status i prikazuje live progress za manualne i scheduled import procese.
+
+**Razlog izbora:**
+Polling je jednostavniji od posebnog WebSocket toka i dovoljan za prikaz napretka import procesa. Administrator dobija jasan signal da import radi, koji fajl se obrađuje i kada je zadnji scheduled run završen.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- administrator vidi spinner, `Importing` oznaku i stvarne nazive fajlova
+- progress radi za manualni i scheduled import
+- nema potrebe za ručnim refreshom tokom procesa
+- prikazuje se i informacija o zadnjem scheduled run-u i rezultatu
+- korisnik lakše razumije kompletan pipeline run: import, obrada i KB ažuriranje
+
+**Negativne:**
+- polling uvodi dodatne periodične zahtjeve prema backendu
+- runtime state nije perzistentan između restartova aplikacije
+- ako import proces padne bez pravilnog cleanup-a, status se mora pažljivo resetovati
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-43
+
+**Datum:** 31/05/2026
+
+**Naziv:** Zaposleni biraju sadržaj koji se šalje u bazu znanja nakon rješavanja slučaja
+
+**Opis:**
+Kod rješavanja Issue/Eskalacija toka nije dovoljno da sistem automatski uzme prvu poruku i pošalje je u bazu znanja. Za kvalitet KB-a je bolje da admin ili agent odluči koji konkretan odgovor ima vrijednost za buduće korisnike.
+
+**Razmatrane opcije:**
+- Automatski uzeti prvu agentsku poruku
+- Automatski uzeti zadnju poruku u razgovoru
+- Zaposleniku omogućiti izbor sadržaja koji se šalje u KB
+- Ne slati sadržaj iz resolved slučajeva u KB
+
+**Odabrana opcija:**
+Admin/agent kontrolisano slanje sadržaja u KB, uz čišćenje povezanog Issue/Anomalija zapisa kada je Q&A uspješno publishovan.
+
+**Razlog izbora:**
+Zaposleni najbolje zna koji dio razgovora je validan, opšti i koristan za buduće RAG odgovore. Ovaj pristup smanjuje rizik da se u KB ubaci nerelevantna, prekratka ili kontekstualno pogrešna poruka, a istovremeno povezuje rješavanje slučaja sa poboljšanjem baze znanja.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- poboljšanje je direktno usmjereno na rad zaposlenika
+- KB dobija kvalitetnije i ručno izabrane odgovore
+- Issue se čisti nakon što je relevantan odgovor iskorišten za poboljšanje baze znanja
+- smanjuje se rizik od automatskog dodavanja pogrešne prve poruke
+
+**Negativne:**
+- zaposlenik ima dodatni korak pri rješavanju slučaja
+- kvalitet KB-a i dalje zavisi od pažljivog izbora sadržaja
+- potrebno je održavati usklađenost između issue, escalation i KB tokova
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-44
+
+**Datum:** 31/05/2026
+
+**Naziv:** Responsivni Admin/Agent dashboard bez dokumentovanja sitnih UI promjena pojedinačno
+
+**Opis:**
+Sprint donosi više UX dorada, ali nisu sve jednako važne za Decision Log. Bilo je potrebno odlučiti kako dokumentovati poboljšanje responzivnosti i rada zaposlenika bez nabrajanja svake sitne promjene poput headera, title-a ili favicon-a.
+
+**Razmatrane opcije:**
+- Dokumentovati svaku UI promjenu pojedinačno
+- Ne dokumentovati UI dorade uopšte
+- Grupisati responsivnost Admin/Agent dashboarda kao jednu odluku
+- Fokusirati se samo na end-user chat ekran
+
+**Odabrana opcija:**
+Grupisati responsivnost Admin i Agent dashboarda kao jednu odluku, s naglaskom na overlay drawer navigaciju na mobilnim uređajima, kondenzovane header-e i horizontalni scroll za široke tabele.
+
+**Razlog izbora:**
+Ove izmjene imaju jasan uticaj na rad zaposlenika jer smanjuju kognitivno opterećenje i omogućavaju upotrebu panela na manjim ekranima. Sitne branding i header promjene nisu dovoljno važne da se vode kao odvojene odluke.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- dokumentacija ostaje fokusirana na značajne sprint isporuke
+- admin i agent paneli su upotrebljiviji na mobilnim i manjim ekranima
+- široke tabele ostaju dostupne bez lomljenja layouta
+- smanjuje se vizuelna složenost navigacije za zaposlene
+
+**Negativne:**
+- sitne UI promjene nisu posebno evidentirane
+- mobilni drawer mora biti dodatno testiran na različitim širinama ekrana
+- horizontalni scroll tabela može i dalje zahtijevati pažljiv UX pregled
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-45
+
+**Datum:** 31/05/2026
+
+**Naziv:** Dodatno ubrzanje backend builda kroz pojednostavljen dependency install
+
+**Opis:**
+Nakon prve Docker optimizacije ostala su usporenja zbog nepotrebnog build sloja i dependency resolver backtracking-a. Bilo je potrebno odlučiti da li nastaviti s više odvojenih install slojeva ili pojednostaviti install tok uz pinovanje problematičnih transitive dependency-ja.
+
+**Razmatrane opcije:**
+- Zadržati postojeći build tok i prihvatiti sporije rebuildove
+- Razdvojiti ML dependency-je u više slojeva
+- Jedan `pip install` tok uz pinovane problematične transitive dependency-je
+- Izbaciti biblioteke koje usporavaju build
+
+**Odabrana opcija:**
+Jedan `pip install` tok uz zadržavanje CPU-only Torch/cache pristupa, uklanjanje nepotrebnog `apt build-essential/libpq-dev` sloja i pinovanje langchain transitive dependency-ja radi smanjenja resolver backtracking-a.
+
+**Razlog izbora:**
+Svi potrebni paketi imaju dostupne CPython 3.12 wheel-ove, pa dodatni build dependency sloj nije potreban. Višeslojni ML install je uzrokovao instalaciju najnovijih transitive dependency-ja pa zatim downgrade, što je usporavalo build. Jedan stabilniji install tok brže koristi cache i ne mijenja runtime funkcionalnost.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- ponovljeni buildovi su značajno brži kada je cache popunjen
+- biblioteke se ne skidaju ponovo pri svakom buildu
+- izbjegava se nepotreban uninstall/downgrade dependency-ja
+- runtime ponašanje ostaje isto
+- tim brže testira i isporučuje izmjene
+
+**Negativne:**
+- prvi build na novom okruženju i dalje može trajati duže
+- pinovane dependency verzije treba održavati
+- cache benefiti zavise od Docker/BuildKit okruženja
+- promjene dependency-ja treba pažljivo provjeriti da ne uvedu konflikt
+
+**Status odluke:**
+Aktivna
+
+---
