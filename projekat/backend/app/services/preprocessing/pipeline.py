@@ -17,6 +17,7 @@ from .qa_scrubber import scrub_placeholders
 from .pii.masker import mask
 from .pii.name_verifier import drop_false_positive_names
 from .pii.token_store import encrypt_token_map
+from app.services.ai.kb_indexing import dedupe_new_questions
 from . import audit
 
 logger = logging.getLogger(__name__)
@@ -122,6 +123,8 @@ async def run_pipeline(
         raw_count = len(llm_pairs)
         llm_pairs = await validate_qa_pairs(llm_pairs)
         llm_pairs = await scrub_placeholders(llm_pairs)
+        # Skip questions already in the KB (or repeated in this batch) — no exact-duplicate rows.
+        llm_pairs = await dedupe_new_questions(db, llm_pairs, key=lambda p: p[0])
         qa_count = 0
         for question, answer in llm_pairs:
             db.add(UnosBazeZnanja(
@@ -151,6 +154,8 @@ async def run_pipeline(
         seg_ids = [s for _, _, s in pattern_pairs]
         scrubbed = await scrub_placeholders([(q, a) for q, a, _ in pattern_pairs])
         pattern_pairs = [(q, a, s) for (q, a), s in zip(scrubbed, seg_ids)]
+        # Skip questions already in the KB (or repeated in this batch) — no exact-duplicate rows.
+        pattern_pairs = await dedupe_new_questions(db, pattern_pairs, key=lambda p: p[0])
         qa_count = 0
         for question, answer, seg_id in pattern_pairs:
             db.add(UnosBazeZnanja(

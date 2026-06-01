@@ -12,7 +12,7 @@ from app.db.models.knowledge import UnosBazeZnanja, Kategorija
 from sqlalchemy import or_
 
 from app.api.v1.deps import require_role, require_admin_or_agent
-from app.services.ai.kb_indexing import embed_and_index_item
+from app.services.ai.kb_indexing import embed_and_index_item, existing_question_set
 
 router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 logger = logging.getLogger(__name__)
@@ -85,6 +85,12 @@ async def create_manual_qa(
     db: AsyncSession = Depends(get_db),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator)),
 ):
+    if await existing_question_set(db, [body.pitanje]):
+        raise HTTPException(
+            status_code=409,
+            detail="An entry with this exact question already exists in the knowledge base",
+        )
+
     item = UnosBazeZnanja(
         pitanje=body.pitanje,
         odgovor=body.odgovor,

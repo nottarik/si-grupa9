@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.db.models.escalation import Eskalacija, StatusAgenta
 from app.db.models.knowledge import Anomalija, ChatSesija, Poruka, UnosBazeZnanja
-from app.services.ai.kb_indexing import embed_and_index_item
+from app.services.ai.kb_indexing import embed_and_index_item, existing_question_set
 
 logger = logging.getLogger(__name__)
 
@@ -188,12 +188,20 @@ async def resolve_escalation(
     if submit_to_kb and kb_unosi:
         # Auto-publish: each ticked Q&A pair becomes an approved, live KB entry
         # (no separate moderation step), still editable/deletable in the admin UI.
+        candidates = [
+            (format_question(q), (a or "").strip())
+            for q, a in kb_unosi
+        ]
+        candidates = [(q, a) for q, a in candidates if q and a]
+        # Skip questions already in the KB (or repeated in this batch) — no exact duplicates.
+        existing = await existing_question_set(db, [q for q, _ in candidates])
         new_items = []
-        for raw_q, raw_a in kb_unosi:
-            pitanje = format_question(raw_q)
-            odgovor = (raw_a or "").strip()
-            if not pitanje or not odgovor:
+        seen: set[str] = set()
+        for pitanje, odgovor in candidates:
+            key = pitanje.strip().lower()
+            if key in existing or key in seen:
                 continue
+            seen.add(key)
             item = UnosBazeZnanja(
                 pitanje=pitanje,
                 odgovor=odgovor,

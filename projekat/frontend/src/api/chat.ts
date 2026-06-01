@@ -75,6 +75,14 @@ export async function deleteSession(sessionId: number): Promise<void> {
   await apiClient.delete(`/api/v1/chat/sessions/${sessionId}`);
 }
 
+export async function bulkDeleteChatLogs(sessionIds: number[]): Promise<{ deleted: number }> {
+  const { data } = await apiClient.post<{ ok: boolean; deleted: number }>(
+    "/api/v1/chat/logs/bulk-delete",
+    { session_ids: sessionIds }
+  );
+  return data;
+}
+
 export async function adminGetSessionMessages(sessionId: number): Promise<{ session_id: number; messages: Array<{ role: string; content: string; timestamp: string | null }> }> {
   const { data } = await apiClient.get(`/api/v1/chat/admin/sessions/${sessionId}/messages`);
   return data;

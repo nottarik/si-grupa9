@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSubViewBack } from "../../../hooks/useSubViewBack";
 import { Ic, icons } from "../shared";
 import apiClient from "../../../api/client";
-import { adminGetSessionMessages } from "../../../api/chat";
+import { adminGetSessionMessages, bulkDeleteChatLogs } from "../../../api/chat";
 
 interface LogEntry {
   id: number;
@@ -46,6 +46,9 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
   const [search, setSearch] = useState(initialSearch);
   const [date, setDate] = useState(initialDate);
   const [minRating, setMinRating] = useState("");
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   useSubViewBack(open !== null, () => { setOpen(null); setConvo(null); });
 
@@ -85,6 +88,7 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
       if (minRatingRef.current) params.min_rating = minRatingRef.current;
       const { data } = await apiClient.get<LogEntry[]>("/api/v1/chat/logs", { params });
       setLogs(data);
+      setChecked(new Set());
     } catch {
       // ignore
     } finally {
@@ -96,9 +100,69 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
     fetchLogs();
   }, []);
 
+  // Deletion unit is the conversation (session); entries without a session_id can't be selected.
+  const selectable = logs.filter((l) => l.session_id != null);
+  const allSelected = selectable.length > 0 && selectable.every((l) => checked.has(l.id));
+
+  function toggleOne(id: number) {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setChecked((prev) => {
+      if (selectable.every((l) => prev.has(l.id))) {
+        const next = new Set(prev);
+        selectable.forEach((l) => next.delete(l.id));
+        return next;
+      }
+      const next = new Set(prev);
+      selectable.forEach((l) => next.add(l.id));
+      return next;
+    });
+  }
+
+  async function handleDeleteSelected() {
+    const sessionIds = logs
+      .filter((l) => checked.has(l.id) && l.session_id != null)
+      .map((l) => l.session_id as number);
+    if (sessionIds.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      await bulkDeleteChatLogs(sessionIds);
+      setLogs((prev) => prev.filter((l) => !checked.has(l.id)));
+      setChecked(new Set());
+    } catch {
+      setError("Error deleting selected chat logs.");
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <h2 className="section-title">Chat Logs</h2>
+
+      {error && (
+        <div
+          className="text-sm px-4 py-3 rounded-lg flex items-center justify-between"
+          style={{
+            background: "rgba(239,68,68,0.08)",
+            color: "#ef4444",
+            border: "1px solid rgba(239,68,68,0.2)",
+          }}
+        >
+          <span>{error}</span>
+          <button className="text-xs underline ml-3" onClick={() => setError("")}>
+            Close
+          </button>
+        </div>
+      )}
+
       <div className="card overflow-hidden">
         <div
           className="p-4 flex gap-3 flex-wrap"
@@ -138,6 +202,22 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
           <button className="gold-btn text-xs" onClick={fetchLogs}>
             Filter
           </button>
+          {checked.size > 0 && (
+            <button
+              className="px-3 py-1 rounded text-xs flex items-center gap-1.5"
+              onClick={handleDeleteSelected}
+              disabled={bulkDeleting}
+              style={{
+                border: "1px solid rgba(220,38,38,0.3)",
+                background: "rgba(220,38,38,0.05)",
+                color: "#dc2626",
+                cursor: bulkDeleting ? "default" : "pointer",
+              }}
+            >
+              <Ic d={icons.trash} size={13} />
+              {bulkDeleting ? "Deleting…" : `Delete selected (${checked.size})`}
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -148,6 +228,14 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
           <table className="tbl">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="Select all"
+                  />
+                </th>
                 <th>Question</th>
                 <th>Time</th>
                 <th>Date</th>
@@ -160,6 +248,15 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
               {logs.map((l) => (
                 <React.Fragment key={l.id}>
                   <tr>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={checked.has(l.id)}
+                        disabled={l.session_id == null}
+                        onChange={() => toggleOne(l.id)}
+                        aria-label={`Select conversation ${l.question}`}
+                      />
+                    </td>
                     <td className="font-medium text-charcoal max-w-xs truncate">
                       {l.question}
                     </td>
@@ -189,7 +286,7 @@ export default function ChatLogs({ initialSearch = "", initialDate = "" }: Props
                   {open === l.id && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         style={{ background: "rgba(249,243,232,0.4)" }}
                         className="px-5 py-4"
                       >

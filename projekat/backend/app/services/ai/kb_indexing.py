@@ -12,8 +12,11 @@ idempotent even if the process dies between the Qdrant write and the ``vector_id
 import asyncio
 import logging
 import uuid
+from collections.abc import Callable, Sequence
+from typing import TypeVar
 
-from sqlalchemy import select
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.knowledge import UnosBazeZnanja
 from app.services.ai.embedding_service import get_embedding_service
@@ -31,6 +34,48 @@ _SWEEP_CHUNK = 50
 def kb_vector_id(item_id: int) -> str:
     """Deterministic Qdrant point id for a knowledge-base row."""
     return str(uuid.uuid5(_KB_NAMESPACE, str(item_id)))
+
+
+def _norm_question(q: str) -> str:
+    """Normalize a question for duplicate detection (trim + case-fold)."""
+    return q.strip().lower()
+
+
+async def existing_question_set(db: AsyncSession, questions: Sequence[str]) -> set[str]:
+    """Return the normalized questions among ``questions`` that already exist as active KB rows."""
+    candidates = {_norm_question(q) for q in questions}
+    if not candidates:
+        return set()
+    result = await db.execute(
+        select(func.lower(func.trim(UnosBazeZnanja.pitanje))).where(
+            UnosBazeZnanja.aktivan == True,  # noqa: E712
+            func.lower(func.trim(UnosBazeZnanja.pitanje)).in_(candidates),
+        )
+    )
+    return {row[0] for row in result}
+
+
+_T = TypeVar("_T")
+
+
+async def dedupe_new_questions(
+    db: AsyncSession, items: Sequence[_T], key: Callable[[_T], str]
+) -> list[_T]:
+    """Drop items whose question already exists active in the KB or repeats within ``items``.
+
+    ``key`` extracts the question text from each item, so both ``(q, a)`` and ``(q, a, seg)``
+    shapes work. Keeps the first occurrence of each distinct question.
+    """
+    existing = await existing_question_set(db, [key(i) for i in items])
+    seen: set[str] = set()
+    out: list[_T] = []
+    for item in items:
+        k = _norm_question(key(item))
+        if k in existing or k in seen:
+            continue
+        seen.add(k)
+        out.append(item)
+    return out
 
 
 async def embed_and_index_item(item: UnosBazeZnanja) -> None:

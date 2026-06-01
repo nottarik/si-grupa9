@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db.models.user import Korisnik
 from app.api.v1.deps import get_current_user, require_admin
-from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest, SessionRateRequest, IssueBulkDelete
+from app.schemas.chat import ChatRequest, ChatResponse, FeedbackRequest, SessionRateRequest, IssueBulkDelete, ChatLogBulkDelete
 from app.schemas.escalation import EscalationInfo
 from app.services.ai.rag_service import RagService
 from app.services.escalation import service as eskal_svc
@@ -657,25 +657,13 @@ async def close_session(
     return {"ok": True}
 
 
-@router.delete("/sessions/{session_id}")
-async def delete_session(
-    session_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: Korisnik = Depends(get_current_user),
-):
-    from app.db.models.knowledge import ChatSesija, Poruka, Odgovor, Feedback, Anomalija
+async def _purge_session_data(db: AsyncSession, session_id: int) -> None:
+    """Delete all child rows for a session (messages, answers, feedback, anomalies,
+    escalations). Does NOT delete the ChatSesija row itself and does NOT commit —
+    the caller owns both."""
+    from app.db.models.knowledge import Poruka, Odgovor, Feedback, Anomalija
     from app.db.models.escalation import Eskalacija, StatusAgenta
-    from fastapi import HTTPException
     from sqlalchemy import update as sa_update, delete as sa_delete
-
-    sess = (await db.execute(
-        select(ChatSesija).where(
-            ChatSesija.id == session_id,
-            ChatSesija.id_korisnika == current_user.id,
-        )
-    )).scalar_one_or_none()
-    if not sess:
-        raise HTTPException(status_code=404, detail="Session not found")
 
     poruka_ids = list((await db.execute(
         select(Poruka.id).where(Poruka.id_sesije == session_id)
@@ -710,9 +698,55 @@ async def delete_session(
     if eskal_ids:
         await db.execute(sa_update(StatusAgenta).where(StatusAgenta.trenutna_eskalacija_id.in_(eskal_ids)).values(trenutna_eskalacija_id=None))
     await db.execute(sa_delete(Eskalacija).where(Eskalacija.sesija_id == session_id))
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Korisnik = Depends(get_current_user),
+):
+    from app.db.models.knowledge import ChatSesija
+    from fastapi import HTTPException
+
+    sess = (await db.execute(
+        select(ChatSesija).where(
+            ChatSesija.id == session_id,
+            ChatSesija.id_korisnika == current_user.id,
+        )
+    )).scalar_one_or_none()
+    if not sess:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    await _purge_session_data(db, session_id)
     await db.delete(sess)
     await db.commit()
     return {"ok": True}
+
+
+@router.post("/logs/bulk-delete")
+async def bulk_delete_chat_logs(
+    payload: ChatLogBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    _: Korisnik = Depends(require_admin),
+):
+    """Admin endpoint: delete the given chat conversations (sessions) by id, including
+    all their messages, answers, feedback, anomalies and escalations."""
+    from app.db.models.knowledge import ChatSesija
+
+    if not payload.session_ids:
+        return {"ok": True, "deleted": 0}
+
+    sessions = (await db.execute(
+        select(ChatSesija).where(ChatSesija.id.in_(payload.session_ids))
+    )).scalars().all()
+
+    for sess in sessions:
+        await _purge_session_data(db, sess.id)
+        await db.delete(sess)
+
+    await db.commit()
+    return {"ok": True, "deleted": len(sessions)}
 
 
 @router.post("/sessions/{session_id}/rate")

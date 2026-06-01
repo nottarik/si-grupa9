@@ -47,3 +47,7 @@ class SessionRateRequest(BaseModel):
 
 class IssueBulkDelete(BaseModel):
     ids: list[int] = []
+
+
+class ChatLogBulkDelete(BaseModel):
+    session_ids: list[int] = []

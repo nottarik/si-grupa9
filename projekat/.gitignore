@@ -56,3 +56,7 @@ backend/alembic/versions/__pycache__/
 
 # Claude Code
 .claude/
+
+# Markdown notes/docs (keep CLAUDE.md)
+*.md
+!CLAUDE.md
