@@ -15,6 +15,7 @@ from .qa_extractor import extract_qa_pairs_llm
 from .qa_validator import validate_qa_pairs
 from .qa_scrubber import scrub_placeholders
 from .pii.masker import mask
+from .pii.name_verifier import drop_false_positive_names
 from .pii.token_store import encrypt_token_map
 from . import audit
 
@@ -84,6 +85,8 @@ async def run_pipeline(
     protected, prefix_map = _protect_prefixes(normalized)
     masked_text, token_map = await asyncio.to_thread(mask, protected)
     masked_text = _restore_prefixes(masked_text, prefix_map)
+    # Undo noisy NER false positives (e.g. "Simply" wrongly masked as [PERSON_1]).
+    masked_text, token_map = await drop_false_positive_names(masked_text, token_map)
     audit.safe_log("masked", transcript_id=transcript_id, entities=len(token_map))
 
     turns = split_turns(masked_text)

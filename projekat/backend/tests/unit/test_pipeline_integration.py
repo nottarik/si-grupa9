@@ -19,7 +19,12 @@ TRANSCRIPT_TEXT = (
 
 
 @pytest.mark.asyncio
-async def test_run_pipeline_creates_segments_and_qa(setup_test_db):
+async def test_run_pipeline_creates_segments_and_qa(setup_test_db, monkeypatch):
+    from app.core.config import settings
+    # Run fully offline: empty key makes every LLM step take its deterministic
+    # fallback (pattern Q&A extraction, regex placeholder scrub) — no network.
+    monkeypatch.setattr(settings, "GROQ_API_KEY", "")
+
     from app.db.session import AsyncSessionLocal
     from app.services.preprocessing.pipeline import run_pipeline
 
