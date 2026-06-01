@@ -344,3 +344,95 @@ async def test_speaker_strategy_uses_llm_for_audio_transcript(monkeypatch):
 
     assert result[0].role == "user"
     assert result[1].role == "agent"
+
+
+# ---------------------------------------------------------------------------
+# QA scrubber — placeholders must not reach the knowledge base
+# ---------------------------------------------------------------------------
+
+def test_strip_generic_replaces_tokens():
+    from app.services.preprocessing.qa_scrubber import _strip_generic
+    out = _strip_generic("Kontaktirajte [PERSON_1] na [TELEFON_1].")
+    assert "[PERSON_1]" not in out and "[TELEFON_1]" not in out
+    assert "korisnik" in out and "broj telefona" in out
+
+
+def test_strip_generic_noop_without_tokens():
+    from app.services.preprocessing.qa_scrubber import _strip_generic
+    assert _strip_generic("Kliknite na ikonu računa.") == "Kliknite na ikonu računa."
+
+
+@pytest.mark.asyncio
+async def test_scrub_skips_llm_when_no_placeholders(monkeypatch):
+    """Pairs without tokens are returned unchanged and never hit Groq."""
+    from unittest.mock import patch
+    from app.services.preprocessing.qa_scrubber import scrub_placeholders
+
+    pairs = [("Kako promijeniti ime?", "Kliknite na ikonu računa.")]
+    with patch("app.services.preprocessing.qa_scrubber.Groq", side_effect=AssertionError("LLM called")):
+        result = await scrub_placeholders(pairs)
+    assert result == pairs
+
+
+@pytest.mark.asyncio
+async def test_scrub_falls_back_deterministically_without_key(monkeypatch):
+    """With no API key, tokens are stripped deterministically — never stored raw."""
+    from app.core.config import settings
+    from app.services.preprocessing.qa_scrubber import scrub_placeholders
+
+    monkeypatch.setattr(settings, "GROQ_API_KEY", "")
+    result = await scrub_placeholders([("Pitanje?", "Pozovite [TELEFON_1] danas.")])
+    q, a = result[0]
+    assert "[TELEFON_1]" not in a
+    assert "broj telefona" in a
+
+
+@pytest.mark.asyncio
+async def test_scrub_uses_llm_rewrite(monkeypatch):
+    """When Groq is available it rewrites the pair and the token is gone."""
+    from unittest.mock import MagicMock, patch
+    from app.core.config import settings
+    from app.services.preprocessing.qa_scrubber import scrub_placeholders
+
+    monkeypatch.setattr(settings, "GROQ_API_KEY", "test-key")
+
+    def fake_create(**kwargs):
+        resp = MagicMock()
+        resp.choices[0].message.content = (
+            '{"pairs": [{"question": "Kako kontaktirati podršku?", '
+            '"answer": "Obratite se vlasniku računa za potvrdu."}]}'
+        )
+        return resp
+
+    with patch("app.services.preprocessing.qa_scrubber.Groq") as MockGroq:
+        MockGroq.return_value.chat.completions.create = fake_create
+        result = await scrub_placeholders([("Kako kontaktirati [PERSON_1]?", "Pozovite [TELEFON_1].")])
+
+    q, a = result[0]
+    assert "[PERSON_1]" not in q and "[TELEFON_1]" not in a
+    assert a == "Obratite se vlasniku računa za potvrdu."
+
+
+@pytest.mark.asyncio
+async def test_scrub_safety_net_strips_token_llm_left_behind(monkeypatch):
+    """If the model echoes a token back, it's still stripped before storage."""
+    from unittest.mock import MagicMock, patch
+    from app.core.config import settings
+    from app.services.preprocessing.qa_scrubber import scrub_placeholders
+
+    monkeypatch.setattr(settings, "GROQ_API_KEY", "test-key")
+
+    def fake_create(**kwargs):
+        resp = MagicMock()
+        resp.choices[0].message.content = (
+            '{"pairs": [{"question": "Pitanje?", "answer": "Pozovite [TELEFON_1] sutra."}]}'
+        )
+        return resp
+
+    with patch("app.services.preprocessing.qa_scrubber.Groq") as MockGroq:
+        MockGroq.return_value.chat.completions.create = fake_create
+        result = await scrub_placeholders([("Pitanje?", "Pozovite [TELEFON_1] sutra.")])
+
+    _, a = result[0]
+    assert "[TELEFON_1]" not in a
+    assert "broj telefona" in a

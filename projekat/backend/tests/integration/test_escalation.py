@@ -250,9 +250,9 @@ async def test_get_escalation_not_found():
 @pytest.mark.asyncio
 async def test_get_escalation_returns_data():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        token = await _get_admin_token(client)
-        admin_id = await _get_user_id(token, client)
-        session_id = await _create_session_in_db(admin_id)
+        token = await _register_and_login(client, role="agent")
+        user_id = await _get_user_id(token, client)
+        session_id = await _create_session_in_db(user_id)
 
         with patch("app.api.v1.routes.escalation._broadcast_queue", new=AsyncMock()):
             create_resp = await client.post(
@@ -276,9 +276,9 @@ async def test_get_escalation_returns_data():
 @pytest.mark.asyncio
 async def test_accept_escalation_transitions_to_utoku():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        token = await _get_admin_token(client)
-        admin_id = await _get_user_id(token, client)
-        session_id = await _create_session_in_db(admin_id)
+        token = await _register_and_login(client, role="agent")
+        user_id = await _get_user_id(token, client)
+        session_id = await _create_session_in_db(user_id)
 
         with patch("app.api.v1.routes.escalation._broadcast_queue", new=AsyncMock()):
             with patch("app.api.v1.routes.escalation.manager") as mock_mgr:
@@ -316,9 +316,9 @@ async def test_accept_nonexistent_escalation():
 @pytest.mark.asyncio
 async def test_release_escalation():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        token = await _get_admin_token(client)
-        admin_id = await _get_user_id(token, client)
-        session_id = await _create_session_in_db(admin_id)
+        token = await _register_and_login(client, role="agent")
+        user_id = await _get_user_id(token, client)
+        session_id = await _create_session_in_db(user_id)
 
         with patch("app.api.v1.routes.escalation._broadcast_queue", new=AsyncMock()):
             with patch("app.api.v1.routes.escalation.manager") as mock_mgr:
@@ -349,9 +349,9 @@ async def test_release_escalation():
 @pytest.mark.asyncio
 async def test_release_not_assigned_returns_400():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        token = await _get_admin_token(client)
-        admin_id = await _get_user_id(token, client)
-        session_id = await _create_session_in_db(admin_id)
+        token = await _register_and_login(client, role="agent")
+        user_id = await _get_user_id(token, client)
+        session_id = await _create_session_in_db(user_id)
 
         with patch("app.api.v1.routes.escalation._broadcast_queue", new=AsyncMock()):
             create_resp = await client.post(
@@ -373,9 +373,9 @@ async def test_release_not_assigned_returns_400():
 @pytest.mark.asyncio
 async def test_resolve_escalation():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        token = await _get_admin_token(client)
-        admin_id = await _get_user_id(token, client)
-        session_id = await _create_session_in_db(admin_id)
+        token = await _register_and_login(client, role="agent")
+        user_id = await _get_user_id(token, client)
+        session_id = await _create_session_in_db(user_id)
 
         with patch("app.api.v1.routes.escalation._broadcast_queue", new=AsyncMock()):
             with patch("app.api.v1.routes.escalation.manager") as mock_mgr:
