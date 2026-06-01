@@ -1492,6 +1492,8 @@ Zavisi od US-31.3 Upotreba agentovog odgovora za poboljšanje chatbota. Zavisi o
 - Administrator mora moći izmijeniti sadržaj prijedloga prije odobravanja
 - Sistem mora prikazati broj prijedloga na čekanju kao notifikaciju u admin panelu
 - Sistem ne smije automatski dodavati sadržaj u bazu znanja bez administratorskog odobrenja
+- Agent ili administrator mora moći odabrati proizvoljne poruke iz razgovora koje želi pretvoriti u Q&A prijedloge za bazu znanja
+- Sistem ne smije ograničiti dodavanje u bazu znanja samo na prvu poruku iz sesije
 
 ---
 
@@ -2081,3 +2083,118 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 - Kada nema rezultata za odabrane filtere, tada sistem mora prikazati poruku 'Nema rezultata'
 - Kada administrator resetuje filtere, tada sistem mora prikazati sve prijave
 - Sistem ne smije prikazati grešku pri primjeni filtera
+
+---
+
+# PB-66 — Batch procesiranje fajlova iz eksternih izvora
+
+## User Story 66.1 — Batch import transkripata iz eksternih izvora
+
+| Polje         | Vrijednost |
+| ------------- | ---------- |
+| **ID**        | 66.1       |
+| **Sprint**    | 10         |
+| **Prioritet** | High       |
+
+### User Story
+
+Kao administrator, želim importovati više fajlova iz Google Drive-a, S3 storage-a i sličnih eksternih izvora kako bih automatizovao unos transkripata u sistem.
+
+### Acceptance Criteria
+
+- Administrator mora moći pokrenuti import unosom folder URL-a ili ID-a
+- Sistem mora automatski preuzeti podržane fajlove
+- Sistem mora preskočiti već obrađene fajlove
+- Kada se fajl izmijeni, sistem mora re-importovati novu verziju
+- Greška jednog fajla ne smije prekinuti obradu ostalih fajlova
+
+---
+
+# PB-67 — Scheduled pipeline obrada i automatsko ažuriranje baze znanja
+
+## User Story 67.1 — Scheduled pokretanje kompletnog pipeline-a
+
+| Polje         | Vrijednost |
+| ------------- | ---------- |
+| **ID**        | 67.1       |
+| **Sprint**    | 10         |
+| **Prioritet** | High       |
+
+### User Story
+
+Kao administrator, želim definisati raspored automatskog pokretanja pipeline-a kako bi sistem samostalno obrađivao nove transkripte i ažurirao bazu znanja.
+
+### Acceptance Criteria
+
+- Administrator mora moći uključiti ili isključiti scheduled obradu
+- Administrator mora moći definisati frekvenciju izvršavanja (hourly/daily/weekly)
+- Sistem mora automatski pokrenuti import, transkripciju, ekstrakciju Q&A i generisanje embeddinga
+- Pipeline status mora biti vidljiv u admin panelu
+- Sistem mora prikazati posljednje vrijeme izvršavanja i rezultat obrade
+
+---
+
+## User Story 67.2 — Live prikaz napretka pipeline obrade
+
+| Polje         | Vrijednost |
+| ------------- | ---------- |
+| **ID**        | 67.2       |
+| **Sprint**    | 10         |
+| **Prioritet** | Medium     |
+
+### User Story
+
+Kao administrator, želim pratiti napredak pipeline obrade u realnom vremenu kako bih imao pregled trenutnog statusa sistema.
+
+### Acceptance Criteria
+
+- Sistem mora prikazivati trenutno obrađivani fajl
+- Sistem mora prikazivati status pipeline faza u realnom vremenu
+- UI mora automatski osvježavati status bez reload-a
+- Administrator mora vidjeti posljednji uspješan scheduled run
+
+---
+
+# PB-68 — Single-click cloud deployment
+
+## User Story 68.1 — Single-click deploy sistema
+
+| Polje         | Vrijednost |
+| ------------- | ---------- |
+| **ID**        | 68.1       |
+| **Sprint**    | 10         |
+| **Prioritet** | High       |
+
+### User Story
+
+Kao razvojni tim, želimo deployati kompletan sistem jednim komandnim pozivom kako bismo pojednostavili postavljanje produkcijskog okruženja.
+
+### Acceptance Criteria
+
+- Sistem mora podržavati deploy jednim komandnim pozivom
+- Backend i frontend moraju biti automatski deployani
+- Cloud infrastruktura mora biti automatski provisionirana
+- Deploy mora generisati trajne HTTPS endpoint-e
+
+---
+
+# PB-69 — Optimizacija build procesa i CI/CD performansi
+
+## User Story 69.1 — Optimizacija build vremena backend sistema
+
+| Polje         | Vrijednost |
+| ------------- | ---------- |
+| **ID**        | 69.1       |
+| **Sprint**    | 10         |
+| **Prioritet** | High       |
+
+### User Story
+
+Kao razvojni tim, želimo optimizovati Docker build proces kako bi rebuild sistema trajao značajno kraće.
+
+### Acceptance Criteria
+
+- Build proces mora koristiti cache mehanizme za dependency pakete
+- Sistem mora koristiti CPU-only ML dependency layer
+- Vrijeme rebuildanja mora biti značajno smanjeno u odnosu na prethodnu implementaciju
+- Optimizacija ne smije promijeniti runtime ponašanje aplikacije
