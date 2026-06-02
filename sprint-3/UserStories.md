@@ -1895,7 +1895,7 @@ Zavisi od Lista svih prijavljenih problema (35.1).
 Kao administrator, želim importovati više fajlova iz Google Drive-a i sličnih eksternih izvora unosom folder URL-a ili ID-a kako bih automatizovao unos transkripata u sistem.
 
 **Pretpostavke i otvorena pitanja:**
-Podržani formati: `.mp3`, `.wav`, `.m4a`, `.ogg`, `.txt`, `.pdf`. Service account mora imati Viewer pristup na folder. S3 je arhitekturalno predviđen ali nije implementiran u ovom sprintu.
+Podržani formati: `.mp3`, `.wav`, `.m4a`, `.ogg`, `.txt`, `.pdf`. Service account mora imati Viewer pristup na folder.
 
 **Veze sa drugim storyjima ili zavisnostima:**
 Zavisi od PB-13 Konvertovanje audio. Zavisi od PB-27 Izgradnja baze znanja. Preduvjet za US-67.1.
@@ -2069,7 +2069,7 @@ Zavisi od PB-59 Ručni unos Q&A parova. Zavisi od PB-60 Kuriranje KB. Zavisi od 
 
 ---
 
-### PB-71 — Bulk brisanje razgovora iz Chat Logs
+### PB-71 — Bulk brisanje razgovora iz Chat Logs, Transcripts i Issues
 
 #### User Story 71.1 — Brisanje više razgovora odjednom
 
@@ -2091,10 +2091,10 @@ Brisanje je trajno i kaskadira na sve povezane podatke. Otvoreno pitanje: Da li 
 Zavisi od Sign In (PB-36). Zavisi od PB-34 Pregled postavljenih pitanja i odgovora.
 
 **Acceptance Criteria:**
-- Sistem mora prikazivati checkbox za svaki razgovor u Chat Logs tabeli
-- Sistem mora podržavati "Select All" opciju koja označava sve vidljive razgovore
+- Sistem mora prikazivati checkbox za svaki zapis u Chat Logs, Transcripts i Issues tabelama
+- Sistem mora podržavati "Select All" opciju koja označava sve vidljive zapise
 - Dugme "Delete selected (N)" mora prikazivati trenutni broj označenih razgovora
-- Kada administrator potvrdi brisanje, sistem mora obrisati razgovore zajedno sa svim povezanim porukama, odgovorima, ocjenama i eskalacijama
+- Kada administrator potvrdi brisanje, sistem mora obrisati označene razgovore, transkripte ili prijave zajedno sa svim povezanim podacima
 - Samo administrator mora imati mogućnost bulk brisanja razgovora
 - Sistem ne smije obrisati razgovore bez eksplicitne potvrde administratora
 
