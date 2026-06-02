@@ -1874,10 +1874,10 @@ Aktivna
 
 **Datum:** 01/06/2026
 
-**Naziv:** Admin-only bulk brisanje označenih razgovora iz Chat Logs
+**Naziv:** Admin-only bulk brisanje označenih razgovora iz Chat Logs, Transcripts i Issues
 
 **Opis:**
-Administratorima je trebalo omogućiti brisanje više razgovora iz Chat Logs prikaza odjednom, umjesto pojedinačnog uklanjanja. Akcija mora očistiti ne samo sesije nego i sve povezane podatke, uključujući poruke, odgovore, ocjene i eskalacije.
+Administratorima je trebalo omogućiti brisanje više razgovora iz Chat Logs prikaza odjednom, umjesto pojedinačnog uklanjanja. Ista funkcionalnost obuhvata i sekcije Transcripts i Issues, gdje admin na isti način može označiti i obrisati više stavki odjednom. Akcija mora očistiti ne samo sesije nego i sve povezane podatke, uključujući poruke, odgovore, ocjene i eskalacije.
 
 **Razmatrane opcije:**
 - Zadržati samo pojedinačno brisanje razgovora
