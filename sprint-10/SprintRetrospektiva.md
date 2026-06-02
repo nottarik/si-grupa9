@@ -21,7 +21,7 @@ Batch procesiranje i deduplikacija fajlova zahtijevali su pažljivo upravljanje 
 
 Komunikacija unutar tima ostala je efikasna i u ovom sprintu, posebno pri usklađivanju backend pipeline komponenti s frontend prikazom live statusa obrade. WebSocket integracija za live prikaz napretka zahtijevala je koordinaciju između backend i frontend dijela tima, ali je implementirana bez značajnih kašnjenja.
 
-Uz infrastrukturne stavke, sprint je uključivao i tri funkcionalnosti usmjerene na integritet podataka, administratorsku efikasnost i korisničko iskustvo. Implementacija prevencije duplih unosa u bazu znanja zahtijevala je pažljivo definisanje graničnih slučajeva — posebno oko toga koji se unosi tretiraju kao identični i kako se ponašanje razlikuje ovisno o izvoru unosa. Bulk brisanje razgovora iz Chat Logs implementirano je konzistentno s već postojećim obrascem na stranici transkripata, što je ubrzalo razvoj i osiguralo konzistentno korisničko iskustvo u admin panelu. Standardizacija poruka o greškama zahtijevala je pregled svih točaka gdje sistem komunicira s korisnikom — rezultat je konzistentno, jasno korisničko iskustvo bez izlaganja internih tehničkih detalja.
+Uz infrastrukturne stavke, sprint je uključivao i tri funkcionalnosti usmjerene na integritet podataka, administratorsku efikasnost i korisničko iskustvo. Implementacija prevencije duplih unosa u bazu znanja zahtijevala je pažljivo definisanje graničnih slučajeva — posebno oko toga koji se unosi tretiraju kao identični i kako se ponašanje razlikuje ovisno o izvoru unosa. Bulk brisanje razgovora iz Chat Logs implementirano je konzistentno s već postojećim obrascem na stranici transkripata, što je ubrzalo razvoj i osiguralo konzistentno korisničko iskustvo u admin panelu. Standardizacija poruka o greškama zahtijevala je pregled svih tačaka gdje sistem komunicira s korisnikom — rezultat je konzistentno, jasno korisničko iskustvo bez izlaganja internih tehničkih detalja.
 
 ---
 
@@ -31,4 +31,4 @@ Sprint 10 označava operativnu zrelost sistema — sa ovim sprintom, sistem nije
 
 Batch procesiranje i scheduled pipeline postavljaju osnovu za trajno ažurnu bazu znanja bez operativnog opterećenja, dok single-click deployment osigurava da buduće verzije sistema mogu biti isporučene brzo i pouzdano. Optimizacija build procesa direktno ubrzava sve buduće iteracije razvoja.
 
-Za naredne faze razvoja važno je nastaviti pratiti pouzdanost scheduled pipeline obrade u produkcijskom okruženju, posebno pri promjenama u eksternim izvorima podataka. Dokumentovanje infrastrukturnih komponenti i deployment procesa treba biti prioritet kako bi tim mogao efikasno upravljati sistemom dugoročno.
+Za naredne faze razvoja fokus treba biti na stabilizaciji sistema, kvalitetu i testiranju, zatvaranju ključnih funkcionalnih rupa te pripremi za završnu demonstraciju.
