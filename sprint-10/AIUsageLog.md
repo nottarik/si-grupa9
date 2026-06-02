@@ -2318,10 +2318,10 @@ Claude Code je korišten za pomoć pri analizi mjesta na kojima se Q&A parovi do
 **Alat koji je korišten:** Claude Code
 
 **Svrha korištenja:**
-Pomoć pri implementaciji bulk brisanja označenih razgovora iz Chat Logs sekcije.
+Pomoć pri implementaciji bulk brisanja označenih razgovora iz Chat Logs, Transcripts i Issues sekcije.
 
 **Kratak opis zadatka ili upita:**
-Claude Code je korišten za pomoć pri dodavanju opcije `Delete selected` u administratorski Chat Logs prikaz. Cilj je bio omogućiti adminu da označi više razgovora checkboxovima, koristi `select all` u zaglavlju i obriše odabrane sesije zajedno sa svim povezanim zapisima.
+Claude Code je korišten za pomoć pri dodavanju opcije `Delete selected` u administratorski Chat Logs prikaz, kao i u sekcijama Transcripts i Issues. Cilj je bio omogućiti adminu da označi više stavki checkboxovima, koristi `select all` u zaglavlju i obriše odabrane sesije, transkripte ili issues zajedno sa svim povezanim zapisima.
 
 **Šta je AI predložio ili generisao:**
 - checkbox po svakom redu Chat Logs tabele
