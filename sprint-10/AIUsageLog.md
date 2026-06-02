@@ -2089,41 +2089,42 @@ Claude Code je korišten za sažimanje sesijskih promjena u pratećim dokumentim
 **Alat koji je korišten:** Claude Code
 
 **Svrha korištenja:**
-Pomoć pri doradi RAG ponašanja i povezivanju rješavanja eskalacija sa bazom znanja i Issue zapisima.
+Pomoć pri doradi RAG ponašanja, resolving toka i kontrole sadržaja koji se objavljuje u bazu znanja.
 
 **Kratak opis zadatka ili upita:**
-Claude Code je korišten za analizu slučajeva u kojima je chatbot imao relevantan odgovor u bazi znanja, ali ga nije vratio jer je intent klasifikator prerano označio pitanje kao `out_of_scope`. U istom toku analizirana je dorada resolving procesa, tako da se pri slanju odgovora u bazu znanja povezani Issue/Anomalija zapisi očiste i da admin ili agent može kontrolisati koji sadržaj se dodaje u knowledge base, umjesto da sistem automatski uzima samo prvi dostupni odgovor.
+Claude Code je korišten za analizu slučajeva u kojima je chatbot imao relevantan odgovor u bazi znanja, ali ga nije vratio jer je intent klasifikator, koji se izvršava prije pretrage, pitanje označio kao `out_of_scope` i time prekinuo RAG pretragu. U istom toku dorađen je resolving proces: pri slanju Q&A parova u bazu znanja povezani Issue/Anomalija zapisi se čiste, a admin/agent bira koji se sadržaj objavljuje, umjesto da se oslanja na automatiku.
 
 **Šta je AI predložio ili generisao:**
-- promjenu toka tako da `out_of_scope` klasifikacija više ne prekida automatski RAG pretragu
-- pravilo da se baza znanja i Qdrant ipak pretraže prije konačne odluke o odgovoru
-- poseban `RAG_OFFTOPIC_THRESHOLD` prag za off-topic odgovore, odvojen od domenskog praga
-- zadržavanje prompt-injection slučajeva kao hard block bez prolaska kroz standardni odgovor
-- uklanjanje `napomena` polja iz resolve toka jer nije bilo potrebno za krajnji workflow
-- čišćenje Anomalija/Issue zapisa nakon što se relevantan Q&A uspješno pošalje u bazu znanja
-- smjernicu da zaposleni kontrolišu koji agent/admin odgovor ide u bazu znanja, umjesto automatskog uzimanja samo prve poruke
+- promjenu toka tako da verdikt `out_of_scope` više ne prekida automatski RAG pretragu; baza znanja se i dalje pretražuje po principu `classify first, then retrieve`
+- poseban, environment-podesiv prag za off-topic odgovore `RAG_OFFTOPIC_THRESHOLD` sa default vrijednošću 0.5, viši od domenskog praga `RAG_CONFIDENCE_THRESHOLD_LOW` od 0.35
+- ponašanje ispod praga: off-topic pitanje pada na scope poruku bez agent eskalacije, dok stvarni domenski promašaj eskalira kao i prije
+- zadržavanje prompt-injection slučajeva kao hard block, tako da se baza znanja za njih nikad ne pretražuje
+- uklanjanje agentove resolution napomene iz resolve UI/API toka, dok automatski status razlozi za isteklo/otkazano ostaju
+- čišćenje povezanih Anomalija/Issue zapisa nakon što se bar jedan Q&A par uspješno objavi u bazu znanja kroz `_clear_session_anomalies`
+- resolve formu koja svako korisničko pitanje uparuje s agentovim odgovorom koji je uslijedio, svaki s checkboxom i editabilnim odgovorom
+- automatsko objavljivanje označenih Q&A parova kao odobrenih i odmah embedovanih unosa, uz filtriranje pozdrava i poruka tipa „zovi agenta“
 
 **Šta je tim prihvatio:**
 - princip da je knowledge base autoritativan izvor i da ga treba provjeriti čak i kada klasifikator pogriješi
-- odvojeni prag za off-topic odgovore kako chatbot ne bi preširoko odgovarao van domene
-- uklanjanje nepotrebne resolution napomene iz UI/API toka
-- čišćenje povezanih Issue zapisa nakon publishovanja Q&A para u bazu znanja
-- poboljšanje toka za zaposlene: admin/agent bira koji sadržaj se šalje u knowledge base
+- odvojeni, viši prag za off-topic odgovore kako bot ne bi preširoko odgovarao van domene
+- uklanjanje nepotrebne agentove resolution napomene iz resolve toka
+- čišćenje povezanih Issue zapisa nakon objave Q&A para u KB
+- kontrolu zaposlenih nad time koji se Q&A parovi šalju u KB, uz mogućnost izmjene prije objave
 
 **Šta je tim izmijenio:**
-- pragovi su prilagođeni Telemach/call-centar kontekstu
+- pragovi su prilagođeni telekom/call-centar kontekstu: off-topic prag 0.5 naspram domenskog praga 0.35
 - resolving tok je pojednostavljen tako da status ostaje dovoljan signal bez dodatne ručne napomene
-- ponašanje kod publishovanja u KB usklađeno je s postojećim issue/anomaly modelom
+- ponašanje pri objavi u KB usklađeno je s postojećim Issue/Anomaly modelom, tako da se čišćenje radi samo kada nastane bar jedan KB unos
 
 **Šta je tim odbacio:**
 - potpuno oslanjanje na intent klasifikator prije RAG pretrage
-- automatsko dodavanje prve poruke u bazu znanja bez kontrole zaposlenika
-- zadržavanje JS `confirm` dijaloga za akcije gdje je dogovoren direktniji tok
+- automatsko slanje sadržaja u KB bez kontrole zaposlenika
+- zadržavanje JS confirm dijaloga za delete akcije, jer se Issues i Transcripts brišu odmah na klik
 
 **Rizici, problemi ili greške koje su uočene:**
 - preširok off-topic prag može dovesti do odgovora na pitanja koja nisu dovoljno vezana za domenu
 - korisnik može očekivati odgovor ako KB sadrži sličan, ali ne i stvarno relevantan sadržaj
-- izbor poruka za KB mora ostati pažljiv jer pogrešan unos odmah utiče na buduće RAG odgovore
+- izbor Q&A parova za KB mora ostati pažljiv jer pogrešan unos odmah utiče na buduće RAG odgovore, pošto je auto-objava odobrena i embedovana bez zasebne moderacije
 
 ---
 
@@ -2261,5 +2262,138 @@ Claude Code je korišten za analizu dodatnih usporenja u Docker build procesu na
 - build cache se može izgubiti na novom računaru ili čistom CI runneru
 - pinovane verzije treba povremeno provjeriti zbog sigurnosnih i kompatibilnih update-a
 - različite Docker/Pip verzije mogu pokazati različito ponašanje resolvera
+
+---
+
+## AI Usage Log – Zapis 52
+
+**Datum:** 01/06/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri sprečavanju duplikata pitanja u bazi znanja kroz sve tokove dodavanja Q&A unosa.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri analizi mjesta na kojima se Q&A parovi dodaju u bazu znanja i za uvođenje pravila da se identično pitanje ne može pojaviti dva puta. Fokus je bio da zaštita ne radi samo u ručnom unosu, nego i u tokovima obrade transkripata, batch importa s Google Drive-a i spašavanja Q&A parova pri rješavanju eskalacije.
+
+**Šta je AI predložio ili generisao:**
+- centralnu provjeru postojanja identičnog pitanja prije kreiranja novog unosa baze znanja
+- primjenu provjere na ručni unos, obradu transkripata, Drive batch import i resolve-with-KB tok
+- tiho preskakanje duplikata tokom importa ili pipeline obrade, bez prekidanja obrade cijelog transkripta
+- jasnu poruku administratoru kod ručnog unosa kada pitanje već postoji
+- regresijske scenarije koji provjeravaju da isti Q&A par ne može završiti u KB-u iz više različitih tokova
+
+**Šta je tim prihvatio:**
+- zabranu identičnih pitanja u bazi znanja
+- tiho preskakanje duplikata kod batch/pipeline tokova kako bi se transkript nastavio obrađivati
+- korisnički razumljivu poruku kod ručnog unosa duplikata
+- jedinstveno pravilo koje važi za sve ulaze u knowledge base, a ne samo za jedan ekran
+
+**Šta je tim izmijenio:**
+- ponašanje je prilagođeno kontekstu akcije: ručni unos vraća poruku greške, dok import i pipeline preskaču duplikat bez prekida cijele obrade
+- provjera je vezana za pitanje kao ključni kriterij duplikata, jer je cilj spriječiti ponavljanje iste korisničke namjere u KB-u
+- tok spašavanja Q&A para iz eskalacije usklađen je s istim pravilom kao i ostali izvori
+
+**Šta je tim odbacio:**
+- dozvoljavanje istog pitanja više puta uz različite odgovore bez kontrole
+- oslanjanje na administratora da ručno prepozna i ukloni duplikate
+- prekid cijelog batch importa samo zato što jedan Q&A par već postoji
+
+**Rizici, problemi ili greške koje su uočene:**
+- stroga identičnost pitanja ne hvata semantičke duplikate koji su napisani drugim riječima
+- preširoka normalizacija pitanja mogla bi pogrešno označiti različita pitanja kao duplikate
+- kod preskakanja duplikata u batch toku važno je da logovi ostanu dovoljno jasni za dijagnostiku
+
+---
+
+## AI Usage Log – Zapis 53
+
+**Datum:** 01/06/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri implementaciji bulk brisanja označenih razgovora iz Chat Logs sekcije.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za pomoć pri dodavanju opcije `Delete selected` u administratorski Chat Logs prikaz. Cilj je bio omogućiti adminu da označi više razgovora checkboxovima, koristi `select all` u zaglavlju i obriše odabrane sesije zajedno sa svim povezanim zapisima.
+
+**Šta je AI predložio ili generisao:**
+- checkbox po svakom redu Chat Logs tabele
+- `select all` checkbox u zaglavlju tabele, po uzoru na stranicu transkripata
+- dugme `Delete selected (N)` koje prikazuje broj označenih razgovora
+- admin-only provjeru za bulk delete akciju
+- backend tok koji briše označene razgovore zajedno sa porukama, odgovorima, ocjenama, anomalijama i eskalacijama
+- osvježavanje liste nakon uspješnog brisanja i jasnu povratnu poruku administratoru
+
+**Šta je tim prihvatio:**
+- bulk selekciju razgovora u Chat Logs prikazu
+- `Delete selected (N)` akciju za brisanje više označenih sesija odjednom
+- ograničenje da samo admin može izvršiti brisanje
+- kaskadno brisanje svih povezanih podataka da ne ostanu viseći zapisi
+
+**Šta je tim izmijenio:**
+- UI obrazac za checkboxove usklađen je sa već postojećim ponašanjem na stranici transkripata
+- tekst dugmeta uključuje broj označenih stavki radi jasnijeg feedback-a
+- backend brisanje je usklađeno s postojećim redoslijedom brisanja pojedinačnih sesija
+
+**Šta je tim odbacio:**
+- brisanje razgovora bez selekcije i jasnog prikaza broja odabranih stavki
+- dostupnost bulk delete akcije agentima ili običnim korisnicima
+- brisanje samo `ChatSesija` reda bez čišćenja povezanih entiteta
+
+**Rizici, problemi ili greške koje su uočene:**
+- bulk brisanje je destruktivna akcija i mora biti ograničena na admin rolu
+- redoslijed brisanja mora poštovati FK veze između sesije i povezanih zapisa
+- potrebno je paziti da `select all` ne obriše više zapisa nego što admin očekuje na trenutno filtriranom prikazu
+
+---
+
+## AI Usage Log – Zapis 54
+
+**Datum:** 01/06/2026
+
+**Sprint broj:** Sprint 10
+
+**Alat koji je korišten:** Claude Code
+
+**Svrha korištenja:**
+Pomoć pri centralizaciji i poboljšanju korisnički razumljivih poruka o greškama.
+
+**Kratak opis zadatka ili upita:**
+Claude Code je korišten za analizu mjesta na kojima se korisniku prikazuju sirove tehničke greške iz axios/HTTP sloja ili gdje se greška uopće ne prikaže. Cilj je bio da sve akcije koje mogu pasti korisniku vrate jasnu i razumljivu poruku bez tekstova poput `Request failed with status code 409` ili `Error (HTTP 500)`.
+
+**Šta je AI predložio ili generisao:**
+- centralnu pomoćnu funkciju `readableError` za pretvaranje tehničkih grešaka u korisnički razumljive poruke
+- pravilo da se prvenstveno koristi čitljiva FastAPI `detail` poruka kada backend vrati objašnjenje
+- fallback poruke prilagođene akciji kada backend ne vrati čitljiv tekst
+- uklanjanje sirovih HTTP statusa i generičkih axios poruka iz korisničkog UI-a
+- primjenu iste logike na upload transkripta, učitavanje ocjena, pipeline, izmjenu i brisanje unosa baze znanja i ručni unos
+
+**Šta je tim prihvatio:**
+- jedinstvenu `readableError` funkciju kao centralno mjesto za formatiranje grešaka
+- korisnički razumljive fallback poruke za akcije koje nemaju backend `detail`
+- obavezu da svaka akcija koja može pasti prikaže povratnu informaciju korisniku
+- pravilo da se sirovi HTTP status kodovi i axios tekstovi ne prikazuju u aplikaciji
+
+**Šta je tim izmijenio:**
+- postojeći prikazi grešaka zamijenjeni su pozivom centralne helper funkcije
+- fallback tekstovi su prilagođeni konkretnim akcijama umjesto korištenja jedne generičke poruke za sve
+- mjesta gdje greška ranije nije bila prikazana dopunjena su korisničkim feedback-om
+
+**Šta je tim odbacio:**
+- direktno prikazivanje tehničkih poruka iz axios/HTTP sloja
+- sakrivanje greške bez ikakve povratne informacije korisniku
+- dupliciranje različitih helper funkcija za isti problem u više komponenti
+
+**Rizici, problemi ili greške koje su uočene:**
+- backend `detail` poruke moraju ostati napisane tako da ih korisnik može razumjeti
+- previše generički fallback tekst može otežati razumijevanje stvarnog problema
+- nove komponente moraju nastaviti koristiti `readableError` kako se problem ne bi ponovio
 
 ---

@@ -1788,3 +1788,162 @@ Svi potrebni paketi imaju dostupne CPython 3.12 wheel-ove, pa dodatni build depe
 Aktivna
 
 ---
+
+## **ID:** DL-46
+
+**Datum:** 01/06/2026
+
+**Naziv:** Odabir platforme za pokretanje scheduled batch importa (Azure vs GitHub Actions)
+
+**Opis:**
+Za scheduled batch obradu transkripata, odnosno periodično pokretanje Google Drive importa kroz postojeći pipeline, bilo je potrebno odlučiti gdje pokretati periodični posao. Razmatrani su Azure servisi i GitHub Actions scheduled workflow, jer oba pristupa mogu pozvati interne batch rute po cron rasporedu bez dodatnog dugotrajnog procesa unutar backend kontejnera.
+
+**Razmatrane opcije:**
+- Azure scheduled job kroz Azure Functions, Container Apps job ili Logic Apps timer
+- GitHub Actions scheduled workflow sa cron triggerom
+- interni scheduler unutar backenda kroz FastAPI BackgroundTasks ili APScheduler
+- vanjski cron servis treće strane
+
+**Odabrana opcija:**
+Azure scheduled job koji periodično pokreće batch import kroz postojeći pipeline, uz čuvanje pristupnih podataka i tokena u Azure okruženju.
+
+**Razlog izbora:**
+Azure pruža pouzdaniji i precizniji raspored izvršavanja od GitHub Actions cron-a, koji nema garanciju tačnog vremena okidanja i ima ograničeno trajanje poslova. Za batch obradu transkripata bitno je da se zakazani run pokrene predvidljivo i da može trajati dovoljno dugo bez prekida zbog limita CI platforme. Azure također daje bolju kontrolu nad resursima, monitoringom i ponovnim pokretanjem neuspjelih poslova, što GitHub Actions u ulozi schedulera ne pokriva jednako dobro. Iako uvodi dodatnu infrastrukturu i nalog, ta cijena je opravdana pouzdanošću periodične obrade.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- pouzdan i predvidljiv raspored izvršavanja zakazanih batch poslova
+- nema ograničenja trajanja joba kao kod GitHub Actions cron-a
+- bolji monitoring, logovanje i retry neuspjelih runova
+- raspored je odvojen od životnog ciklusa backend kontejnera
+- runtime ponašanje batch pipeline-a ostaje nepromijenjeno
+
+**Negativne:**
+- uvodi dodatnu infrastrukturu i Azure nalog uz povezane troškove
+- tim mora savladati i održavati Azure konfiguraciju
+- pristupni podaci i tokeni se moraju sigurno čuvati i rotirati u Azure okruženju
+- interni endpoint koji Azure okida mora biti dobro osiguran
+- dodatna tačka zavisnosti u deploy i operativnom toku
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-47
+
+**Datum:** 01/06/2026
+
+**Naziv:** Sprečavanje duplikata pitanja u bazi znanja kroz sve tokove unosa
+
+**Opis:**
+U bazi znanja ista identična pitanja više se ne smiju pojavljivati više puta, bez obzira na to da li unos nastaje ručno, obradom transkripta, batch importom sa Drive-a ili spašavanjem Q&A para pri rješavanju eskalacije. Bilo je potrebno odlučiti da li se duplikati tretiraju kao greška ili se preskaču u automatizovanim tokovima.
+
+**Razmatrane opcije:**
+- Dozvoliti duplikate i prepustiti administratoru ručno čišćenje baze znanja
+- Blokirati sve tokove kada se pronađe duplikat
+- Centralno provjeravati pitanje i prilagoditi ponašanje vrsti akcije
+- Dozvoliti duplikate ako je odgovor drugačiji
+
+**Odabrana opcija:**
+Centralna provjera identičnog pitanja kroz sve tokove dodavanja u bazu znanja. Kod ručnog unosa administrator dobija jasnu poruku da pitanje već postoji, dok se kod obrade transkripata, Drive batch importa i resolve toka duplikati tiho preskaču bez prekida cijelog procesa.
+
+**Razlog izbora:**
+Baza znanja mora ostati čista i korisna za RAG retrieval. Duplikati mogu smanjiti kvalitet pretrage i otežati održavanje sadržaja. Istovremeno, batch import ili obrada transkripta ne smiju pasti samo zato što jedan Q&A par već postoji, jer bi to nepotrebno blokiralo ostatak validnog sadržaja.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- baza znanja ostaje čistija i manje opterećena ponovljenim pitanjima
+- isti kriterij važi za ručni unos, pipeline, Drive import i resolve-with-KB tok
+- admin dobija jasnu poruku kod ručnog pokušaja unosa duplikata
+- batch i pipeline tokovi nastavljaju obradu i kada se pojedinačni duplikati preskoče
+
+**Negativne:**
+- identična provjera ne hvata sva semantički ista pitanja napisana drugačijim riječima
+- preskakanje duplikata u automatizovanim tokovima mora biti dovoljno logovano da se može razumjeti rezultat importa
+- postoje situacije gdje isto pitanje s boljim odgovorom treba prvo ažurirati, a ne samo preskočiti
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-48
+
+**Datum:** 01/06/2026
+
+**Naziv:** Admin-only bulk brisanje označenih razgovora iz Chat Logs
+
+**Opis:**
+Administratorima je trebalo omogućiti brisanje više razgovora iz Chat Logs prikaza odjednom, umjesto pojedinačnog uklanjanja. Akcija mora očistiti ne samo sesije nego i sve povezane podatke, uključujući poruke, odgovore, ocjene i eskalacije.
+
+**Razmatrane opcije:**
+- Zadržati samo pojedinačno brisanje razgovora
+- Dodati checkbox selekciju i `Delete selected` akciju
+- Omogućiti bulk brisanje svim zaposlenicima
+- Brisati samo osnovne `ChatSesija` zapise bez povezanih entiteta
+
+**Odabrana opcija:**
+Checkbox selekcija u Chat Logs tabeli, `select all` u zaglavlju i admin-only dugme `Delete selected (N)` koje briše označene razgovore zajedno sa svim povezanim podacima.
+
+**Razlog izbora:**
+Ovaj pristup je usklađen sa postojećim obrascem sa stranice transkripata i omogućava administratoru brže održavanje chat historije. Ograničenje na admin rolu smanjuje rizik slučajnog ili neovlaštenog brisanja, a kaskadno čišćenje povezanih podataka čuva konzistentnost baze.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- admin može brzo ukloniti više nepotrebnih ili testnih razgovora
+- UI obrazac je konzistentan sa postojećim selekcijama u aplikaciji
+- brišu se povezane poruke, odgovori, ocjene i eskalacije
+- broj označenih stavki je vidljiv u dugmetu `Delete selected (N)`
+
+**Negativne:**
+- bulk brisanje je destruktivno i zahtijeva oprez
+- pogrešno korišten `select all` može označiti više razgovora nego što je admin planirao
+- redoslijed brisanja mora ostati usklađen sa FK vezama ako se model baze promijeni
+
+**Status odluke:**
+Aktivna
+
+---
+
+## **ID:** DL-49
+
+**Datum:** 01/06/2026
+
+**Naziv:** Sve poruke o greškama moraju biti korisnički razumljive
+
+**Opis:**
+Poruke o greškama u aplikaciji prikazivale su sirove, tehničke tekstove direktno iz axios/HTTP sloja, poput `Request failed with status code 409` ili `Error (HTTP 500)`. Na pojedinim mjestima greške se uopće nisu prikazivale korisniku, na primjer kod brisanja unosa baze znanja. Bilo je potrebno odlučiti kako osigurati konzistentan i razumljiv feedback kroz cijelu aplikaciju.
+
+**Razmatrane opcije:**
+- Nastaviti prikazivati tehničke HTTP/axios poruke
+- Svaka komponenta posebno formatira vlastite greške
+- Uvesti centralnu pomoćnu funkciju za korisnički razumljive greške
+- Sakriti detalje greške i prikazivati samo generičku poruku za sve slučajeve
+
+**Odabrana opcija:**
+Uvedena je centralna pomoćna funkcija `readableError`, koja prvenstveno prikazuje čitljivu poruku s backend-a kroz FastAPI `detail`, a u suprotnom prikazuje prijateljski definisan fallback tekst primjeren konkretnoj akciji. Funkcija nikada ne prikazuje sirovi HTTP status ili tehničku poruku.
+
+**Razlog izbora:**
+Centralizovana funkcija daje konzistentno ponašanje kroz cijelu aplikaciju i smanjuje dupliciranje logike po komponentama. Korisnik dobija informaciju šta je pošlo po zlu i kako da nastavi, bez tehničkih kodova koji mu ne pomažu. Ako backend već vrati korisno objašnjenje, to objašnjenje se koristi; ako ga nema, prikazuje se kontrolisani fallback.
+
+**Posljedice odluke:**
+
+**Pozitivne:**
+- konzistentne i razumljive poruke o greškama kroz cijelu aplikaciju
+- korisnik uvijek dobija povratnu informaciju kada akcija ne uspije
+- buduće komponente koriste istu funkciju, pa postoji jedno mjesto za održavanje
+- sirovi HTTP statusi i axios tekstovi se više ne prikazuju u UI-u
+
+**Negativne:**
+- backend `detail` poruke moraju ostati napisane korisnički razumljivim jezikom
+- previše generički fallback može sakriti korisne informacije ako nije pažljivo napisan
+- developeri moraju dosljedno koristiti `readableError` u novim komponentama
+
+**Status odluke:**
+Aktivna
+
+---
