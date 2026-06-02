@@ -6,7 +6,7 @@ Sprint 10 usmjeren je na automatizaciju, skalabilnost i produkcijsku infrastrukt
 
 Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 
-- batch procesiranje fajlova iz eksternih izvora — automatski import transkripata iz Google Drive-a, S3 i sličnih servisa s deduplikacijom i verzionisanjem
+- batch procesiranje fajlova iz eksternih izvora — automatski import transkripata iz Google Drive-a
 - scheduled pipeline obradu — autonomno pokretanje kompletnog toka obrade prema administratorski konfiguriranom rasporedu
 - live prikaz napretka pipeline obrade u admin panelu — pregled statusa svih faza u realnom vremenu
 - single-click cloud deployment — automatsko deployanje kompletnog sistema na Azure/AWS infrastrukturu jednim komandnim pozivom
@@ -21,12 +21,12 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 
 | ID | Naziv stavke | Kratak opis | Tip | Prioritet | Procjena napora | Status |
 |----|--------------|-------------|-----|-----------|-----------------|--------|
-| PB-66 | Batch procesiranje fajlova iz eksternih izvora | Automatski batch import transkripata iz Google Drive-a, S3 i sličnih eksternih izvora s deduplikacijom i verzionisanjem (US-66.1) | Feature | High | 13 | Završeno |
+| PB-66 | Batch procesiranje fajlova iz eksternih izvora | Automatski batch import transkripata iz Google Drive-a (US-66.1) | Feature | High | 13 | Završeno |
 | PB-67 | Scheduled pipeline obrada i automatsko ažuriranje baze znanja | Autonomno pokretanje kompletnog pipeline-a prema konfiguriranom rasporedu uz live prikaz statusa (US-67.1, US-67.2) | Feature | High | 13 | Završeno |
 | PB-68 | Single-click cloud deployment | Automatski deploy kompletnog sistema na cloud infrastrukturu jednim komandnim pozivom (US-68.1) | DevOps | High | 8 | Završeno |
 | PB-69 | Optimizacija build procesa i CI/CD performansi | Optimizacija Docker build procesa kroz cache mehanizme i CPU-only ML dependency layer (US-69.1) | Technical Task | High | 8 | Završeno |
 | PB-70 | Prevencija duplih unosa u bazu znanja | Provjera duplikata na svim mjestima unosa u bazu znanja — ručni unos, obrada transkripata, batch import i spašavanje Q&A pri eskalaciji (US-70.1) | Technical Task | High | 5 | Završeno |
-| PB-71 | Bulk brisanje razgovora iz Chat Logs | Checkbox selekcija i dugme za grupno brisanje označenih razgovora u Chat Logs pregledu, dostupno samo adminu (US-71.1) | Feature | Medium | 5 | Završeno |
+| PB-71 | Bulk brisanje razgovora iz Chat Logs, Transcripts i Issues | Checkbox selekcija i dugme za grupno brisanje označenih razgovora u Chat Logs pregledu, dostupno samo adminu (US-71.1) | Feature | Medium | 5 | Završeno |
 | PB-72 | Razumljive i korisnički prilagođene poruke o greškama | Nijedna poruka o grešci ne smije prikazivati sirove tehničke poruke; jasne korisnički razumljive poruke za sve akcije (US-72.1) | Feature | High | 5 | Završeno |
 
 ---
@@ -41,7 +41,7 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 
 **Poslovna vrijednost:** Eliminiše ručni unos transkripata fajl po fajl — administrator može jednim korakom importovati cijeli folder iz eksternog izvora, čime se drastično smanjuje operativno opterećenje i ubrzava unos novih podataka u sistem.
 
-**Pretpostavke:** Sistem ima konfiguriran pristup eksternim izvorima (Google Drive API credentials, S3 access keys). Postojeći transcript pipeline ostaje nepromijenjen — batch import samo automatizuje korak preuzimanja fajlova.
+**Pretpostavke:** Sistem ima konfiguriran pristup eksternim izvorima (Google Drive API credentials). Postojeći transcript pipeline ostaje nepromijenjen — batch import samo automatizuje korak preuzimanja fajlova.
 
 **Veze i zavisnosti:** Nadograđuje PB-18 Upload i unos transkripata. Preduvjet za PB-67 Scheduled pipeline obradu.
 
@@ -273,7 +273,7 @@ Zavisi od PB-59 Ručni unos Q&A parova. Zavisi od PB-60 Kuriranje KB. Zavisi od 
 
 ---
 
-### PB-71 — Bulk brisanje razgovora iz Chat Logs
+### PB-71 — Bulk brisanje razgovora iz Chat Logs, Transcripts i Issues
 
 **Prioritet:** Medium
 
@@ -305,10 +305,10 @@ Brisanje je trajno i kaskadira na sve povezane podatke. Otvoreno pitanje: Da li 
 Zavisi od Sign In (PB-36). Zavisi od PB-34 Pregled postavljenih pitanja i odgovora.
 
 **Acceptance Criteria:**
-- Sistem mora prikazivati checkbox za svaki razgovor u Chat Logs tabeli
-- Sistem mora podržavati "Select All" opciju koja označava sve vidljive razgovore
+- Sistem mora prikazivati checkbox za svaki razgovor u Chat Logs, Transcripts i Issues tabelama
+- Sistem mora podržavati "Select All" opciju koja označava sve vidljive zapise
 - Dugme "Delete selected (N)" mora prikazivati trenutni broj označenih razgovora
-- Kada administrator potvrdi brisanje, sistem mora obrisati razgovore zajedno sa svim povezanim porukama, odgovorima, ocjenama i eskalacijama
+- Kada administrator potvrdi brisanje, sistem mora obrisati razgovore, transkripte ili prijave zajedno sa svim povezanim podacima
 - Samo administrator mora imati mogućnost bulk brisanja razgovora
 - Sistem ne smije obrisati razgovore bez eksplicitne potvrde administratora
 
