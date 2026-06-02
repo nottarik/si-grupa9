@@ -58,7 +58,7 @@ Tokom ovog sprinta implementiraju se funkcionalnosti vezane za:
 | **Poslovna vrijednost** | Automatizuje unos transkripata u sistem iz eksternih storage servisa bez potrebe za ručnim preuzimanjem i uploadom svakog fajla posebno |
 
 **Uloga:**
-Kao administrator, želim importovati više fajlova iz Google Drive-a, S3 storage-a i sličnih eksternih izvora kako bih automatizovao unos transkripata u sistem.
+Kao administrator, želim importovati više fajlova iz Google Drive-a kako bih automatizovao unos transkripata u sistem.
 
 **Pretpostavke i otvorena pitanja:**
 Pretpostavlja se da su kredencijali za pristup eksternim izvorima konfigurirani u sistemskim postavkama. Otvoreno pitanje: Da li administrator treba moći selektovati pojedinačne fajlove unutar foldera ili se uvijek importuje cijeli folder?
