@@ -241,7 +241,7 @@ export default function DriveScheduleCard() {
           </label>
           <select
             className="input-field"
-            style={{ width: 170 }}
+            style={{ width: 240 }}
             disabled={!form.enabled}
             value={form.language}
             onChange={(e) => patch({ language: e.target.value as ScheduleLanguage })}
