@@ -1,7 +1,7 @@
-# Release Notes — Finalna verzija (v1.0)
+# Release Notes — Finalna verzija 
 
 **Datum:** 07.06.2026.
-**Sprint:** 11 (zadnji)
+**Sprint:** 11 
 **Live deployment:** <https://purple-field-0d55d8003.7.azurestaticapps.net/>
 
 Ovaj dokument jasno razlikuje **šta je stvarno isporučeno** u finalnoj verziji od onoga što je
@@ -11,7 +11,7 @@ planirano ali nije dio finalne isporuke.
 
 ## 1. Šta je uključeno u finalnu verziju
 
-Finalna verzija je kompletan, deployovan RAG chatbot za podršku call centru sa tri korisničke uloge
+Finalna verzija je kompletan, deployan RAG chatbot za podršku call centru sa tri korisničke uloge
 (korisnik, agent, admin) i punim tokom od transkripta do odgovora.
 
 **Glavni isporučeni moduli:**
@@ -35,7 +35,7 @@ Finalna verzija je kompletan, deployovan RAG chatbot za podršku call centru sa 
 | Eskalacija | Red čekanja, prioriteti, dodjela agenta, live chat, resolve |
 | PII zaštita | Detekcija + maskiranje (JMBG s checksumom, telefon, email, IBAN, SSN), Fernet token mapa, čišćenje placeholdera iz baze znanja |
 | Pipeline obrada | Asinhrono (FastAPI BackgroundTasks) + live status po fazama |
-| Drive import | On-demand i scheduled (hourly/daily/weekly), dedup, robusnost na grešku pojedinog fajla |
+| Drive import | On-demand i scheduled (hourly/daily/weekly), deduplikacija, robusnost na grešku pojedinog fajla |
 | Cloud deployment | Single-click `azd up` / push na `main` → Azure Container App + Static Web App |
 | Sigurnost | JWT, RBAC u servisnom sloju, prompt-injection zaštita, HTTPS/WSS, secrets van koda |
 
@@ -46,7 +46,7 @@ Finalna verzija je kompletan, deployovan RAG chatbot za podršku call centru sa 
 - **Skaliranje:** backend je fiksiran na 1 uvijek-toplu repliku (free tier + in-process scheduler) — nema autoscalinga.
 - **Frontend testovi nisu u CI-u:** CI pokreće samo backend `pytest`; frontend se validira ručno + `npm run lint`.
 - **Redis nije na Azure produkciji:** koristi se opciono; aplikacija radi i bez njega.
-- **Backend image se buildi lokalno** (ACR Tasks blokirani na free-trial).
+- **Backend image se builda lokalno** (ACR Tasks blokirani na free-trial).
 - **Zavisnost o vanjskim servisima:** Groq/Qdrant/Supabase free-tier limiti mogu uticati na odziv.
 - **`TOKEN_MAP_KEY` se ne smije mijenjati** nakon prvog deploya (inače PII postaje nedekriptabilan).
 - Potpuna lista: `KnownIssues.md`.
@@ -79,6 +79,6 @@ Nijedan poznati bug ne blokira osnovne korisničke tokove.
 
 ## 6. Sažetak isporuke vs. plan
 
-Sve numerisane backlog stavke (PB-1 – PB-72) su isporučene (vidi `ProductBacklog.md`). Razlika između
+Sve numerisane backlog stavke (PB-1 – PB-72) su isporučene (pogledati `ProductBacklog.md`). Razlika između
 isporučenog i planiranog odnosi se isključivo na nefunkcionalne/operativne stavke navedene u sekcijama
 3 i 5, koje su svjesno odgođene i nisu prikazane kao završene.
