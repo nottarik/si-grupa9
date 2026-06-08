@@ -1,4 +1,4 @@
-# Sprint Goal — Sprint 11 (Zadnji sprint)
+# Sprint Goal — Sprint 11 
 
 ## Cilj sprinta
 
@@ -18,13 +18,13 @@ Konkretno, Sprint 11 isporučuje:
 - **Test Summary / QA izvještaj** sa konkretnim i provjerljivim dokazima testiranja,
 - **Architecture / Technical Overview** za osobu koja prvi put gleda projekat,
 - **Final AI Usage Summary** koji transparentno prikazuje korištenje AI alata,
-- **Known Issues / Limitations** — iskrenu listu poznatih problema i ograničenja.
+- **Known Issues / Limitations** —  listu poznatih problema i ograničenja.
 
 ## Kontekst
 
-Sistem (RAG-zasnovan AI chatbot za podršku call centru) je kroz Sprinteve 1–10 dosegao
+Sistem (RAG-zasnovan AI chatbot za podršku call centru) je kroz sprintove 1–10 dosegao
 produkcijsku zrelost: kompletan transcript→knowledge base pipeline, RAG chat sa eskalacijom na
-živog agenta, admin i agent paneli, automatizovan import sa Google Drive-a, scheduled pipeline,
+stvarnog agenta, admin i agent paneli, automatizovan import sa Google Drive-a, scheduled pipeline,
 te single-click cloud deployment na Azure. Sprint 11 ne mijenja funkcionalni opseg — on
 **zaključava** isporuku i čini je provjerljivom.
 
@@ -45,8 +45,8 @@ deployment se injektuju samo kao secret konekcije.
 
 Sprint se smatra uspješnim ako:
 
-- dokumentacija je konkretna za stvarno razvijeni projekat (nije generička),
-- deployment procedura je detaljna i provjeriva — druga osoba može pokrenuti sistem bez pitanja timu,
+- dokumentacija je konkretna za stvarno razvijeni projekat,
+- deployment procedura je detaljna i provjerljiva — druga osoba može pokrenuti sistem bez pitanja upućenih timu,
 - CD pipeline omogućava ponovljiv deployment kompletnog sistema na Azure,
 - korisnički priručnik je razumljiv krajnjem korisniku i sadrži demo kredencijale,
 - Product Backlog prikazuje stvarno stanje projekta (Done / Partially Done / Not Done / Deferred),
@@ -56,7 +56,7 @@ Sprint se smatra uspješnim ako:
 - poznata ograničenja su jasno navedena bez prikrivanja,
 - svi dokumenti su međusobno konzistentni i tim ih može odbraniti.
 
-## Obavezni artefakti (lokacija u ovom folderu)
+## Obavezni artefakti 
 
 | # | Artefakt | Fajl |
 |---|----------|------|
