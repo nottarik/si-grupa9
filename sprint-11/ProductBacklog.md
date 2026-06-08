@@ -82,7 +82,7 @@ nije implementirano · **Deferred** = svjesno ostavljeno za budući rad.
 | 60 | Pregled i kuriranje sadrzaja baze znanja | feature | Done | Knowledge Pending/Approved |
 | 61 | Optimizacija performansi chatbota | technical | Done | Paralelni intent+embed, prefetch vektor |
 | 62 | Prikaz komentara uz ocjene razgovora u admin i agent panelu | feature | Done | Ratings/komentari |
-| 63 | End-to-end i regresijsko testiranje sistema | technical | Done | 223 testa u CI (videti napomenu o pokrivenosti) |
+| 63 | End-to-end i regresijsko testiranje sistema | technical | Done | 223 testa u CI (pogledati napomenu o pokrivenosti) |
 | 64 | User Settings | feature | Done | Ime, brisanje historije/naloga |
 | 65 | Brisanje pojedinačnog chata iz historije| feature | Done | `DELETE /chat/sessions/{id}` |
 | 66 | Batch procesiranje fajlova iz eksternih izvora | feature | Done | Google Drive import + deduplikacija |
