@@ -70,6 +70,13 @@ async def ensure_table() -> None:
 
     async with engine.begin() as conn:
         await conn.run_sync(DriveSyncSchedule.__table__.create, checkfirst=True)
+        # create_all won't add columns to a table that already exists, and production
+        # has no Alembic step — add `language` defensively so an existing schedule row
+        # gets the column on deploy. Idempotent via IF NOT EXISTS.
+        await conn.exec_driver_sql(
+            "ALTER TABLE drive_sync_schedule "
+            "ADD COLUMN IF NOT EXISTS language VARCHAR NOT NULL DEFAULT 'en'"
+        )
 
     async with AsyncSessionLocal() as db:
         exists = (
@@ -121,6 +128,9 @@ async def _tick() -> None:
                 )
             ).scalar_one_or_none()
 
+        # "auto" → None so Whisper detects the language per file (mixed-language folders).
+        language = None if cfg.language == "auto" else cfg.language
+
         cfg.last_run_at = now
         cfg.next_run_at = compute_next_run(cfg, now)
         await db.commit()
@@ -138,7 +148,7 @@ async def _tick() -> None:
     try:
         # import_drive_folder manages the running flag + last_result itself, so a manual
         # run surfaces the same live state in the UI as a scheduled one.
-        await import_drive_folder(folder_id, uploader_id)
+        await import_drive_folder(folder_id, uploader_id, language)
     except Exception:
         logger.exception("Scheduled Drive import failed")
 

@@ -45,7 +45,7 @@ router = APIRouter(prefix="/transcripts", tags=["transcripts"])
 @router.post("/transcribe-preview", response_model=TranscribePreviewResponse)
 async def transcribe_audio_preview(
     file: UploadFile = File(...),
-    language: str = Form("bs"),
+    language: str = Form("en"),
     current_user: Korisnik = Depends(require_role(UlogaTip.administrator, UlogaTip.call_centar_agent)),
 ):
     from app.services.transcript.transcription_service import TranscriptionService
@@ -71,7 +71,9 @@ async def transcribe_audio_preview(
             tmp_path = tmp.name
 
         try:
-            text = TranscriptionService().transcribe(tmp_path, language=language)
+            # "auto" → falsy so Whisper detects the language per file.
+            lang = None if language == "auto" else language
+            text = TranscriptionService().transcribe(tmp_path, language=lang)
         except Exception as exc:
             import logging
             logging.getLogger(__name__).error(f"Transcription failed: {type(exc).__name__}: {exc}")
@@ -116,7 +118,7 @@ async def confirm_audio_transcript(
         file_path=None,
         format=FormatTip.audio,
         raw_text=body.text,
-        jezik=body.language,
+        jezik=None if body.language == "auto" else body.language,
         status=TranskStatusTip.sirovi,
     )
     db.add(transkript)

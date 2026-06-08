@@ -121,7 +121,7 @@ class DriveImportRequest(BaseModel):
     # (the one-click "Run complete pipeline" button sends no folder).
     folder_id: str | None = None
     # ISO code for audio transcription; "auto" lets Whisper detect per file.
-    language: str = "bs"
+    language: str = "en"
 
     @field_validator("folder_id")
     @classmethod
@@ -147,7 +147,7 @@ class AudioTranscriptConfirm(BaseModel):
     agent_name: str
     date: date
     filename: str
-    language: str = "bs"
+    language: str = "en"
 
     @field_validator("text")
     @classmethod

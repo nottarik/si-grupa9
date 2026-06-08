@@ -2,6 +2,8 @@ import apiClient from "./client";
 
 export type Frequency = "hourly" | "daily" | "weekly";
 
+export type ScheduleLanguage = "en" | "bs" | "de" | "auto";
+
 export type DriveFileStatus = "pending" | "importing" | "imported" | "skipped" | "failed";
 
 export interface DriveFileProgress {
@@ -15,6 +17,7 @@ export interface DriveSchedule {
   hour: number;
   minute: number;
   day_of_week: number; // Mon=0 … Sun=6
+  language: ScheduleLanguage;
   last_run_at: string | null;
   next_run_at: string | null;
   running: boolean;
@@ -25,7 +28,7 @@ export interface DriveSchedule {
 
 export type DriveScheduleUpdate = Pick<
   DriveSchedule,
-  "enabled" | "frequency" | "hour" | "minute" | "day_of_week"
+  "enabled" | "frequency" | "hour" | "minute" | "day_of_week" | "language"
 >;
 
 export async function getDriveSchedule(): Promise<DriveSchedule> {

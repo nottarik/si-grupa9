@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   DriveSchedule,
   Frequency,
+  ScheduleLanguage,
   cancelDriveImport,
   getDriveSchedule,
   updateDriveSchedule,
@@ -15,6 +16,7 @@ interface FormState {
   hour: number;
   minute: number;
   day_of_week: number;
+  language: ScheduleLanguage;
 }
 
 interface LiveState {
@@ -78,6 +80,7 @@ export default function DriveScheduleCard() {
           hour: s.hour,
           minute: s.minute,
           day_of_week: s.day_of_week,
+          language: s.language,
         });
         applyLive(s);
       })
@@ -229,6 +232,24 @@ export default function DriveScheduleCard() {
                 {pad(m)}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold tracking-widest text-gold uppercase block">
+            Language
+          </label>
+          <select
+            className="input-field"
+            style={{ width: 170 }}
+            disabled={!form.enabled}
+            value={form.language}
+            onChange={(e) => patch({ language: e.target.value as ScheduleLanguage })}
+          >
+            <option value="en">English (EN)</option>
+            <option value="bs">Bosnian (BS)</option>
+            <option value="de">German (DE)</option>
+            <option value="auto">Auto / Mixed (detect per file)</option>
           </select>
         </div>
       </div>

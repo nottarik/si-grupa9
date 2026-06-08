@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 Frequency = Literal["hourly", "daily", "weekly"]
+Language = Literal["en", "bs", "de", "auto"]
 
 
 class DriveFileProgress(BaseModel):
@@ -22,6 +23,7 @@ class DriveScheduleRead(BaseModel):
     hour: int
     minute: int
     day_of_week: int
+    language: Language = "en"
     last_run_at: Optional[datetime] = None
     next_run_at: Optional[datetime] = None
     # Live runner state (not persisted) — lets the UI show a run in progress.
@@ -37,3 +39,4 @@ class DriveScheduleUpdate(BaseModel):
     hour: int = Field(ge=0, le=23)
     minute: int = Field(ge=0, le=59)
     day_of_week: int = Field(ge=0, le=6)
+    language: Language = "en"

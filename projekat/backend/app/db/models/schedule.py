@@ -19,6 +19,8 @@ class DriveSyncSchedule(Base):
     hour = Column(Integer, nullable=False, default=2)             # 0–23 UTC (daily/weekly)
     minute = Column(Integer, nullable=False, default=0)           # 0–59
     day_of_week = Column(Integer, nullable=False, default=0)      # Mon=0 … Sun=6 (weekly)
+    # ISO language code for transcription (en | bs | de) or "auto" to let Whisper detect.
+    language = Column(String, nullable=False, default="en", server_default="en")
     last_run_at = Column(DateTime(timezone=True), nullable=True)
     next_run_at = Column(DateTime(timezone=True), nullable=True)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

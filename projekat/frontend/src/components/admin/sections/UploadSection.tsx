@@ -352,7 +352,7 @@ function AudioUpload() {
   const [stage, setStage] = useState<AudioStage>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
-  const [language, setLanguage] = useState("bs");
+  const [language, setLanguage] = useState("en");
   const [transcriptText, setTranscriptText] = useState("");
   const [textError, setTextError] = useState("");
   const [qualityWarning, setQualityWarning] = useState<string | null>(null);
@@ -468,9 +468,10 @@ function AudioUpload() {
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
         >
-          <option value="bs">Language: Bosnian (BS)</option>
-          <option value="en">English (EN)</option>
+          <option value="en">Language: English (EN)</option>
+          <option value="bs">Bosnian (BS)</option>
           <option value="de">German (DE)</option>
+          <option value="auto">Auto / Detect language</option>
         </select>
 
         <button
@@ -622,7 +623,7 @@ function DriveImport() {
   const [recent, setRecent] = useState<string>(() => {
     try { return localStorage.getItem(RECENT_DRIVE_KEY) ?? ""; } catch { return ""; }
   });
-  const [language, setLanguage] = useState("bs");
+  const [language, setLanguage] = useState("en");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
   );
@@ -787,8 +788,8 @@ function DriveImport() {
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
       >
-        <option value="bs">Language: Bosnian (BS)</option>
-        <option value="en">English (EN)</option>
+        <option value="en">Language: English (EN)</option>
+        <option value="bs">Bosnian (BS)</option>
         <option value="de">German (DE)</option>
         <option value="auto">Auto / Mixed (detect per file)</option>
       </select>

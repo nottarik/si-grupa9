@@ -85,7 +85,7 @@ async def set_stage(transcript_id: int, stage: str | None) -> None:
         await db.commit()
 
 
-async def import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> dict:
+async def import_drive_folder(folder_id: str, uploader_id, language: str | None = "en") -> dict:
     """Public entry point. Flags the importer as running so the admin UI shows live
     state (for manual *and* scheduled runs), then delegates. The flag is always cleared,
     even on error. Returns the {queued, skipped, errors} summary."""
@@ -103,7 +103,7 @@ async def import_drive_folder(folder_id: str, uploader_id, language: str | None 
         )
 
 
-async def _import_drive_folder(folder_id: str, uploader_id, language: str | None = "bs") -> dict:
+async def _import_drive_folder(folder_id: str, uploader_id, language: str | None = "en") -> dict:
     """
     Import all supported files from a Google Drive folder, reusing the same path
     as the manual `/transcripts/upload` route. Idempotent: files already imported
@@ -262,7 +262,7 @@ async def _import_drive_folder(folder_id: str, uploader_id, language: str | None
     return {"queued": queued, "skipped": skipped, "errors": errors}
 
 
-async def process_transcript(transcript_id: int, language: str | None = "bs") -> None:
+async def process_transcript(transcript_id: int, language: str | None = "en") -> None:
     """
     Download audio (if needed), transcribe via Groq Whisper, run the preprocessing
     pipeline, and persist masked segments + Q&A pairs.  Called as a FastAPI BackgroundTask.

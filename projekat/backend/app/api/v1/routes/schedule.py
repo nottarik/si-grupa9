@@ -46,6 +46,7 @@ async def update_drive_schedule(
     cfg.hour = body.hour
     cfg.minute = body.minute
     cfg.day_of_week = body.day_of_week
+    cfg.language = body.language
     # Recompute the next run from the new settings; clear it when disabled.
     cfg.next_run_at = compute_next_run(cfg, datetime.now(timezone.utc)) if body.enabled else None
     await db.commit()
