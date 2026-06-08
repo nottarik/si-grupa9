@@ -32,7 +32,7 @@ nije implementirano · **Deferred** = svjesno ostavljeno za budući rad.
 | 10 | Acceptance Criteria | documentation | Done | Uz user stories |
 | 11 | Nefunkcionalni zahtjevi | documentation | Done | `Non-FunctionalRequirements.md` |
 | 12 | Ažuriranje backloga | documentation | Done | Kontinuirano kroz sprinteve |
-| 13 | Konvertovanje audio → transkript | research | Done | Implementirano kroz Groq Whisper (PB-… audio pipeline) |
+| 13 | Konvertovanje iz audio zapisa u transkript | research | Done | Implementirano kroz Groq Whisper |
 | 14 | Plan baze podataka | technical | Done | Shema realizovana (PostgreSQL/Supabase); domain model u sprint-3 |
 | 15 | Ocjena odgovora chatbota | research | Done | Realizovano kroz feedback/ocjene (PB-57) |
 | 16 | Risk Register | documentation | Done | `RiskRegister.md` (sprint 3) |
@@ -53,54 +53,54 @@ nije implementirano · **Deferred** = svjesno ostavljeno za budući rad.
 | 31 | Odgovor kada nema sigurnog responsea | feature | Done | Fallback poruka + eskalacija na agenta |
 | 32 | Potvrda i obrada netačnog odgovora | technical | Done | Negativan feedback → `Anomalija` (Issue) |
 | 33 | Pregled unesenih transkripata | feature | Done | Transcripts lista |
-| 34 | Pregled pitanja i odgovora | feature | Done | Knowledge pregledi |
+| 34 | Pregled postavljenih pitanja i odgovora | feature | Done | Knowledge pregledi |
 | 35 | Pregled prijavljenih problema | feature | Done | Admin → Issues |
 | 36 | Sign In | technical | Done | JWT login |
 | 37 | Sign Out | technical | Done | UserMenu odjava |
-| 38 | Uređivanje transkripata | feature | Done | `PATCH /transcripts/{id}` |
-| 39 | Brisanje transkripata uz potvrdu | feature | Done | `DELETE /transcripts/{id}` |
+| 38 | Uređivanje postojećih transkripata | feature | Done | `PATCH /transcripts/{id}` |
+| 39 | Brisanje transkripata sa potvrdom akcije | feature | Done | `DELETE /transcripts/{id}` |
 | 40 | Filtriranje i pretraga transkripata | feature | Done | Pretraga po ključnoj riječi/datumu |
-| 41 | Dodjela i upravljanje ulogama | feature | Done | `PATCH /users/{id}/role` |
+| 41 | Dodjela i upravljanje ulogama korisnika | feature | Done | `PATCH /users/{id}/role` |
 | 42 | Pregled i brisanje korisnika | feature | Done | Users sekcija |
 | 43 | Dashboard s aktuelnim podacima | feature | Done | Admin Dashboard (stvarni agregati) |
 | 44 | Validacija formata transkripata | technical | Done | Backend + frontend validacija |
 | 45 | Account Settings | feature | Done | Implementirano kao PB-64 (User Settings) |
 | 46 | Prikaz statusa obrade transkripata | feature | Done | Pipeline Monitor (statusi) |
-| 47 | Agent queue — potvrđivanje Q&A | feature | Done | Agent pregled Pending Q&A |
+| 47 | Agent queue — pregled i potvrđivanje Q&A parova | feature | Done | Agent pregled Pending Q&A |
 | 48 | Escalation queue u admin panelu | feature | Done | Eskalacijski red + live chat |
 | 49 | Historija razgovora korisnika | feature | Done | `GET /chat/sessions` + UI |
-| 50 | Auto-obavještavanje agenta o kraju sesije | feature | Done | WS auto-end |
-| 51 | Agent panel (Live Queue + KB) | feature | Done | `AgentShell`, `AgentQueue`, `KbLookup` |
-| 52 | RAG retrieval i LLM klasifikacija | technical | Done | `RagService` + intent klasifikacija |
-| 53 | Osnovna komunikacija s LLM | feature | Done | Smalltalk/generativni odgovori |
-| 54 | WebSocket korisnik↔agent | technical | Done | `ConnectionManager` + WS rute |
+| 50 | Automatsko obavještavanje agenta o završetku korisničke sesije | feature | Done | WS auto-end |
+| 51 | Agent panel s Live Queue i pristupom bazi znanja | feature | Done | `AgentShell`, `AgentQueue`, `KbLookup` |
+| 52 | RAG retrieval i LLM klasifikacija upita | technical | Done | `RagService` + intent klasifikacija |
+| 53 | Obrada osnovne komunikacije sa LLM | feature | Done | Smalltalk/generativni odgovori |
+| 54 | WebSocket komunikacijia između korisnika i agenta | technical | Done | `ConnectionManager` + WS rute |
 | 55 | Resolving chatova | feature | Done | `POST /escalation/{id}/resolve` |
-| 56 | Poboljšanje PII maskiranja i Q&A ekstrakcije | bug fix | Done | Sprint 9 |
+| 56 | Poboljšanje maskiranja PII podataka i ekstrakcije Q&A parova | bug fix | Done | Sprint 9 |
 | 57 | Ocjena razgovora po završetku sesije | feature | Done | `POST /chat/sessions/{id}/rate` |
-| 58 | Sistemske obavijesti (baner) | feature | Done | Announcements |
-| 59 | Ručni unos Q&A para | feature | Done | `POST /knowledge/manual` |
-| 60 | Pregled i kuriranje baze znanja | feature | Done | Knowledge Pending/Approved |
+| 58 | Sistemske obavijesti u chatbot-u | feature | Done | Announcements |
+| 59 | Mogućnost ručnog unosa Q&A para direktno u bazu znanja bez transkripata | feature | Done | `POST /knowledge/manual` |
+| 60 | Pregled i kuriranje sadrzaja baze znanja | feature | Done | Knowledge Pending/Approved |
 | 61 | Optimizacija performansi chatbota | technical | Done | Paralelni intent+embed, prefetch vektor |
-| 62 | Komentari uz ocjene (admin/agent) | feature | Done | Ratings/komentari |
-| 63 | E2E i regresijsko testiranje | technical | Done | 223 testa u CI (vidi napomenu o pokrivenosti) |
+| 62 | Prikaz komentara uz ocjene razgovora u admin i agent panelu | feature | Done | Ratings/komentari |
+| 63 | End-to-end i regresijsko testiranje sistema | technical | Done | 223 testa u CI (videti napomenu o pokrivenosti) |
 | 64 | User Settings | feature | Done | Ime, brisanje historije/naloga |
-| 65 | Brisanje pojedinačnog chata | feature | Done | `DELETE /chat/sessions/{id}` |
-| 66 | Batch procesiranje iz eksternih izvora | feature | Done | Google Drive import + dedup |
-| 67 | Scheduled pipeline + auto KB update | feature | Done | In-process scheduler, admin kontrola |
+| 65 | Brisanje pojedinačnog chata iz historije| feature | Done | `DELETE /chat/sessions/{id}` |
+| 66 | Batch procesiranje fajlova iz eksternih izvora | feature | Done | Google Drive import + deduplikacija |
+| 67 | Scheduled pipeline obrada i automatsko ažuriranje baze znanja | feature | Done | In-process scheduler, admin kontrola |
 | 68 | Single-click cloud deployment | devops | Done | Azure (`azd` + Bicep) |
-| 69 | Optimizacija build/CI-CD | technical | Done | Docker cache + CPU-only torch layer |
-| 70 | Prevencija duplih unosa u bazu znanja | technical | Done | Dedup na svim ulazima |
-| 71 | Bulk brisanje (Chat Logs/Transcripts/Issues) | feature | Done | Bulk-delete endpointi |
-| 72 | Razumljive poruke o greškama | feature | Done | Korisnički prilagođene poruke |
+| 69 | Optimizacija build procesa i CI-CD performansi | technical | Done | Docker cache + CPU-only torch layer |
+| 70 | Prevencija duplih unosa u bazu znanja | technical | Done | Deduplikacija na svim ulazima |
+| 71 | Bulk brisanje razgovora iz Chat Logs, Transcripts i Issues) | feature | Done | Bulk-delete endpointi |
+| 72 | Razumljive i korisnički prilagođene poruke o greškama | feature | Done | Sprint 10 |
 
 **Sažetak:** 72/72 numerisanih stavki — **Done**.
 
 ---
 
-## Stvarno stanje van numerisanih stavki (iskreno)
+## Stvarno stanje van numerisanih stavki 
 
-Sljedeće **nije bilo zasebna backlog stavka**, ali se navodi radi poštene slike stvarnog stanja
-projekta (vidi i `KnownIssues.md`):
+Sljedeće **nije bilo zasebna backlog stavka**, ali se navodi radi  stvarnog stanja
+projekta (videti i `KnownIssues.md`):
 
 | Stavka | Status | Razlog |
 |---|---|---|
