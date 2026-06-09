@@ -45,7 +45,7 @@ za sve administrativne radnje.)
 
 **Odjava:** preko korisničkog menija (UserMenu) u gornjem desnom uglu → **Logout**.
 
-![Login ekran sa Sign In / Sign Up tabovima](../projekat/signIn.png)
+![Login ekran sa Sign In / Sign Up tabovima](slike/signIn.png)
 *Slika 1: Prijava — kartica „Welcome Back" s tabovima Sign In / Sign Up, poljima Email Address i Password (opcija Show), opcijom Keep me signed in i dugmadima Sign In i Create an Account.*
 
 ---
@@ -114,7 +114,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - „Tick the question(s) to import — the agent's reply is pre-filled and editable" — označi pitanja koja želiš importovati (agentov odgovor je već popunjen i može se urediti; ako nema ničega: „No answered customer questions to import yet.").
    - Klikni **Confirm Resolve** da zatvoriš eskalaciju (dugme je aktivno tek kad je označeno bar jedno pitanje, ako importuješ), ili **Cancel** da se vratiš na razgovor.
 
-   ![Resolve panel sa importom Q&A u bazu znanja](../projekat/addToKnow.png)
+   ![Resolve panel sa importom Q&A u bazu znanja](slike/addToKnow.png)
    *Slika 2: Rješavanje eskalacije — opcija „Add to Knowledge Base (auto-published)", označeno pitanje s pre-popunjenim (i izmjenjivim) agentovim odgovorom i dugme Confirm Resolve.*
 8. Riješene/zatvorene eskalacije vidiš u **My History** (kad je prazno: „No resolved escalations yet.").
 9. **Očekivani rezultat:** sesija je riješena, agent oslobođen, korisnik obaviješten ako je napustio razgovor.
@@ -128,7 +128,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - Opciono: unesi ime agenta koji je odgovarao na pitanja u transkriptu i datum vezan za transkript.
    - Klik na **Upload & Process** pokreće obradu.
 
-![Upload ekran — tab Textual](../projekat/upload.png)
+![Upload ekran — tab Textual](slike/upload.png)
 *Slika 3: Upload transkripta — tab Textual s opcijama Upload File / Manual Entry, „Drag & drop" zonom (.txt, .pdf, max 10 MB), poljem Agent name (optional), datumom i dugmadima Upload & Process / Clear.*
 
 **B) Audio transkript — tab `Audio`**
@@ -152,7 +152,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
 3. **Pregled unosa:** svaki Q&A par ima oznaku izvora (npr. **Manual Entry**) i datum, te dugmad **Edit** i **Delete** za uređivanje ili brisanje.
 4. **Ručni unos (Add Q&A Pair Manually):** popuni polja **Question** (min. 10 znakova) i **Answer** (min. 10 znakova), pa klikni **Add to Knowledge Base** (ili **Cancel** za odustajanje). Sistem generiše embedding i sprema u Qdrant; duplikati se automatski sprječavaju.
 
-![Training Dataset — ručni unos Q&A para](../projekat/tra.png)
+![Training Dataset — ručni unos Q&A para](slike/tra.png)
 *Slika 4: Training Dataset (Knowledge Base) — forma „Add Q&A Pair Manually" s poljima Question i Answer (min. 10 znakova) i dugmadima Add to Knowledge Base / Cancel.*
 
 ### 6.7 Administrator — dashboard, korisnici, ocjene, issues, transkripti, logovi, obavijesti
@@ -161,7 +161,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
 - **Ratings (Ratings Overview):** kartice **Average Score**, **5-Star Responses (%)**, **Below 3 Stars (%)** i **Total Rated**; grafik **Score Trend — Last 14 Days**; lista **Top Rated Responses** (pitanje, odgovor, % confidence, datum) i **Recent User Comments** (ocjena, komentar, datum, link **View Chat**).
 - **Escalation Queue:** isti red eskalacija kao u agentskom panelu (**Waiting Queue** s upitima — broj, prioritet, izvor, status, vrijeme; **Accept** za preuzimanje, **Active Chat** s **Release/Resolve**). Admin tako može pratiti i preuzeti eskalacije pored agenata (detaljan tok opisan je u 6.4). Ako je razgovor već preuzeo drugi agent, prikazuje se zaključanim („Locked by … — view only", „Chat is locked — you can only view this conversation") pa ga admin može samo pregledati.
 
-  ![Admin Escalation Queue — zaključan razgovor (view only)](../projekat/esc.png)
+  ![Admin Escalation Queue — zaključan razgovor (view only)](slike/esc.png)
   *Slika 5: Escalation Queue u Admin panelu — pregled eskalacije koju je preuzeo agent; razgovor je zaključan („Locked by Agent Test — view only") i dostupan samo za čitanje.*
 - **Issues:** anomalije (niska pouzdanost, bez odgovora, negativan feedback). Filteri **All / Open / Resolved / Dismissed**, pretraga (**Search issues…**) i tabela s kolonama **#, Title, Type, Severity, Status, Date**; brojač ukupnih (npr. „0 total" → „No issues found.").
 - **Transcripts:** lista uploadovanih transkripata s kolonama **Name, Date, Format** (Text/Audio), **Status** (npr. Processed). Pretraga (**Search by name, agent or keywords…**), filter **All statuses** i raspon **Date from/to**. Po redu: **View** (pregled), ikona za uređivanje (✎) i ikona kante (🗑) za brisanje; checkboxovi za bulk odabir.
