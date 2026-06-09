@@ -115,6 +115,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - Klikni **Confirm Resolve** da zatvoriš eskalaciju (dugme je aktivno tek kad je označeno bar jedno pitanje, ako importuješ), ili **Cancel** da se vratiš na razgovor.
 
    <img src="slike/addToKnow.png" alt="Resolve panel sa importom Q&A u bazu znanja" width="450">
+   
    *Slika 2: Rješavanje eskalacije — opcija „Add to Knowledge Base (auto-published)", označeno pitanje s pre-popunjenim (i izmjenjivim) agentovim odgovorom i dugme Confirm Resolve.*
 8. Riješene/zatvorene eskalacije vidiš u **My History** (kad je prazno: „No resolved escalations yet.").
 9. **Očekivani rezultat:** sesija je riješena, agent oslobođen, korisnik obaviješten ako je napustio razgovor.
@@ -162,6 +163,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
 - **Escalation Queue:** isti red eskalacija kao u agentskom panelu (**Waiting Queue** s upitima — broj, prioritet, izvor, status, vrijeme; **Accept** za preuzimanje, **Active Chat** s **Release/Resolve**). Admin tako može pratiti i preuzeti eskalacije pored agenata (detaljan tok opisan je u 6.4). Ako je razgovor već preuzeo drugi agent, prikazuje se zaključanim („Locked by … — view only", „Chat is locked — you can only view this conversation") pa ga admin može samo pregledati.
 
   <img src="slike/esc.png" alt="Admin Escalation Queue — zaključan razgovor (view only)" width="450">
+  
   *Slika 5: Escalation Queue u Admin panelu — pregled eskalacije koju je preuzeo agent; razgovor je zaključan („Locked by Agent Test — view only") i dostupan samo za čitanje.*
 - **Issues:** anomalije (niska pouzdanost, bez odgovora, negativan feedback). Filteri **All / Open / Resolved / Dismissed**, pretraga (**Search issues…**) i tabela s kolonama **#, Title, Type, Severity, Status, Date**; brojač ukupnih (npr. „0 total" → „No issues found.").
 - **Transcripts:** lista uploadovanih transkripata s kolonama **Name, Date, Format** (Text/Audio), **Status** (npr. Processed). Pretraga (**Search by name, agent or keywords…**), filter **All statuses** i raspon **Date from/to**. Po redu: **View** (pregled), ikona za uređivanje (✎) i ikona kante (🗑) za brisanje; checkboxovi za bulk odabir.
