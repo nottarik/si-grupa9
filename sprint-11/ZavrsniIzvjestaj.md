@@ -72,20 +72,31 @@ planirane funkcionalnosti (vidi `ProductBacklog.md`). Sistem je deployovan i liv
 
 Razlozi za svaku nezavršenu stavku navedeni su u `ProductBacklog.md` i `KnownIssues.md`.
 
-## 7. Glavne tehničke odluke
+## 7. Glavne tehničke i organizacijske odluke
 
-| Odluka | Obrazloženje |
-|---|---|
-| **RAG umjesto fine-tuninga** | Jeftinije, ažurno, izvor-sljedivo; baza znanja se mijenja bez retreniranja modela. |
-| **Groq kao LLM/Whisper provider** | Brzi inference (`llama-3.3-70b-versatile`, `whisper-large-v3`) uz free tier. |
-| **Lokalni embedding (`all-MiniLM-L6-v2`)** | Bez eksternog troška/latencije za embedding; 384-dim dovoljno za domenu. |
-| **Qdrant Cloud** | Namjenska vektorska baza sa cosine pretragom. |
-| **Vlastita PII implementacija (regex+checksum+NER) umjesto Presidio** | Lakša zavisnost, kontrola nad formatima (BS telefon, JMBG checksum). |
-| **Fernet enkripcija token mape** | Reverzibilno maskiranje bez eksterne enkripcijske usluge. |
-| **Privacy boundary** | LLM uvijek prima samo maskirani tekst — zaštita PII na nivou arhitekture. |
-| **FastAPI BackgroundTasks + self-heal umjesto Celery** | Jednostavnije za free-tier (jedna replika); self-heal pokriva prekide. |
-| **Azure Container Apps + Static Web Apps preko `azd`/Bicep** | Single-click, ponovljiv deployment; infrastruktura kao kod. |
-| **Jedna uvijek-topla replika** | Izbjegava cold-start učitavanja modela i dvostruko okidanje schedulera. |
+U nastavku su izdvojene najvažnije odluke iz Decision Log-a. Fokus je na odlukama koje su stvarno uticale
+na arhitekturu, sigurnost, način rada tima, deployment i održavanje sistema.
+
+| Oblast | Glavna odluka | Obrazloženje / uticaj na projekat |
+|---|---|---|
+| **Infrastruktura i baza** | Korišten je kombinovani free-tier/cloud pristup: Supabase PostgreSQL, Qdrant Cloud, Groq i Azure za finalni deployment. | Omogućeno je da tim razvije i demonstrira sistem bez čekanja na nedostupne Oracle instance, uz jasnu podjelu između relacione baze, vektorske baze i AI servisa. |
+| **Relacijski podaci** | Supabase PostgreSQL je izabran za korisnike, transkripte, sesije, poruke, feedback, anomalije i bazu znanja. | PostgreSQL bolje odgovara modelu sa više povezanih entiteta od nerelacionih baza i olakšava timski rad kroz zajedničku cloud bazu. |
+| **Vektorska pretraga** | Qdrant je izabran za RAG retrieval. | Odvaja semantičku pretragu od relacione baze i omogućava povezivanje pronađenog vektorskog rezultata sa konkretnim unosom baze znanja. |
+| **AI arhitektura** | Odabran je RAG umjesto direktnog generativnog odgovaranja ili fine-tuninga. | Odgovori se zasnivaju na stvarnoj bazi znanja, mogu se povezati sa izvorom i ne zahtijevaju retreniranje modela pri svakoj izmjeni sadržaja. |
+| **LLM i embedding** | Korišteni su lokalni embedding modeli, Groq LLM i Groq Whisper. | Lokalni embedding smanjuje troškove i zavisnost od eksternog API-ja, dok Groq omogućava brzo generisanje odgovora i transkripciju audio fajlova. |
+| **Obrada transkripata** | Pipeline je razdvojen u module za normalizaciju, detekciju govornika, PII, chunking, audit i Q&A ekstrakciju. | Modularizacija je povećala testabilnost i smanjila rizik da promjena u jednom dijelu naruši cijeli tok obrade. |
+| **PII sigurnost** | Uvedeno je maskiranje osjetljivih podataka i Fernet enkripcija token mape. | Lični podaci se ne čuvaju u čistom tekstu i ne šalju se LLM-u; reverzibilnost je moguća samo uz odgovarajući `TOKEN_MAP_KEY`. |
+| **Privacy boundary** | LLM dobija samo maskirani tekst. | Odluka je ključna za sigurnost jer se eksternom AI servisu ne šalju originalni JMBG, telefon, email, IBAN ili drugi osjetljivi podaci. |
+| **RAG ponašanje** | Knowledge base je autoritativan izvor, pa `out_of_scope` klasifikacija više ne prekida automatski retrieval. | Time je smanjen rizik da chatbot odbije odgovor iako KB sadrži relevantnu informaciju; prompt injection ostaje hard block. |
+| **Eskalacije** | Uvedeni su eksplicitni statusi eskalacije i agent locking. | Sistem jasno razlikuje razgovore koji čekaju, koji su u toku, riješeni ili napušteni; tokom live sesije chatbot ne odgovara paralelno sa agentom. |
+| **Real-time komunikacija** | WebSocket je odabran za komunikaciju korisnika i agenta, uz singleton `ConnectionManager`. | Omogućena je dvosmjerna live komunikacija bez reload-a stranice, ali je jasno dokumentovano ograničenje jedne backend instance. |
+| **Agent/Admin organizacija** | Agent panel je odvojen od admin panela, uz role-based pristup. | Agenti vide samo relevantan queue i razgovore, dok admin zadržava širi pregled sistema, korisnika, transkripata, ocjena i baze znanja. |
+| **Baza znanja** | Uveden je ručni unos, kuriranje, izbor Q&A parova pri resolve toku i sprečavanje duplikata kroz sve tokove. | KB ostaje kvalitetnija jer se ne dodaju identična pitanja, a zaposleni biraju koji odgovori stvarno vrijede za buduće korisnike. |
+| **Automatizacija importa** | Google Drive batch import i scheduled sync koriste postojeći transcript pipeline. | Administrator može ručno ili zakazano pokretati obradu eksternih fajlova, a svi fajlovi prolaze isti tok transkripcije, čišćenja, Q&A ekstrakcije i KB ažuriranja. |
+| **Live progress** | Pipeline prikazuje status importa i zadnji scheduled run. | Administrator vidi da se proces stvarno izvršava, koji se fajl obrađuje i kakav je bio rezultat posljednjeg zakazanog importa. |
+| **Build i deployment** | Uveden je Azure `azd`/Bicep deployment i optimizovan Docker build kroz CPU-only Torch, BuildKit cache i pinovane dependency-je. | Deployment je ponovljiv i dokumentovan, a rebuild nakon inicijalnog cache-a je značajno brži jer se biblioteke ne skidaju svaki put. |
+| **Korisničke greške** | Sve greške se prikazuju kroz korisnički razumljive poruke umjesto sirovih HTTP/axios poruka. | Krajnji korisnik, agent i admin dobijaju jasnu povratnu informaciju kada akcija ne uspije. |
+| **Završna dokumentacija** | Sprint 11 je fokusiran na dokumentovanje stvarnog stanja projekta, a ne dodavanje velikog broja novih funkcionalnosti. | Pripremljeni dokumenti omogućavaju da druga osoba pokrene, testira, deploya, koristi i evaluira sistem bez neformalnih objašnjenja tima. |
 
 ## 8. Najveći problemi tokom razvoja i način rješavanja
 
@@ -103,13 +114,60 @@ Razlozi za svaku nezavršenu stavku navedeni su u `ProductBacklog.md` i `KnownIs
 
 ## 9. Šta bi tim unaprijedio da se projekat nastavlja
 
-1. **Automatizovani frontend testovi** (Vitest/RTL) integrisani u CI + mjerenje coverage %.
-2. **Skalabilnost:** prelazak na horizontalno skaliranje (eksterni durable queue/Celery umjesto in-process schedulera) i Redis za cache/rate-limit u produkciji.
-3. **Robusniji PII sloj** sa formalnom evaluacijom (precision/recall) i širom pokrivenošću formata.
-4. **Mjerenje kvaliteta RAG-a** (ground-truth set, metrika tačnosti/relevantnosti, A/B pragova).
-5. **Produkcijsko otvrdnjavanje:** rate-limiting, audit logovi, monitoring/alerting, backup strategija baze.
-6. **Manager panel** i finija RBAC prava po sekcijama.
-7. **Cloud build pipeline** (kada to pretplata dozvoli) da se ukloni lokalni Docker preduvjet.
+Da se razvoj nastavlja nakon finalne isporuke, tim bi prioritet dao sljedećim unapređenjima:
+
+1. **Poboljšati funkcionalnost prevođenja.**  
+   Trenutni sistem je primarno prilagođen bosanskom i djelimično engleskom jeziku. Nastavak razvoja bi uključio
+   kvalitetnije prevođenje UI tekstova, bolju podršku za više jezika u chat odgovorima i jasnije razdvajanje jezika
+   korisničkog interfejsa od jezika baze znanja.
+
+2. **Omogućiti unos `.zip` formata.**  
+   Administrator bi mogao uploadovati jedan `.zip` fajl koji sadrži više transkripata, PDF dokumenata ili audio
+   snimaka. Sistem bi raspakovao arhivu, validirao svaki fajl, prikazao rezultat po fajlu i obradio validne fajlove
+   kroz postojeći pipeline.
+
+3. **Dodati podršku za više tipova importa.**  
+   Google Drive import je implementiran, ali bi sistem trebalo proširiti na druge izvore kao što su S3, Azure Blob
+   Storage, OneDrive, SharePoint ili interni dokument-menadžment sistemi. Idealno rješenje bi bio generički
+   `RemoteSource` interfejs sa adapterima po servisu.
+
+4. **Uvesti robusniji job queue za pipeline.**  
+   Scheduled import trenutno zavisi od backend instance i in-process scheduler-a. U nastavku bi bilo korisno preći na
+   durable queue/worker arhitekturu (npr. Celery/RQ + Redis ili cloud-native queue) kako bi se lakše podržalo više
+   replika, retry politika i bolji oporavak nakon pada procesa.
+
+5. **Poboljšati semantičku deduplikaciju baze znanja.**  
+   Trenutno se sprečavaju identična pitanja. Naredni korak bi bio prepoznavanje semantički istih pitanja napisanih
+   drugačijim riječima, uz prijedlog administratoru da ažurira postojeći odgovor umjesto dodavanja novog unosa.
+
+6. **Uvesti formalnu evaluaciju kvaliteta RAG-a.**  
+   Tim bi pripremio ground-truth set pitanja i očekivanih odgovora, mjerio relevantnost retrieval-a, tačnost odgovora,
+   stopu eskalacije i uticaj promjene pragova (`LOW`, `HIGH`, `OFFTOPIC`) na kvalitet sistema.
+
+7. **Automatizovati frontend testove i mjerenje coverage-a.**  
+   Backend testovi su pokriveni, ali bi frontend trebalo dodatno pokriti kroz Vitest/React Testing Library, posebno
+   chat, admin panele, agent queue, upload/import tokove i destruktivne akcije.
+
+8. **Ojačati monitoring, audit i sigurnost produkcije.**  
+   Nastavak bi uključio detaljniji audit log, monitoring performansi, alerting, rate limiting, backup/restore
+   procedure, politiku retencije podataka i jasniji pregled pristupa osjetljivim podacima.
+
+9. **Razviti poseban Manager panel i finija RBAC prava.**  
+   Manager uloga trenutno postoji, ali nema potpuno odvojen radni panel. U nastavku bi se mogla dodati analitika
+   kvaliteta, pregled performansi agenata, trendovi ocjena, broj eskalacija i kontrolisani pristup sekcijama po
+   pravima.
+
+10. **Poboljšati UX za velike količine podataka.**  
+    Kod većeg broja transkripata, KB unosa i chat logova trebalo bi dodati bolju paginaciju, napredne filtere,
+    export izvještaja, bulk akcije sa potvrdom i pregled statusa velikih batch poslova po fajlu.
+
+11. **Ukloniti lokalni Docker build kao preduvjet cloud deploymenta.**  
+    Kada cloud pretplata dozvoli, image build treba prebaciti u cloud build pipeline kako bi deployment bio potpuno
+    automatizovan bez lokalnog Docker Desktop preduvjeta.
+
+12. **Dodatno unaprijediti mobilnu upotrebljivost.**  
+    Admin i agent paneli su responzivni, ali bi nastavak razvoja mogao uključiti PWA pristup, bolje touch akcije,
+    prilagođene bulk kontrole i optimizovan prikaz širokih tabela na manjim ekranima.
 
 ---
 
