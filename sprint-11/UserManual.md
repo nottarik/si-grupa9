@@ -205,21 +205,7 @@ Ekran ima tri kartice: **Run complete pipeline**, **Automatic schedule** i **Liv
 
 ---
 
-## 8. Slike ekrana
-
-> Mjesta za snimke ekrana (umetnuti pri finalnoj predaji):
-> - `[slika: Login stranica]`
-> - `[slika: Chat sa odgovorom i ocjenom]`
-> - `[slika: Eskalacija — pozicija u redu]`
-> - `[slika: Agent panel — Live Queue]`
-> - `[slika: Admin — Pipeline Monitor]`
-> - `[slika: Admin — Knowledge Pending/Approved]`
-
-Aplikacija je vizuelno jednostavna i dostupna na linku iznad, pa se ekrani mogu i direktno pogledati.
-
----
-
-## 9. Objašnjenje ograničenja sistema (šta korisnik NE može raditi)
+## 8. Objašnjenje ograničenja sistema (šta korisnik NE može raditi)
 
 - Chatbot odgovara **samo na pitanja iz domene** (internet, TV, mobilne usluge, naplata, tehnička podrška). Pitanja van domene dobijaju poruku da asistent ne može pomoći.
 - Chatbot **ne izmišlja** odgovore — ako nema pouzdanog izvora u bazi znanja, **eskalira na agenta** umjesto da nagađa.
