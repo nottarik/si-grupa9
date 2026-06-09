@@ -45,7 +45,7 @@ za sve administrativne radnje.)
 
 **Odjava:** preko korisničkog menija (UserMenu) u gornjem desnom uglu → **Logout**.
 
-![Login ekran sa Sign In / Sign Up tabovima](slike/signIn.png)
+<img src="slike/signIn.png" alt="Login ekran sa Sign In / Sign Up tabovima" width="450">
 *Slika 1: Prijava — kartica „Welcome Back" s tabovima Sign In / Sign Up, poljima Email Address i Password (opcija Show), opcijom Keep me signed in i dugmadima Sign In i Create an Account.*
 
 ---
@@ -81,7 +81,7 @@ za sve administrativne radnje.)
 1. Prijavi se kao `user` i otvori **Chat** (`/chat`).
 2. U polje **Please type your inquiry…** upiši pitanje (npr. „How do I reset router?").
    - **Odabir jezika:** pored polja je padajući birač jezika (npr. **BS**) kojim biraš jezik razgovora.
-   - **Diktiranje (glasovni unos):** klikom na ikonu mikrofona (🎤) možeš izdiktirati pitanje umjesto da ga kucaš.
+   - **Diktiranje (glasovni unos):** klikom na ikonu mikrofona (🎤) pitanje se može unijeti glasovnim putem umjesto tekstualnim unosom.
    - Poruku šalješ dugmetom za slanje (ikona aviončića ➤).
    - Ispod polja stoji napomena: „Ambassador may occasionally produce errors. Verify critical information independently."
 3. **Očekivani rezultat:** asistent vraća odgovor zasnovan na bazi znanja. Ako je pouzdanost niska, odgovoru se dodaje napomena o nesigurnosti.
@@ -106,7 +106,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - **Zvučna notifikacija eskalacije:** kada je agent/admin **Online**, zvuk koji javlja da neko čeka u redu čuje se **bilo gdje u sistemu** (na kojoj god stranici da se nalazi). Kada je **Offline**, zvuk se čuje **samo dok je otvorena stranica Escalation Queue** (Live Queue).
    - **Postavke notifikacija (zvonce 🔔 u headeru):** klikom na zvonce otvara se meni **Notifications** s dvije opcije: **Sound on new escalation** (zvučni signal kad stigne nova eskalacija) i **Browser notifications** (obavijesti samog browsera). Svaku uključuješ/isključuješ njenom kvačicom.
 4. Otvori **Live Queue** (prikazuje „X waiting · Y in progress"). Dugme **Refresh** osvježava listu; eskalirani upiti su pod **Waiting Queue** (kad je prazno: „No pending escalations. Go online to receive new chats."). Svaki upit prikazuje broj (npr. **#25**), prioritet (npr. **High**), izvor (npr. **User Requested**), status (npr. **Pending**), tekst upita i koliko je star (npr. „1m ago").
-5. Klikni **Accept** na upitu → otvara se **Active Chat** (zaglavlje npr. „Escalation #25 · Session 28 · User Requested"). Razgovaraš s korisnikom u realnom vremenu (WebSocket): poruku kucaš u polje **Type your message…** i šalješ dugmetom **Send**.
+5. Klikni **Accept** na upitu → otvara se **Active Chat** (zaglavlje npr. „Escalation #25 · Session 28 · User Requested"). Razgovaraš s korisnikom u realnom vremenu (WebSocket): poruku unosiš u polje **Type your message…** i šalješ dugmetom **Send**.
    - **Release** — vrati eskalaciju nazad u red (oslobodi je za drugog agenta) bez rješavanja.
 6. Po potrebi otvori **Knowledge Base** i u polje **Search questions or answers… (min. 2 chars)** upiši pojam pa klikni **Search** da nađeš odobreni odgovor koji pomaže tokom chata.
 7. Kad je problem riješen, klikni **Resolve** — to zatvara eskalaciju (sesija se označava kao riješena, agent se oslobađa, a korisnik se obavještava). Prije zatvaranja otvara se panel za import Q&A parova:
@@ -114,7 +114,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - „Tick the question(s) to import — the agent's reply is pre-filled and editable" — označi pitanja koja želiš importovati (agentov odgovor je već popunjen i može se urediti; ako nema ničega: „No answered customer questions to import yet.").
    - Klikni **Confirm Resolve** da zatvoriš eskalaciju (dugme je aktivno tek kad je označeno bar jedno pitanje, ako importuješ), ili **Cancel** da se vratiš na razgovor.
 
-   ![Resolve panel sa importom Q&A u bazu znanja](slike/addToKnow.png)
+   <img src="slike/addToKnow.png" alt="Resolve panel sa importom Q&A u bazu znanja" width="450">
    *Slika 2: Rješavanje eskalacije — opcija „Add to Knowledge Base (auto-published)", označeno pitanje s pre-popunjenim (i izmjenjivim) agentovim odgovorom i dugme Confirm Resolve.*
 8. Riješene/zatvorene eskalacije vidiš u **My History** (kad je prazno: „No resolved escalations yet.").
 9. **Očekivani rezultat:** sesija je riješena, agent oslobođen, korisnik obaviješten ako je napustio razgovor.
@@ -128,7 +128,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
    - Opciono: unesi ime agenta koji je odgovarao na pitanja u transkriptu i datum vezan za transkript.
    - Klik na **Upload & Process** pokreće obradu.
 
-![Upload ekran — tab Textual](slike/upload.png)
+<img src="slike/upload.png" alt="Upload ekran — tab Textual" width="450">
 *Slika 3: Upload transkripta — tab Textual s opcijama Upload File / Manual Entry, „Drag & drop" zonom (.txt, .pdf, max 10 MB), poljem Agent name (optional), datumom i dugmadima Upload & Process / Clear.*
 
 **B) Audio transkript — tab `Audio`**
@@ -152,7 +152,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
 3. **Pregled unosa:** svaki Q&A par ima oznaku izvora (npr. **Manual Entry**) i datum, te dugmad **Edit** i **Delete** za uređivanje ili brisanje.
 4. **Ručni unos (Add Q&A Pair Manually):** popuni polja **Question** (min. 10 znakova) i **Answer** (min. 10 znakova), pa klikni **Add to Knowledge Base** (ili **Cancel** za odustajanje). Sistem generiše embedding i sprema u Qdrant; duplikati se automatski sprječavaju.
 
-![Training Dataset — ručni unos Q&A para](slike/tra.png)
+<img src="slike/tra.png" alt="Training Dataset — ručni unos Q&A para" width="450">
 *Slika 4: Training Dataset (Knowledge Base) — forma „Add Q&A Pair Manually" s poljima Question i Answer (min. 10 znakova) i dugmadima Add to Knowledge Base / Cancel.*
 
 ### 6.7 Administrator — dashboard, korisnici, ocjene, issues, transkripti, logovi, obavijesti
@@ -161,7 +161,7 @@ Agent radi u **Agent Console** (`/agent`) s bočnim menijem: **Dashboard, Live Q
 - **Ratings (Ratings Overview):** kartice **Average Score**, **5-Star Responses (%)**, **Below 3 Stars (%)** i **Total Rated**; grafik **Score Trend — Last 14 Days**; lista **Top Rated Responses** (pitanje, odgovor, % confidence, datum) i **Recent User Comments** (ocjena, komentar, datum, link **View Chat**).
 - **Escalation Queue:** isti red eskalacija kao u agentskom panelu (**Waiting Queue** s upitima — broj, prioritet, izvor, status, vrijeme; **Accept** za preuzimanje, **Active Chat** s **Release/Resolve**). Admin tako može pratiti i preuzeti eskalacije pored agenata (detaljan tok opisan je u 6.4). Ako je razgovor već preuzeo drugi agent, prikazuje se zaključanim („Locked by … — view only", „Chat is locked — you can only view this conversation") pa ga admin može samo pregledati.
 
-  ![Admin Escalation Queue — zaključan razgovor (view only)](slike/esc.png)
+  <img src="slike/esc.png" alt="Admin Escalation Queue — zaključan razgovor (view only)" width="450">
   *Slika 5: Escalation Queue u Admin panelu — pregled eskalacije koju je preuzeo agent; razgovor je zaključan („Locked by Agent Test — view only") i dostupan samo za čitanje.*
 - **Issues:** anomalije (niska pouzdanost, bez odgovora, negativan feedback). Filteri **All / Open / Resolved / Dismissed**, pretraga (**Search issues…**) i tabela s kolonama **#, Title, Type, Severity, Status, Date**; brojač ukupnih (npr. „0 total" → „No issues found.").
 - **Transcripts:** lista uploadovanih transkripata s kolonama **Name, Date, Format** (Text/Audio), **Status** (npr. Processed). Pretraga (**Search by name, agent or keywords…**), filter **All statuses** i raspon **Date from/to**. Po redu: **View** (pregled), ikona za uređivanje (✎) i ikona kante (🗑) za brisanje; checkboxovi za bulk odabir.

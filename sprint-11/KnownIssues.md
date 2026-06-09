@@ -15,6 +15,8 @@ nedovršenih funkcionalnosti kao završenih.
 | B3 | PII regex može propustiti nestandardne formate | Rijedak rizik curenja nestandardnog PII | Checksum (JMBG) + prošireni regex; LLM scrubber + regex safety net na izlazu |
 | B4 | Kratki prekidi Groq/Qdrant servisa | Privremeno više fallback/eskalacija odgovora | Retry pri startu (Qdrant), graceful degradacija; eskalacija na agenta |
 | B5 | Lažno pozitivno maskiranje imena (npr. obična riječ kao `[PERSON_1]`) | Rijetko neprirodan tekst u izvoru | Ispravljano u Sprintu 10; scrubber čisti placeholdere iz baze znanja |
+| B6 | Ako se pri transkripciji ručno odabere jezik različit od stvarnog jezika audia, transkript može biti pogrešno preveden/transkribovan | Netačan sadržaj transkripta, posljedično i Q&A parova | Preporuka: koristiti **Auto / detect language**; jezik se može ručno ispraviti prije obrade |
+| B7 | Glasovni unos (diktiranje) na bosanskom povremeno pogrešno pretvori govor u tekst | Netačno formulisano pitanje iz glasovnog unosa | Korisnik može provjeriti i ispraviti tekst prije slanja; pouzdanije na engleskom |
 
 Nijedan poznati bug ne blokira osnovne korisničke tokove (chat, eskalacija, upload, kuriranje, deployment).
 
